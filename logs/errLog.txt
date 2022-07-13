@@ -1,0 +1,6 @@
+20220712	18:40:54	a34a050d-ad50-47d5-ace8-7bc7e1f56b72	Error: ENOENT: no such file or directory, stat 'C:\Users\nguem\OneDrive\Documents\Desktop\cryptoinvestor\views\index.html'
+20220712	18:42:12	91c58a31-5617-49f1-ad8b-cd035a7d66f6	Error: ENOENT: no such file or directory, stat 'C:\Users\nguem\OneDrive\Documents\Desktop\cryptoinvestor\views\index.html'
+20220712	18:57:04	3015a221-be7f-49eb-b836-932f5e7908b1	Error: Not allowed by CORS
+20220712	20:35:14	c4e5aa7d-4d9f-4836-acaf-6c7d34e74540	Error: ENOENT: no such file or directory, stat 'C:\Users\nguem\OneDrive\Documents\Desktop\public\views\register.html'
+20220712	20:36:51	8b69339d-7f68-49bf-b45e-4df22f980489	Error: ENOENT: no such file or directory, stat 'C:\Users\nguem\OneDrive\Documents\Desktop\public\views\register.html'
+20220712	20:37:26	ef53a4e2-dcae-496f-b78a-09235683d448	Error: ENOENT: no such file or directory, stat 'C:\Users\nguem\OneDrive\Documents\Desktop\public\views\register.html'
