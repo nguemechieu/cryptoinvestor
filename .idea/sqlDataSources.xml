@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DdlMappings">
+    <mapping uuid="a6228be5-42e3-4032-8f16-3d1ea81a1f20" name="cryptoService@localhost Mapping">
+      <data-sources db="ecd0c9d2-35a4-476d-a4b2-832e65e756db" ddl="8dc4ac1f-d7e7-425c-ba5b-5caec7971f7a" />
+    </mapping>
+  </component>
+  <component name="SqlDataSourceStorage">
+    <option name="dataSources">
+      <list>
+        <State>
+          <option name="id" value="8dc4ac1f-d7e7-425c-ba5b-5caec7971f7a" />
+          <option name="name" value="cryptoService@localhost (DDL)" />
+          <option name="languageId" value="MySQL" />
+          <option name="urls">
+            <array>
+              <option value="file://$PROJECT_DIR$" />
+            </array>
+          </option>
+        </State>
+      </list>
+    </option>
+  </component>
+</project>
