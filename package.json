@@ -18,7 +18,7 @@
   "description": "To run this script, you should type",
   "main": "app.js",
   "scripts": {
-    "api": "nodemon  server/server.js",
+    "api": "nodemon  ./_server/server.js",
     "test": "api"
   },
   "repository": {
