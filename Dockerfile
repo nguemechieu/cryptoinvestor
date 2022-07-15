@@ -1,14 +1,12 @@
 # Filename: Dockerfile
-FROM ubuntu
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends mysql-client \
-    && rm -rf /var/lib/apt/lists/*
-ENTRYPOINT ["mysql"]
-WORKDIR _server/server.js
-COPY package*.json ./
-FROM node
-RUN npm install
 
+FROM node:latest
+
+WORKDIR bin/www.js
+RUN npm install -g npm@8.14.0
+RUN  yarn
+COPY package*.json ./
 COPY . .
 EXPOSE 4000
-CMD ["npm", "run api"]
+CMD ["npm", "run"]
+

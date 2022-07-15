@@ -18,7 +18,8 @@
   "description": "To run this script, you should type",
   "main": "app.js",
   "scripts": {
-    "api": "nodemon  ./_server/server.js",
+    "api": "nodemon  ./bin/www.js",
+    "start": "node ./bin/www.js",
     "test": "api"
   },
   "repository": {
@@ -26,7 +27,8 @@
     "url": "git+https://github.com/nguemechieu/cryptoinvestor.git"
   },
   "keywords": [
-    "api"
+    "api",
+    "start"
   ],
   "author": "nguemechieu noel martial",
   "license": "MIT",
