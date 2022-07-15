@@ -1,12 +1,12 @@
-
-version: 'latest'
- services:
-   cryptoinvestor-service:
-     build: ./cryptoinvestor
-     volume:
-       - cryptoinvestor:/usr/bin/cryptoinvestor/_server/server.js
-
-         name: cryptoinvestor
-         port: 4000:4000
+version: "3.9"
+services:
+  webapp:
+     image:      https://github.com/nguemechieu/cryptoinvestor
 
 
+  database:
+
+    image: redis
+
+
+    build: ./_server

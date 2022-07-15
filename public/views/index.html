@@ -126,14 +126,40 @@
     </style>
     <title></title>
 </head>
-<body>
+
 
 <h2>Crypto-Investor</h2>
+<body><script type="text/javascript">
+    function startTime()
+    {
+        var today=new Date();
+        var h=today.getHours();
+        var m=today.getMinutes();
+        var s=today.getSeconds();
+// add a zero in front of numbers<10
+        m=checkTime(m);
+        s=checkTime(s);
+        document.getElementById('txt').innerHTML=h+":"+m+":"+s;
+        t=setTimeout('startTime()',500);
+    }
+    function checkTime(i)
+    {
+        if (i<10)
+        {
+            i="0" + i;
+        }
+        return i;
+    }
+</script>
 
+    <h3 onload="startTime()">
+    <div id="txt"></div></h3>
+<h3>
+<div class="buttons" >
 <button onclick="document.getElementById('id01').style.display='block'" style="width:auto;">Login</button>
 
 <button onauxclick="document.getElementById('id02').style.display='block'" style="width:auto;">Register</button>
-
+</div>
 <div id="id01" class="modal">
 
     <form class="modal-content animate" action="/auth/login" method="post" >
@@ -184,6 +210,8 @@
         }
     }
 </script>
+
+</h3>
 
 </body>
 </html>
