@@ -2,11 +2,11 @@
   "database": {
 
 
-    "host": "localhost",
-    "port": "3306",
-    "user": "nguemechieu",
-    "password": "0304",
-    "database": "CryptoService"
+    "host": "db-mysql-nyc1-57018-do-user-11605945-0.b.db.ondigitalocean.com",
+    "port": "25060",
+    "user": "doadmin",
+    "password": "AVNS_49YtICxzVJiOyngmFfr",
+    "database": "cryptoinvestor"
 
 
 

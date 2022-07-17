@@ -1,13 +1,5 @@
+const db= require('../config/dbConn');
 
-module.exports= registerPage ;
-
-const db =require("../config/dbConn");
-
-function registerPage(req,res,next) {
-    res.sendFile("public/views","register.html");
-}
-
-const User = require('../models/User');
 const bcrypt = require('bcrypt');
 
 const handleNewUser = async (req, res) => {
@@ -15,7 +7,7 @@ const handleNewUser = async (req, res) => {
     if (!user || !pwd) return res.status(400).json({ 'message': 'Username and password are required.' });
 
     // check for duplicate usernames in the db
-    const duplicate = await User.findOne({ username: user }).exec();
+    const duplicate = await db.User.findOne({ username: user }).exec();
     if (duplicate) return res.sendStatus(409); //Conflict 
 
     try {
@@ -23,7 +15,7 @@ const handleNewUser = async (req, res) => {
         const hashedPwd = await bcrypt.hash(pwd, 10);
 
         //create and store the new user
-        const result = await User.create({
+        const result = await db.User.create({
             "username": user,
             "password": hashedPwd
         });

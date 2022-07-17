@@ -1,24 +1,19 @@
-
-
-const User = require('../models/User');
-
 const config = require('../config.database.json');
 const mysql = require('mysql2/promise');
 const { Sequelize } = require('sequelize');
 
+const User = require('../models/User');
+
+const Employee = require('../models/Employee');
+
 
 
 module.exports = db = {};
-
+module.exports=db.User;
+module.exports=db.Employee;
 initialize().then(r => "");
 
-class Employee extends User{
-    constructor(sequelize) {
-        super(User, User, User, sequelize);
 
-    }
-
-}
 
 async function initialize(){
 
@@ -33,14 +28,10 @@ async function initialize(){
     // connect to db
     const sequelize = new Sequelize(database, user, password, {dialect: 'mysql'});
 
-
-
-    db.User = new User(sequelize);
-    db.Employee = new Employee(sequelize);
-
-
+    db.User =  User(sequelize);
+    db.Employee =  Employee(sequelize);
 
     await sequelize.sync({ alter: true });
 }
 
-console.log(db.UserInfo);
+console.log(db.User);
