@@ -1,9 +1,10 @@
-const User = require('../models/User');
 
+const User = require('../model/User');
+const path = require("path");
 const getAllUsers = async (req, res) => {
-    const users = await User.findOne(req.params.user);
-    if (!users) return res.status(204).json({ 'message': 'No users found' });
-    res.json(users);
+    const user = await User.findOne({ _id: req.body.id})
+    if (!user) return res.status(204).json({ 'message': 'No users found' });
+    res.json(user);
 }
 
 const deleteUser = async (req, res) => {
@@ -12,7 +13,7 @@ const deleteUser = async (req, res) => {
     if (!user) {
         return res.status(204).json({ 'message': `User ID ${req.body.id} not found` });
     }
-    const result = await user.delete({ _id: req.body.id });
+    const result = await User.deleteOne({ _id: req.body.id });
     res.json(result);
 }
 
@@ -24,7 +25,10 @@ const getUser = async (req, res) => {
     }
     res.json(user);
 }
+exports. homePage =async (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'views', 'homePage.html'));
 
+}
 module.exports = {
     getAllUsers,
     deleteUser,

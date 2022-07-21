@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="cryptoinvestor@db-mysql-nyc1-57018-do-user-11605945-0.b.db.ondigitalocean.com" uuid="ebb76c92-280e-4dcf-95e8-d7e09eb76785">
+    <data-source source="LOCAL" name="defaultdb@db-mysql-nyc1-57018-do-user-11605945-0.b.db.ondigitalocean.com" uuid="ebb76c92-280e-4dcf-95e8-d7e09eb76785">
       <driver-ref>mysql.8</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>com.mysql.cj.jdbc.Driver</jdbc-driver>
-      <jdbc-url>jdbc:mysql://db-mysql-nyc1-57018-do-user-11605945-0.b.db.ondigitalocean.com:25060/cryptoinvestor</jdbc-url>
+      <jdbc-url>jdbc:mysql://db-mysql-nyc1-57018-do-user-11605945-0.b.db.ondigitalocean.com:25060/defaultdb</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
     </data-source>
   </component>

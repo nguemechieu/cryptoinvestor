@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DdlMappings">
+    <mapping uuid="a5ce9ee8-3069-4c79-ae0b-9273f7d4b3d9" name="cryptoinvestor@db-mysql-nyc1-57018-do-user-11605945-0.b.db.ondigitalocean.com Mapping">
+      <data-sources db="ebb76c92-280e-4dcf-95e8-d7e09eb76785" ddl="3d124a5d-efe5-48b3-b1ad-7bc4be4a8894" />
+      <scope>
+        <node kind="schema" qname="cryptoinvestor" />
+      </scope>
+    </mapping>
+  </component>
+  <component name="SqlDataSourceStorage">
+    <option name="dataSources">
+      <list>
+        <State>
+          <option name="id" value="3d124a5d-efe5-48b3-b1ad-7bc4be4a8894" />
+          <option name="name" value="cryptoinvestor@db-mysql-nyc1-57018-do-user-11605945-0.b.db.ondigitalocean.com (DDL)" />
+          <option name="languageId" value="MySQL" />
+          <option name="urls">
+            <array>
+              <option value="file://$PROJECT_DIR$" />
+            </array>
+          </option>
+        </State>
+      </list>
+    </option>
+  </component>
+</project>

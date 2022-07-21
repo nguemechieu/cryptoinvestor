@@ -1,41 +1,33 @@
 {
   "name": "cryptoinvestor",
   "version": "1.0.0",
+  "description": "Trade management application",
+  "main": ".bin/www.js",
+  "scripts": {
+    "start": "node .bin/www.js",
+    "api": "nodemon .bin/www.js"
+  },
+  "author": "Noel Martial Nguemechieu",
+  "license": "ISC",
+  "engines": {
+    "node": "16"
+  },
   "dependencies": {
     "bcrypt": "^5.0.1",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "date-fns": "^2.28.0",
-    "debug": "^4.3.4",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^2.3.3",
-    "nodemon": "^2.0.19",
+    "promise": "^8.1.0",
     "sequelize": "^6.21.3",
     "swagger-jsdoc": "^6.2.1",
     "swagger-ui-express": "^4.5.0",
     "uuid": "^8.3.2"
   },
-  "description": "To run this script, you should type",
-  "main": "./bin/www",
-  "scripts": {
-    "api": "nodemon  bin/www",
-    "start": "node bin/www",
-    "test": "api"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/nguemechieu/cryptoinvestor.git"
-  },
-  "keywords": [
-    "api",
-    "start"
-  ],
-  "author": "nguemechieu noel martial",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/nguemechieu/cryptoinvestor/issues"
-  },
-  "homepage": "https://github.com/nguemechieu/cryptoinvestor#readme"
+  "devDependencies": {
+    "nodemon": "^2.0.19"
+  }
 }
