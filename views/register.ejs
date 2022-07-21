@@ -7,29 +7,32 @@
 </head>
 
 <h1>Registration</h1>
-
-
+<body>
+<div class="section">
 <form action="/auth/register" method="post" >
-    <div class="containers  container-fluidity">
-    <div class="container">
+    <div class="containers">
+
 
         <p>Please fill in this form to create your account.</p>
         <hr>
 
         <label for="usernameId">Username:</label><input type="text" id="usernameId" placeholder="Enter Username" required />
-        <div class="input-container">
+            <label for="firstNameId">FirstName:</label><input type="text" id="firstNameId" placeholder="Enter firstname">
+            <label for="lastNameId">LastName:</label><input type="text" id="lastNameId" placeholder="Enter lastName">
             <i class="fa fa-key icon"></i>
             <label for="emailId">Email :</label><input class="input-field" type="email" id="emailId" placeholder="Enter email" autocomplete="off" name="email" required>
-        </div>
+
 
         <label for="roleId">Role:</label>
-
+     <div class="input-field" id="roleId" placeholder="Enter roleId" autocomplete="off" name="roleId" required>
         <select name="Role" id="roleId">
             <option value="Admin">Admin</option>
             <option value="Manager">Manager</option>
             <option value="User">User</option>
             <option value="Employee">Employee</option>
         </select>
+     </div>
+    </div>
 
         <div class="input-container">
             <i class="fa fa-key icon"></i>
@@ -54,14 +57,14 @@
         }}
                 checkdata()">Register</button>
 
-    </div>
 
     <div class="container signing">
-        <p>Already have an account? <a href="/public">Login</a>.</p>
+        <p>Already have an account? <a href="/">Login</a>.</p>
     </div>
-      </div>
-</form>
 
+</form>
+</div>
+</body>
 
 <footer id="footer">
     <a href="https://creativecommons.org/licenses/by-nc/">about</a>

@@ -6,6 +6,7 @@
       <script value="api" />
     </scripts>
     <node-interpreter value="project" />
+    <package-manager value="yarn" />
     <envs />
     <method v="2" />
   </configuration>

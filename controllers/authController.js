@@ -1,18 +1,17 @@
-const db = require("../_helpers/db");
+const User= require("../_helpers/db");
 
-const User = db.User;
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 
-const handleLogin = async (req, res) => {
+exports. handleLogin = async (req, res,next) => {
     const cookies = req.cookies;
 
     const { user, pwd } = req.body;
     if (!user || !pwd) return res.status(400).json({ 'message': 'Username and password are required.' });
 
     const foundUser = await User.findOne({ username: req.body.username, password: req.body.password }).exec();
- //   if (!foundUser) return res.status(403).send({ 'message': 'Incorrect Username or password !' }); //Unauthorized
+   if (!foundUser) return res.status(403).send({ 'message': 'Incorrect Username or password !' }); //Unauthorized
     // evaluate password 
     const match = await bcrypt.compare(pwd, foundUser.password);
     if (match) {
@@ -78,4 +77,3 @@ const handleLogin = async (req, res) => {
     }
 }
 
-module.exports = { handleLogin };

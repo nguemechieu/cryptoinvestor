@@ -2,7 +2,7 @@
 <!DOCTYPE html>
 <html lang="en">
  <meta charset="UTF-8"   />
- <link rel="stylesheet" href="../public/stylesheets/index.css" />
+ <link rel="stylesheet" href="../public/stylesheets/style.css" />
 <head>
     <title>CryptoInvestor</title>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
@@ -12,26 +12,26 @@
 </head>
 <h1>Welcome to CryptoInvestor</h1>
 <body>
-
+<div class="container">
 <form action="/auth/login" method="post" name="form1">
 
-    <div class="form-group">
+    <div class="form-group" >
         <label for="email">Email:</label><input type="email" name="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="email or username" value="">
-    </div>
-    <div class="form-group">
+
         <label for="password">Password:</label><input type="password" name="password" class="form-control" id="password" aria-describedby="emailHelp" placeholder="*********" value="">
-    </div>
+
     <input type="submit" class="btn btn-primary" value="Sign In" />
     <input type="submit" class="btn btn-primary" formaction="/register" value="Sign Up" name="form2"/>
-
+    </div>
     <label>Remember Me?
         <input type="checkbox"  value="rememberMe" name="rememberMe" class="rememberMe" placeholder="Remember Me?" onclick="let email=document.getElementById('email').value;
         email.rememberMe();" />
     </label>
 
-    <p><a href="/forgotPassword">forgot password?click here!</a>
+    <p><a href="/forgotPassword" methods="get"> forgot password?click here!</a>
     </p>
 
 </form>
+</div>
 </body>
 </html>

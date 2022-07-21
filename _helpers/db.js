@@ -36,3 +36,5 @@ const sequelize = new Sequelize(database, user, password,{
     await sequelize.sync({ alter: true });
 }
 
+module.exports = db.User;
+module.exports = db.Employee
