@@ -2,7 +2,7 @@
 const express = require('express');
 const router = express.Router();
 
-router.route('/auth/home').get((req, res) => {
+router.get('/auth/home',(req, res) => {
 
     res.render('home', { title  : 'Home' });
 });

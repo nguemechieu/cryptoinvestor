@@ -1,10 +1,10 @@
 const express = require('express');
 const router = express.Router()
+const path = require('path');
 
-router.route('/').get((req,res,next) => {
+router.get('^/$|/index(.ejs)?', (req, res) => {
+res.render('index.ejs', { title : 'CryptoInvestor '})
 
-    res.render('index.ejs', { title : 'CryptoInvestor '})
-    next();
 
 });
 
