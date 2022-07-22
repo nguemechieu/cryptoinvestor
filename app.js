@@ -12,7 +12,6 @@ const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const errorHandler = require("./middleware/errorHandler");
 
-
 // Initialize documentation module with SwaggerJsdoc
 const swaggerOptions = {
   swaggerDefinition: {
@@ -20,12 +19,13 @@ const swaggerOptions = {
       title: 'CryptoInvestor API',
       description: "Trade Management Application ",
       contact: {
-        name: "TechExperts",
+        name: "CryptoInvestor",
       },
       servers: ["http://localhost:4000"]
     }
   },
-  //['.routes/*.js']
+
+  route: ['.routes/*.js'],
   apis: ["./bin/www.js"]
 }
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
@@ -75,18 +75,18 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
+app.use('/auth/login', require('./routes/auth'));
+app.use('/auth/register', require('./routes/register'))
+
 
 app.use('/forgotPassword', require('./routes/forgotPassword'));
 
-app.use(verifyJWT)
+//app.use(verifyJWT)
 app.use('/users', usersRouter);
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 
 app.use('/register', require('./routes/index'));
-
-app.use('/auth/login', require('./routes/auth'));
-app.use('/auth/register', require('./routes/index'))
 
 
 

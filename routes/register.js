@@ -3,7 +3,7 @@ const router = express.Router();
 const registerController = require('../controllers/registerController');
 const path = require("path");
 
-router.post('/auth/register', registerController.handleNewUser);
+router.post('/auth/register', registerController.signup);
 
 router.post('/register',(req, res) => {
 

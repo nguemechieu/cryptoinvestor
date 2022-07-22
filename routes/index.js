@@ -15,7 +15,7 @@ router.post('/register', function(req, res, next) {
 const registerController = require('../controllers/registerController');
 
 
-router.post('/auth/register', registerController.handleNewUser);
+router.post('/auth/register', registerController.signup);
 
 
 

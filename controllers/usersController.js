@@ -1,36 +1,62 @@
 
-const User = require('../model/User');
-const path = require("path");
-const getAllUsers = async (req, res) => {
-    const user = await User.findOne({ _id: req.body.id})
-    if (!user) return res.status(204).json({ 'message': 'No users found' });
-    res.json(user);
-}
+const Joi = require('joi');
+const validateRequest = require('../middleware/validate-request');
+const Role = require('../config/roles_list');
+const bcrypt = require('bcrypt');
+const fs = require('fs');
+const User = require('../model/User')
+const db = require('../_helpers/db');
+const jwt = require('jsonwebtoken');
 
-const deleteUser = async (req, res) => {
-    if (!req?.body?.id) return res.status(400).json({ "message": 'User ID required' });
-    const user = await User.findOne({ _id: req.body.id }).exec();
-    if (!user) {
-        return res.status(204).json({ 'message': `User ID ${req.body.id} not found` });
-    }
-    const result = await User.deleteOne({ _id: req.body.id });
-    res.json(result);
-}
 
-const getUser = async (req, res) => {
-    if (!req?.params?.id) return res.status(400).json({ "message": 'User ID required' });
-    const user = await User.findOne({ _id: req.params.id }).exec();
-    if (!user) {
-        return res.status(204).json({ 'message': `User ID ${req.params.id} not found` });
-    }
-    res.json(user);
-}
-exports. homePage =async (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'views', 'homePage.html'));
+exports.getAll = (req, res, next) => {
+  db.User.find({where:{username: req.body.username||  req.body.password}})
+      .then((user) => {res.json(user)})
 
 }
-module.exports = {
-    getAllUsers,
-    deleteUser,
-    getUser
+
+exports.getById = async (req, res, next) => {
+   db.User.findOne( {where:{id: req.params.id}})
+       .then(user => res.json(user))
+       .catch(next);
+}
+
+exports.delete = (req, res, next) => {
+   db.User.findByPk(req.params.id)
+     .then(user =>{
+       if (!user) {
+         return res.status(401).json({ error: 'User not found!' });
+       }
+       user.destroy()
+       .then(() => res.json({ message: 'User deleted' }))
+       .catch(next);
+     })
+}
+
+// schema functions
+
+exports.createSchema = (req, res, next) => {
+   const schema = Joi.object({
+
+       firstName: Joi.string().required(),
+       lastName: Joi.string().required(),
+       role: Joi.string().valid(Role.Admin, Role.User,Role.Editor).required(),
+       email: Joi.string().email().required(),
+       password: Joi.string().min(6).required(),
+       confirmPassword: Joi.string().valid(Joi.ref('password')).required()
+   });
+   validateRequest(req, next, schema);
+}
+
+exports.updateSchema = (req, res, next) => {
+   const schema = Joi.object({
+
+       firstName: Joi.string().empty(''),
+       lastName: Joi.string().empty(''),
+       role: Joi.string().valid(Role.Admin, Role.User).empty(''),
+       email: Joi.string().email().empty(''),
+       password: Joi.string().min(6).empty(''),
+       confirmPassword: Joi.string().valid(Joi.ref('password')).empty('')
+   }).with('password', 'confirmPassword');
+   validateRequest(req, next, schema);
 }

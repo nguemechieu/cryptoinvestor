@@ -1,33 +1,41 @@
+const bcrypt = require("bcrypt");
+const {db} = require("../_helpers/db");
+
+exports.signup = async (req, res, next) => {
+
+    // validate
+    db.User.findOne({ where: { email: req.body.email } })
+        .then(async user => {
+            if(!user){
+                const data ={
+
+                    email: req.body.email,
+                    passwordHash: req.body.passwordHash,
+                    confirmPassword: req.body.confirmPassword,
+                    username: req.body.username,
+                    firstName: req.body.firstName,
+                    lastName: req.body.lastName,
+                    middleName: req.body.middleName,
+                    role: req.body.role
 
 
-const User = require('../model/User');
-const bcrypt = require('bcrypt');
 
 
-const handleNewUser = async (req, res) => {
-    const { user, pwd } = req.body;
-    if (!user || !pwd) return res.status(400).json({ 'message': 'Username and password are required.' });
+                }
+                const user = db.User[data];
+                // hash password
+                //
 
-    // check for duplicate usernames in the db
-    const duplicate = await User.findOne({ username: user.username }).exec();
-    if (duplicate) return res.sendStatus(409); //Conflict 
+                let password= await bcrypt.hash(user.passwordHash, 10);
+                // save user
+                await user.save(password)
+                    .then(() => res.json({ message: 'User'+user.username+' created' }))
+                    .catch(next);
+            }
+            else {
+                return res.json({message: 'Email already used'})
+            }
+        })
+        .catch(next)
 
-    try {
-        //encrypt the password
-        const hashedPwd = await bcrypt.hash(pwd, 10);
-
-        //create and store the new user
-        const result = await User.create({
-            "username": user.username,
-            "password": hashedPwd
-        });
-
-        console.log(result);
-
-        res.status(201).json({ 'success': `New user ${user.username} created!` });
-    } catch (err) {
-        res.status(500).json({ 'message': err.message });
-    }
 }
-
-module.exports = { handleNewUser };

@@ -1,8 +1,23 @@
 body {
   padding: 50px;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+
+
 }
+form{
+position:relative;
+  margin-top:200px;
+margin-left:70px; ;
+  background: wheat;
+}
+
 
 a {
   color: #00B7FF;
 }
+
+html{
+justify-content: center;
+  background-color: #00B7FF;
+}
+

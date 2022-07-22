@@ -1,3 +1,5 @@
+
+
 module.exports = {
 
     HOST: "db-mysql-nyc1-57018-do-user-11605945-0.b.db.ondigitalocean.com",
@@ -22,5 +24,13 @@ module.exports = {
         idle: 10000
 
     }
+
+
+
+
+
+
+
+
 
 };

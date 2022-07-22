@@ -1,5 +1,5 @@
-const authController = require("../controllers/usersController");
+const authController = require("../controllers/loginController");
 const router = require("./root");
 
-router.route('/auth/home').get(authController.homePage);
+router.route('/auth/home').get(authController.login);
 

@@ -15,12 +15,13 @@
     <inspection_tool class="HtmlUnknownAttribute" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="5">
+          <list size="6">
             <item index="0" class="java.lang.String" itemvalue="logo" />
             <item index="1" class="java.lang.String" itemvalue="stylesheets" />
             <item index="2" class="java.lang.String" itemvalue="router.route(" />
             <item index="3" class="java.lang.String" itemvalue="register" />
             <item index="4" class="java.lang.String" itemvalue="name" />
+            <item index="5" class="java.lang.String" itemvalue="formaction" />
           </list>
         </value>
       </option>
@@ -29,7 +30,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="9">
+          <list size="10">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -39,6 +40,7 @@
             <item index="6" class="java.lang.String" itemvalue="h1" />
             <item index="7" class="java.lang.String" itemvalue="label" />
             <item index="8" class="java.lang.String" itemvalue="input" />
+            <item index="9" class="java.lang.String" itemvalue="dialog-content" />
           </list>
         </value>
       </option>

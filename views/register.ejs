@@ -15,53 +15,70 @@
 
         <p>Please fill in this form to create your account.</p>
         <hr>
+    <div class="form-group">
+        <label for="username">userName:</label><input type="text" name="username" id="username" value="noel" placeholder="Enter Username" required />
+    </div>
 
-        <label for="usernameId">Username:</label><input type="text" id="usernameId" placeholder="Enter Username" required />
-            <label for="firstNameId">FirstName:</label><input type="text" id="firstNameId" placeholder="Enter firstname">
-            <label for="lastNameId">LastName:</label><input type="text" id="lastNameId" placeholder="Enter lastName">
-            <i class="fa fa-key icon"></i>
+        <div class="form-group">
+            <label for="firstName">FirstName:</label>
+            <input type="text" NAME="firstName" id="firstName" value="noel" placeholder="Enter First Name" required />
+
+        </div>
+        <div class="form-group">
+            <label for="lastName">LastName:</label><input type="text" id="lastName" placeholder="Enter lastName" value="Noel307" required />
+        </div>
+        <div class="form-group">
+        <label>middleName
+            <input type="text" name="middleName"  placeholder="Enter middleName" value="Martial">
+        </label>
+        </div>
+        <div class="form-group">
+        <i class="fa fa-key icon">
             <label for="emailId">Email :</label><input class="input-field" type="email" id="emailId" placeholder="Enter email" autocomplete="off" name="email" required>
 
-
-        <label for="roleId">Role:</label>
-     <div class="input-field" id="roleId" placeholder="Enter roleId" autocomplete="off" name="roleId" required>
-        <select name="Role" id="roleId">
+        </i>
+        </div>
+     <div class="form-group">
+        <label for="roleId">role:</label>
+    <select name="role" id="roleId" onselect="return select.value">
             <option value="Admin">Admin</option>
             <option value="Manager">Manager</option>
             <option value="User">User</option>
             <option value="Employee">Employee</option>
         </select>
      </div>
-    </div>
+
+
 
         <div class="input-container">
             <i class="fa fa-key icon"></i>
-            <label>Password:
-                <input class="input-field" type="password" placeholder="Password" name="psw"  required>
+            <label>Password
+                <input class="input-field" type="password" placeholder="Password" name="password" value="Noel307#"  required>
             </label>
         </div>
-        <label for="psw-repeat"><b>Repeat Password:</b>
+        <label for="confirmPasswordId"><b>confirmPassword:</b>
         </label>
-        <input type="password" placeholder="Repeat Password" name="psw-repeat" id="psw-repeat" required>
+        <input type="password" placeholder="confirmPassword"  id="confirmPasswordId" name="confirmPassword" value="Noel307#" required>
         <hr>
 
         <p>By creating an account you agree to our <a href="/terms">Terms & Privacy</a>.</p>
-        <button type="submit"
+        <input type="submit"
                 onsubmit="
+                checkdata(req,response)
 
                 function checkdata(req, res) {
                     req.role=document.getElementById('roleId').value;
-              if((document.getElementById('password').value)!==(document.getElementById('psw-repeat').value)) {
+              if((document.getElementById('password').value)!==(document.getElementById('confirmPasswordId').value)) {
               res.status(403).send({message: 'Password confirmPassword not match'});
 
         }}
-                checkdata()">Register</button>
+          " name="Register" value="Register">
 
 
     <div class="container signing">
         <p>Already have an account? <a href="/">Login</a>.</p>
     </div>
-
+    </div>
 </form>
 </div>
 </body>
