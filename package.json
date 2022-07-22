@@ -15,7 +15,7 @@
   },
   "scripts": {
     "api": "nodemon .bin/www",
-    "start": "node  .bin/www",
+    "start": "node .bin/www",
     "devStart": "node .bin/www"
   },
   "dependencies": {

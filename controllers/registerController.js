@@ -3,34 +3,22 @@ const bcrypt = require("bcrypt");
 
 
 const db = require("../_helpers/db");
+const Joi = require("joi");
+const validateRequest = require("../middleware/validate-request");
+const Role = require("../_helpers/role");
 
-exports.signup =  async (req, res) => {
-    const { user, pwd } = req.body;
-    if (!user || !pwd) return res.status(400).json({ 'message': 'Username and password are required.' });
+exports.signup =
+    exports.createUser= (req, res, next) => {
+        const schema = Joi.object({
+            username: Joi.string().required(),
+            firstName: Joi.string().required(),
+            middleName: Joi.string().required(),
+            lastName: Joi.string().required(),
+                 email: Joi.string().email().required(),
+            password: Joi.string().min(6).required(),
+            confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
+            role: Joi.string().valid(Role.Admin, Role.User,Role.Managers,Role.Editor,Role.Employee).required(),
 
-    // check for duplicate usernames in the db
-    const duplicate = await db.User.findOne({ username: user }).exec();
-    if (duplicate) return res.sendStatus(409); //Conflict
-
-    try {
-        //encrypt the password
-        const hashedPwd = await bcrypt.hash(pwd, 10);
-
-        //create and store the new user
-        const result = await db. User.create({
-            "username": user,
-            "password": hashedPwd,
-            "email": user.email,
-            "firstName": user.firstName,
-            "lastName": user.lastName,
-            "middleName": user.middleName,
-            "role": user.role
         });
-
-        console.log(result);
-
-        res.status(201).json({ 'success': `New user ${user} created!` });
-    } catch (err) {
-        res.status(500).json({ 'message': err.message });
+        validateRequest(req, next, schema);
     }
-}
