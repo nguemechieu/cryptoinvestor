@@ -1,0 +1,22 @@
+version: latest
+services:
+  webapp:
+     image:  cryptoinvestor-image
+
+
+database:
+
+    image: mysql
+
+
+build: ./bin/www.js
+    name:  cryptoinvestor
+      port: 4000
+
+        protocol: http
+         host: localhost
+          path: /etc/cryptoinvestor/conf.d
+            secure: truedoc
+              env: 4000
+                  websocket: 4000
+

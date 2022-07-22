@@ -2,77 +2,76 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const {db} = require("../_helpers/db");
 
-const Joi = require('joi')
+exports.login = async (req, res) => {
+    const cookies = req.cookies;
 
-//User-defined function to validate the user
-function validateUser(user)
-{
-    const JoiSchema = Joi.object({
+    const { user, pwd } = req.body;
+    if (!user || !pwd) return res.status(400).json({ 'message': 'Username and password are required.' });
 
-        username: Joi.string()
-            .min(5)
-            .max(30)
-            .required(),
+    const foundUser = await db.User.findOne({ username: req.body.username, password: req.body.password }).exec();
+    if (!foundUser) return res.status(403).send({ 'message': 'Incorrect Username or password !' }); //Unauthorized
+    // evaluate password
+    const match = await bcrypt.compare(pwd, foundUser.password);
+    if (match) {
+        const roles = Object.values(foundUser.role).filter(Boolean);
+        // create JWTs
+        const accessToken = jwt.sign(
+            {
+                "User": {
+                    "username": foundUser.username,
+                    "email": foundUser.email,
+                    "password": foundUser.passwordHash,
+                    "role": roles
+                }
+            },
+            "noel307",
+            process.env.ACCESS_TOKEN_SECRET,
+            { expiresIn: '10s' }
+        );
+        const newRefreshToken = jwt.sign(
+            { "username": foundUser.username },
+            process.env.REFRESH_TOKEN_SECRET,
+            { expiresIn: '15s' },next()
+        );
 
-        email: Joi.string()
-            .email()
-            .min(5)
-            .max(50)
-            .optional(),
+        // Changed to let keyword
+        let newRefreshTokenArray = !cookies?.jwt ? foundUser.refreshToken : foundUser.refreshToken.filter(rt => rt !== cookies.jwt);
 
-        date_of_birth: Joi.date()
-            .optional(),
+        if (cookies?.jwt) {
 
-        account_status: Joi.string()
-            .valid('activated')
-            .valid('unactivated')
-            .optional(),
-    }).options({ abortEarly: false });
+            /*
+            Scenario added here:
+                1) User logs in but never uses RT and does not logout
+                2) RT is stolen
+                3) If 1 & 2, reuse detection is needed to clear all RTs when user logs in
+            */
+            const refreshToken = cookies.jwt;
+            const foundToken = await db.User.findOne({ refreshToken }).exec();
 
-    return JoiSchema.validate(user)
-}
-
-const user = {
-    username: 'nguemechieu',
-    email: 'nguemechieu@live.com',
-    date_of_birth: '1990-4-3',
-    role: 'Admin',
-    account_status: 'activated'
-}
-
-response = validateUser(user)
-
-if(response.error)
-{
-    console.log(response.error.details)
-}
-else
-{
-    console.log("Validated Data")
-}
-exports.login = (req, res, next) => {
-    db.User.findOne({ where: { email: req.body.email } })
-        .then(user => {
-            console.log(user)
-            if (!user) {
-                return res.status(401).json({ error: 'User not found!' });
+            // Detected refresh token reuse!
+            if (!foundToken) {
+                // clear out ALL previous refresh tokens
+                newRefreshTokenArray = [];
             }
-            bcrypt.compare(req.body.passwordHash, db.User.passwordHash)
-                .then(valid => {
 
-                    if (!valid) {
-                        return res.status(401).json({ error: 'Mot de passe incorrect !' });
-                    }
-                    res.status(200).json({
-                        userId: user.id,
-                        token: jwt.sign(
-                            {userId: user.id},
-                            'RANDOM_TOKEN_SECRET',
-                            {expiresIn: '24h'},res.redirect('/auth/home')
-                        )
-                    });
-                })
-                .catch(error => res.status(500).json({ error }));
-        })
-        .catch(error => res.status(500).json({ error }));
-};
+            res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
+        }
+
+        // Saving refreshToken with current user
+        foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
+        let result = await foundUser.save();
+        if(!result){
+            res.status(404).json(result+ "user not saved!")
+
+        }
+
+        // Creates Secure Cookie with refresh token
+        res.cookie('jwt', newRefreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 });
+
+        // Send authorization roles and access token to user
+        res.json({ accessToken });
+
+    } else {
+        res.sendStatus(401);
+    }
+}

@@ -1,64 +1,43 @@
 
-const Joi = require('joi');
-const validateRequest = require('../middleware/validate-request');
-const Role = require('../config/roles_list');
-const bcrypt = require('bcrypt');
-const fs = require('fs');
-const User = require('../model/User')
-const db = require('../_helpers/db');
-const jwt = require('jsonwebtoken');
 
+const {db} = require("../_helpers/db");
 
-exports.getAll = (req, res, next) => {
-  db.User.find({where:{username: req.body.username||  req.body.password}})
-      .then((user) => {res.json(user)})
-
+const getAllUsers = async (req, res) => {
+    const users = await db.User.findAll();
+    if (!users) return res.status(204).json({ 'message': 'No users found' });
+    res.json(users);
 }
 
-exports.getById = async (req, res, next) => {
-   db.User.findOne( {where:{id: req.params.id}})
-       .then(user => res.json(user))
-       .catch(next);
+const deleteUser = async (req, res) => {
+    if (!req?.body?.id) return res.status(400).json({ "message": 'User ID required' });
+    const user = await db.User.findOne({ id: req.body.id }).exec();
+    if (!user) {
+        return res.status(204).json({ 'message': `User ID ${req.body.id} not found` });
+    }
+    const result = await user.delete({ id: req.body.id });
+    res.json(result);
 }
 
-exports.delete = (req, res, next) => {
-   db.User.findByPk(req.params.id)
-     .then(user =>{
-       if (!user) {
-         return res.status(401).json({ error: 'User not found!' });
-       }
-       user.destroy()
-       .then(() => res.json({ message: 'User deleted' }))
-       .catch(next);
-     })
+const getUser = async (req, res) => {
+    if (!req?.body?.username) return res.status(400).json({ "message": 'User Username required' });
+    const user = await db.User.findOne({ username: req.body.username }).exec();
+    if (!user) {
+        return res.status(204).json({ 'message': `User ID ${req.body.username} not found` });
+    }
+    res.json(user);
 }
+const getUserById=async (req, res) => {
+    if (!req?.params?.id) return res.status(400).json({ "message": 'User ID required' });
+    const user = await db.User.findOne({ id: req.params.id }).exec();
+    if (!user) {
+        return res.status(204).json({ 'message': `User ID ${req.params.id} not found` });
+    }
+    res.json(user);
 
-// schema functions
-
-exports.createSchema = (req, res, next) => {
-   const schema = Joi.object({
-       username:     Joi.string().required(),
-         middleName:  Joi.string().required(),
-       firstName: Joi.string().required(),
-       lastName: Joi.string().required(),
-        email: Joi.string().email().required(),
-       password: Joi.string().min(6).required(),
-       confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
-       role: Joi.string().valid(Role.Admin, Role.User,Role.Editor).required()
-
-   });
-   validateRequest(req, next, schema);
 }
-
-exports.updateSchema = (req, res, next) => {
-   const schema = Joi.object({
-
-           username:     Joi.string().required(),
-           middleName:  Joi.string().required(),
-           firstName: Joi.string().required(),
-           lastName: Joi.string().required(),
-           email: Joi.string().email().required(),
-           password: Joi.string().min(6).required(),
-           confirmPassword: Joi.string().valid(Joi.ref('password')).required(),   }).with('password', 'confirmPassword');
-   validateRequest(req, next, schema);
+module.exports = {
+    getUserById,
+    getAllUsers,
+    deleteUser,
+    getUser
 }

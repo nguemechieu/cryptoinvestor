@@ -24,9 +24,12 @@
         <label for="passwordHash">Password:</label><input type="password" name="passwordHash" class="form-control" id="passwordHash" aria-describedby="passHelp" placeholder="*********" value="">
     </div>
     <div class ="content" formaction="auth/login">
-    <input type="submit" class="btn btn-primary" value="Sign In" />
-    <input type="submit" class="btn btn-primary" formaction="/register" value="Sign Up" name="form2"/>
 
+    <input type="submit" class="btn btn-primary" value="Sign In" />
+     <div class="form-group">
+
+    <input type="submit" class="btn btn-primary" formaction="/register"   value="Sign Up" name="form2"/>
+     </div>
     <label>Remember Me?
         <input type="checkbox"  value="rememberMe" name="rememberMe" class="rememberMe" placeholder="Remember Me?" onclick="let email=document.getElementById('email').value;
         email.rememberMe();" />

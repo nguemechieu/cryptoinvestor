@@ -2,22 +2,23 @@
 const dbConfig = require("../_helpers/db.config.js");
 
 const mysql = require("mysql2/promise");
-let db={};
+
 const User = require("../model/User");
 const Employee = require("../model/Employee");
 const {Sequelize} = require("sequelize");
+let db={};
 
+DataBaseRun(db).then();
 
-initialize().then( );
-
-async function initialize(){const    host= dbConfig.HOST, port=dbConfig.PORT, user=dbConfig.USER, password=dbConfig.PASSWORD
-    const database = dbConfig.DB;
+async function DataBaseRun(db){
+    let   host= dbConfig.HOST, port=dbConfig.PORT, user=dbConfig.USER, password=dbConfig.PASSWORD,
+     database = dbConfig.DATABASE;
     const connection = await mysql.createConnection({ host, port, user, password });
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
 
 
     const sequelize = new Sequelize(database, user, password,{
-        host: host,port: port,
+        host: dbConfig.HOST,port: dbConfig.PORT,
         dialect: dbConfig.dialect,
 
 
@@ -32,8 +33,6 @@ async function initialize(){const    host= dbConfig.HOST, port=dbConfig.PORT, us
     db.sequelize = sequelize
     db.Sequelize = Sequelize
     db.User=User(sequelize);
-
-
     db.Employee=Employee(sequelize);
 
 
@@ -44,4 +43,5 @@ async function initialize(){const    host= dbConfig.HOST, port=dbConfig.PORT, us
 }
 exports. Employee = db.Employee;
 exports.User = db.User;
-module.exports.db = db;
+
+module.exports = db;

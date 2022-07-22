@@ -2,7 +2,7 @@
 const verifyJWT = (req, res, next) => {
     const jwt = require('jsonwebtoken');
 
-    const authHeader = req.headers.authorization || req.headers.Authorization;
+    const authHeader = req.headers.authorization ;
     if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
     const token = authHeader.split(' ')[1];
     console.log(token)
@@ -16,9 +16,9 @@ const verifyJWT = (req, res, next) => {
             req.username= decoded.User.username;
 
 
-            req.role = decoded.User.role;
-            next();
-        },""
+            req.role = decoded.User.role
+        },next
+
     );
 }
 

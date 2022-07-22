@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-router.post('/forgotPassword',(req, res) => {
+router.route('/forgotPassword').post((req, res) => {
     let randomPassword = Math.random * 128;
     res.render('forgotPassword', {
         title: 'Forgot Password',

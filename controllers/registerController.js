@@ -1,39 +1,36 @@
-
-const {db} = require("../_helpers/db");
 const bcrypt = require("bcrypt");
-const shema= require('../controllers/usersController')
-
-exports.signup = async (req, res, next) => {
-
-
-    // validate
-    db.User.findOne({ where: { email: req.body.email } })
-        .then(async user => {
-            if(!user){
-                shema.createSchema({ schema : { email: req.body.email } })
-             user= db.User[shema];
 
 
 
-                // hash password
-                //
+const db = require("../_helpers/db");
 
-               // const confirmPassword= await bcrypt.hash(user.confirmPassword, 10);
+exports.signup =  async (req, res) => {
+    const { user, pwd } = req.body;
+    if (!user || !pwd) return res.status(400).json({ 'message': 'Username and password are required.' });
 
-                // save user
-                //
-                //  await db.User.save(user)
-                //     .then(() => res.json({ message: 'User'+user.username+' created' }))
-                //      .catch(next);
+    // check for duplicate usernames in the db
+    const duplicate = await db.User.findOne({ username: user }).exec();
+    if (duplicate) return res.sendStatus(409); //Conflict
 
-                res.json({ message: 'User created', user: user });
+    try {
+        //encrypt the password
+        const hashedPwd = await bcrypt.hash(pwd, 10);
 
+        //create and store the new user
+        const result = await db. User.create({
+            "username": user,
+            "password": hashedPwd,
+            "email": user.email,
+            "firstName": user.firstName,
+            "lastName": user.lastName,
+            "middleName": user.middleName,
+            "role": user.role
+        });
 
-            }
-            else {res.json({message: 'Email already used'})
-              return   res.redirect('/');
-            }
-        })
-        .catch(next)
+        console.log(result);
 
+        res.status(201).json({ 'success': `New user ${user} created!` });
+    } catch (err) {
+        res.status(500).json({ 'message': err.message });
+    }
 }

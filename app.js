@@ -1,6 +1,6 @@
-let createError = require('http-errors'), express = require('express'), path = require('path'),
-    cookieParser = require('cookie-parser'), indexRouter = require('./routes/index'),
-    usersRouter = require('./routes/api/users'), app = express();
+let  express = require('express'), path = require('path'),
+    cookieParser = require('cookie-parser'), indexRouter = require('./routes/root'),
+     app = express();
 
 
 const cors = require('cors');
@@ -75,29 +75,27 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/auth/login', require('./routes/auth'));
+app.use('/auth/login', require('./routes/login'));
 app.use('/auth/register', require('./routes/register'))
 
 
 app.use('/forgotPassword', require('./routes/forgotPassword'));
 
-//app.use(verifyJWT)
-app.use('/users', usersRouter);
+
+app.use('/refresh', require('./routes/refresh'));
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 
-app.use('/register', require('./routes/index'));
+app.use('/register', require('./routes/root'));
 
 
 
 // routes
 
-
-app.use('/refresh', require('./routes/refresh'));
 app.use('/logout', require('./routes/logout'));
 
-app.use('/employees', require('./routes/api/employees'));
-app.use('/users', require('./routes/api/users'));
+app.use('/employees', verifyJWT,require('./routes/api/employees'));
+app.use('/users',verifyJWT, require('./routes/api/users'));
 
 
 app.all('*', (req, res) => {

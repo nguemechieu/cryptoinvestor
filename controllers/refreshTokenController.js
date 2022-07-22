@@ -19,9 +19,11 @@ const handleRefreshToken = async (req, res) => {
             async (err, decoded) => {
                 if (err) return res.sendStatus(403); //Forbidden
                 // Delete refresh tokens of hacked user
-                const hackedUser = await db.User.findOne({ username: decoded.username }).exec();
+                const hackedUser = await db.User.findOne({where:{ username: decoded.username }}).exec();
                 hackedUser.refreshToken = [];
                 const result = await hackedUser.save();
+
+                if(result.errors) return res.sendStatus(result.errors)
             },""
         )
         return res.sendStatus(403); //Forbidden
@@ -43,14 +45,14 @@ const handleRefreshToken = async (req, res) => {
             if (err || foundUser.username !== decoded.username) return res.sendStatus(403);
 
             // Refresh token was still valid
-            const roles = Object.values(foundUser.role);
+            const role = Object.values(foundUser.role);
             const accessToken = jwt.sign(
                 {
                     "User": {
                         "username": decoded.username,
                         "email": decoded.email,
                         "password": decoded.password,
-                        "role": roles
+                        "role": role
                     }
 
                 },
