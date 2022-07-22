@@ -1,5 +1,10 @@
-const authController = require("../controllers/loginController");
-const router = require("./root");
 
-router.route('/auth/home').get(authController.login);
+const express = require('express');
+const router = express.Router();
 
+router.route('/auth/home').get((req, res) => {
+
+    res.render('home', { title  : 'Home' });
+});
+
+module.exports = router;

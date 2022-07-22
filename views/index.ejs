@@ -1,45 +1,58 @@
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html" style="background-color:darkblue">
  <meta charset="UTF-8"   />
- <link rel="stylesheet" href="../public/stylesheets/style.css" />
-<head>
+
+ <head style="background-color:lightblue">
+     <meta charset="utf-8">
+     <meta http-equiv="x-ua-compatible" content="ie=edge">
+     <title>CryptoInvestor</title>
+     <meta name="description" content="">
+     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+     <link rel="stylesheet" href="public/stylesheets/style.css">
+
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <title>CryptoInvestor</title>
 
 </head>
-<h1>Welcome to CryptoInvestor</h1>
-<body>
-<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
 
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+<h1>                        CryptoInvestor        </h1>
 
-<div class="container">
-<form action="/auth/login" method="post" name="form1">
 
-    <div class="form-group" >
-        <label for="email">Email:</label><input type="email" name="email" class="form-control" id="email" aria-describedby="emailHelp" placeholder="email or username" value="">
 
-        <label for="passwordHash">Password:</label><input type="password" name="passwordHash" class="form-control" id="passwordHash" aria-describedby="passHelp" placeholder="*********" value="">
+
+ <h2>                </h2>
+
+<body style="animation-play-state: running">
+
+<div class="container"   >
+    <div class="wrapper">
+        <form action="/auth/login" method="post" name="Login_Form" class="form-signin" style="background-color: #00B7FF;">
+
+            <h3 class="form-signin-heading">Welcome! Please Sign In</h3>
+              <div class="container">
+           <p> <label>Email:
+                <input type="text" class="form-control" name="email" placeholder="Enter your email " autocomplete="off" autofocus="" />
+            </label>
+              </p>
+            <p><label>Password:
+                <input type="password" class="form-control" value="password" name="password" id ="password" autocomplete="off" placeholder="Enter Password" />
+            </label>
+            </p>
+   <input type="hidden" name="token" value="mytoken" />
+            <label for="checkbox">Remember me?</label><input type="checkbox" name="checkbox" id="checkbox" value="Checkbox" />
+
+                  <div class="animatezoom"  id="animatezoom" style="width: 100%; height: 100%;">
+                  <button class="btn btn-lg btn-primary btn-block" name="Submit" value="Sign In" type="Submit">Sign In</button>
+            <button class="btn btn-lg btn-primary btn-block" formaction="/register" name="Submit"  value="Sign Up" >Sign Up</button>
+                  </div>
+            <i><a href="/forgotPassword" formaction="/forgotPassword">Forgot password?Click here!</a></i>
+              </div>
+        </form>
     </div>
-    <div class ="content" formaction="auth/login">
-
-    <input type="submit" class="btn btn-primary" value="Sign In" />
-     <div class="form-group">
-
-    <input type="submit" class="btn btn-primary" formaction="/register"   value="Sign Up" name="form2"/>
-     </div>
-    <label>Remember Me?
-        <input type="checkbox"  value="rememberMe" name="rememberMe" class="rememberMe" placeholder="Remember Me?" onclick="let email=document.getElementById('email').value;
-        email.rememberMe();" />
-    </label>
-
-    <a href="/forgotPassword"> forgot password?click here!" </a>
-    </div>
-
-
-</form>
 </div>
 </body>
 </html>

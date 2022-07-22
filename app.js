@@ -1,8 +1,7 @@
-let  express = require('express'), path = require('path'),
-    cookieParser = require('cookie-parser'), indexRouter = require('./routes/root'),
+const  express = require('express'), path = require('path'),
+    cookieParser = require('cookie-parser'),
      app = express();
-
-
+const bodyParser = require('body-parser');
 const cors = require('cors');
 const corsOptions = require('./config/corsOptions');
 const { logger } = require('./middleware/logEvents');
@@ -11,6 +10,7 @@ const credentials = require('./middleware/credentials');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const errorHandler = require("./middleware/errorHandler");
+
 
 // Initialize documentation module with SwaggerJsdoc
 const swaggerOptions = {
@@ -25,14 +25,11 @@ const swaggerOptions = {
     }
   },
 
-  route: ['.routes/*.js'],
-  apis: ["./bin/www.js"]
+  router: ['.routes/*.js'],
+  apis: [".bin/www.js"]
 }
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
-
-
-app.use(express.json());
 app.use((req, res, next) => {
 
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -40,84 +37,55 @@ app.use((req, res, next) => {
    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   next();
 });
+app.use(bodyParser.urlencoded({
+  extended: false
+}));
 
+app.use(bodyParser.json());
 
-
-// custom middleware logger
 app.use(logger);
-// Handle options credentials check - before CORS!
-// and fetch cookies credentials requirement
+
+
 app.use(credentials);
-
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
 // Cross Origin Resource Sharing
 app.use(cors(corsOptions));
-
-// built-in middleware to handle urlencoded form data
-app.use(express.urlencoded({ extended: true }));
-
-// built-in middleware for json
 app.use(express.json());
-
-//middleware for cookies
+app.use(express.urlencoded({ extended: false}));
 app.use(cookieParser());
+
+
+
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs))
+app.use('/',require('./routes/root'))
 
-app.use(logger);
-app.use(express.json());
-app.use(express.urlencoded({ extended: true}));
-app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/', indexRouter);
 app.use('/auth/login', require('./routes/login'));
-app.use('/auth/register', require('./routes/register'))
-
-
+app.use('/register',  require('./routes/registerPage'))
 app.use('/forgotPassword', require('./routes/forgotPassword'));
-
-
 app.use('/refresh', require('./routes/refresh'));
 
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs))
-
-app.use('/register', require('./routes/root'));
-
-
-
-// routes
-
-app.use('/logout', require('./routes/logout'));
-
-app.use('/employees',require('./routes/api/employees'));
-app.use('/users', require('./routes/api/users'));
+app.use('/auth/register', require('./routes/register'));
+app.use('/logout',verifyJWT, require('./routes/logout'));
+app.use('/employees',verifyJWT,require('./routes/api/employees'));
+app.use('/users',verifyJWT, require('./routes/api/users'));
 
 
-app.all('*', (req, res) => {
-  res.status(404);
-  if (req.accepts('ejs')) {
-    res.sendFile(path.join(__dirname, 'views', '404.ejs'));
-  } else if (req.accepts('json')) {
-    res.json({ "error": "404 Not Found" });
-  } else {
-    res.type('txt').send("404 Not Found");
-  }
-});
 
-app.all('*', (req, res) => {
-  res.status(404);
-  if (req.accepts('ejs')) {
-    res.sendFile(path.join(__dirname, 'public/views', '404.ejs'));
-  } else if (req.accepts('json')) {
-    res.json({ "error": "404 Not Found" });
-  } else {
-    res.type('txt').send("404 Not Found");
-  }
-});
+
+
+// app.all('*', (req, res) => {
+//   res.status(404);
+//   if (req.accepts('ejs')) {
+//     res.render('404.ejs', {accepts: req.accepts('ejs')});
+//   } else if (req.accepts('json')) {
+//     res.json({ "error": "404 Not Found" });
+//   } else {
+//     res.type('txt').send("404 Not Found");
+//   }
+// });
 
 app.use(errorHandler);
 module.exports = app;

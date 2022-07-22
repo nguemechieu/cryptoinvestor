@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router()
 
-router.route('/').get((req,res,next) => {
+router.route('/register').post((req,res,next) => {
 
-    res.render('index.ejs', { title : 'CryptoInvestor '})
+    res.render('register', { title : 'Registration Form '})
     next();
 
 });

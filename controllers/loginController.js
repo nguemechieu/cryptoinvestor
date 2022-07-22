@@ -1,3 +1,4 @@
+
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const {db} = require("../_helpers/db");
@@ -5,7 +6,7 @@ const {db} = require("../_helpers/db");
 exports.login = async (req, res, next) => {
     const cookies = req.cookies;
 
-    const data = req.body;
+
     let pwd = req.body.password;
     if (!req.body.password || !req.body.email || !req.body.username) return res.status(400).json({ 'message': 'Username and password are required.' });
 
@@ -21,7 +22,7 @@ exports.login = async (req, res, next) => {
                 "User": {
                     "username": req.body.username,
                     "email": req.body.email,
-                    "password": req.body.password,
+                    "password": pwd,
                     "role": roles
                 }
             },

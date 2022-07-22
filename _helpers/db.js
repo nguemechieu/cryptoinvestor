@@ -8,8 +8,11 @@ const Employee = require("../model/Employee");
 const {Sequelize} = require("sequelize");
 let db={};
 
-DataBaseRun(db).then();
+DataBaseRun(db).then(()=>db.createConnection);
+exports. Employee = db.Employee;
+exports.User = db.User;
 
+module.exports = db;
 async function DataBaseRun(db){
     let   host= dbConfig.HOST, port=dbConfig.PORT, user=dbConfig.USER, password=dbConfig.PASSWORD,
      database = dbConfig.DATABASE;
@@ -39,9 +42,6 @@ async function DataBaseRun(db){
 
 
 
+
     await sequelize.sync({ alter: true });
 }
-exports. Employee = db.Employee;
-exports.User = db.User;
-
-module.exports = db;

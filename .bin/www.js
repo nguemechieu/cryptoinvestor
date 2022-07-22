@@ -2,9 +2,12 @@
 
 
 const app = require('../app');
+const http = require("http");
+
+const server = http.createServer(app);
 
 const port = process.env.PORT || 4000;
 
 
     console.log('Connected to Mysql Server');
-    app.listen(port, () => console.log(`Server running on port ${port}`));
+    server.listen(port, () => console.log(`Server running on port ${port}`));
