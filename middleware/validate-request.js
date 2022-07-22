@@ -11,6 +11,6 @@ function validateRequest(req, next, schema) {
         next(`Validation error: ${error.details.map(x => x.message).join(', ')}`);
     } else {
         req.body = value;
-        next();
+
     }
 }

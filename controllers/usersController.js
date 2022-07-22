@@ -37,13 +37,15 @@ exports.delete = (req, res, next) => {
 
 exports.createSchema = (req, res, next) => {
    const schema = Joi.object({
-
+       username:     Joi.string().required(),
+         middleName:  Joi.string().required(),
        firstName: Joi.string().required(),
        lastName: Joi.string().required(),
-       role: Joi.string().valid(Role.Admin, Role.User,Role.Editor).required(),
-       email: Joi.string().email().required(),
+        email: Joi.string().email().required(),
        password: Joi.string().min(6).required(),
-       confirmPassword: Joi.string().valid(Joi.ref('password')).required()
+       confirmPassword: Joi.string().valid(Joi.ref('password')).required(),
+       role: Joi.string().valid(Role.Admin, Role.User,Role.Editor).required()
+
    });
    validateRequest(req, next, schema);
 }
@@ -51,12 +53,12 @@ exports.createSchema = (req, res, next) => {
 exports.updateSchema = (req, res, next) => {
    const schema = Joi.object({
 
-       firstName: Joi.string().empty(''),
-       lastName: Joi.string().empty(''),
-       role: Joi.string().valid(Role.Admin, Role.User).empty(''),
-       email: Joi.string().email().empty(''),
-       password: Joi.string().min(6).empty(''),
-       confirmPassword: Joi.string().valid(Joi.ref('password')).empty('')
-   }).with('password', 'confirmPassword');
+           username:     Joi.string().required(),
+           middleName:  Joi.string().required(),
+           firstName: Joi.string().required(),
+           lastName: Joi.string().required(),
+           email: Joi.string().email().required(),
+           password: Joi.string().min(6).required(),
+           confirmPassword: Joi.string().valid(Joi.ref('password')).required(),   }).with('password', 'confirmPassword');
    validateRequest(req, next, schema);
 }
