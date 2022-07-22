@@ -1,7 +1,7 @@
 const {db} = require("../_helpers/db");
 
 
-const handleLogout = async (req, res) => {
+const handleLogout = async (req, res,next) => {
     // On client, also delete the accessToken
 
     const cookies = req.cookies;

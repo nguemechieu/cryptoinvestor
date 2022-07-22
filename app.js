@@ -34,11 +34,10 @@ const swaggerDocs = swaggerJsDoc(swaggerOptions);
 
 app.use(express.json());
 app.use((req, res, next) => {
-  // acceder a notre API depuis n'importe quelle origine
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
-  // envoyer des requettes avec les méthodes GET, POST, PUT, DELETE, PATCH, OPTION
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
   next();
 });
 
@@ -94,8 +93,8 @@ app.use('/register', require('./routes/root'));
 
 app.use('/logout', require('./routes/logout'));
 
-app.use('/employees', verifyJWT,require('./routes/api/employees'));
-app.use('/users',verifyJWT, require('./routes/api/users'));
+app.use('/employees',require('./routes/api/employees'));
+app.use('/users', require('./routes/api/users'));
 
 
 app.all('*', (req, res) => {

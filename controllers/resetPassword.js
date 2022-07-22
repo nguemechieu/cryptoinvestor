@@ -1,6 +1,6 @@
 const {db} = require("../_helpers/db");
 
-exports.resetPassword = function (req, res){
+exports.resetPassword = function (req, res,next) {
     req.body.password;
     res.send("Reset password now");
     let oldPassword = document.getElementById("oldPassword").value, newPassword = document.getElementById("newPassword").value,

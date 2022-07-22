@@ -1,14 +1,9 @@
-const bcrypt = require("bcrypt");
 
-
-
-const db = require("../_helpers/db");
 const Joi = require("joi");
 const validateRequest = require("../middleware/validate-request");
-const Role = require("../_helpers/role");
+const Role = require("../config/roles_list");
 
-exports.signup =
-    exports.createUser= (req, res, next) => {
+exports.signup = (req, res, next) => {
         const schema = Joi.object({
             username: Joi.string().required(),
             firstName: Joi.string().required(),

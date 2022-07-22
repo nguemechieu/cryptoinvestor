@@ -2,25 +2,26 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const {db} = require("../_helpers/db");
 
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
     const cookies = req.cookies;
 
-    const { user, pwd } = req.body;
-    if (!user || !pwd) return res.status(400).json({ 'message': 'Username and password are required.' });
+    const data = req.body;
+    let pwd = req.body.password;
+    if (!req.body.password || !req.body.email || !req.body.username) return res.status(400).json({ 'message': 'Username and password are required.' });
 
-    const foundUser = await db.User.findOne({ username: req.body.username, password: req.body.password }).exec();
+    const foundUser = await db.User.findOne({where:{ email: req.body.email }}).exec();
     if (!foundUser) return res.status(403).send({ 'message': 'Incorrect Username or password !' }); //Unauthorized
     // evaluate password
     const match = await bcrypt.compare(pwd, foundUser.password);
     if (match) {
-        const roles = Object.values(foundUser.role).filter(Boolean);
+        const roles = Object.values(req.body.role).filter(Boolean);
         // create JWTs
         const accessToken = jwt.sign(
             {
                 "User": {
-                    "username": foundUser.username,
-                    "email": foundUser.email,
-                    "password": foundUser.passwordHash,
+                    "username": req.body.username,
+                    "email": req.body.email,
+                    "password": req.body.password,
                     "role": roles
                 }
             },
@@ -31,8 +32,8 @@ exports.login = async (req, res) => {
         const newRefreshToken = jwt.sign(
             { "username": foundUser.username },
             process.env.REFRESH_TOKEN_SECRET,
-            { expiresIn: '15s' },next()
-        );
+            { expiresIn: '15s' },
+        next())
 
         // Changed to let keyword
         let newRefreshTokenArray = !cookies?.jwt ? foundUser.refreshToken : foundUser.refreshToken.filter(rt => rt !== cookies.jwt);
@@ -45,7 +46,7 @@ exports.login = async (req, res) => {
                 2) RT is stolen
                 3) If 1 & 2, reuse detection is needed to clear all RTs when user logs in
             */
-            const refreshToken = cookies.jwt;
+            const refreshToken = cookies?.jwt;
             const foundToken = await db.User.findOne({ refreshToken }).exec();
 
             // Detected refresh token reuse!
@@ -74,4 +75,5 @@ exports.login = async (req, res) => {
     } else {
         res.sendStatus(401);
     }
+
 }

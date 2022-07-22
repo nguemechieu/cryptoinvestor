@@ -1,6 +1,6 @@
 const models = require("../components/actionsModel.js");
-const Action = models.action;
-const User = models.user;
+const Action = models;
+const User = require("../model/User");
 
 exports.getActions = async function(req, res) {
     try {
