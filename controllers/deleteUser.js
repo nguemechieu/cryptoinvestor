@@ -1,4 +1,4 @@
-const {db} = require("../_helpers/db");
+const db = require("../_helpers/db");
 
 exports.delete = (req, res, next) => {
     db.User.findByPk(req.params.id)

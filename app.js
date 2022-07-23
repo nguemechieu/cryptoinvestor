@@ -1,6 +1,9 @@
 require('dotenv').config();
 const  express = require('express'), path = require('path'),
+
+    root= require('./routes/root'),
     cookieParser = require('cookie-parser'),
+        signup1= require('./routes/register'),
      app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -11,6 +14,11 @@ const credentials = require('./middleware/credentials');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const errorHandler = require("./middleware/errorHandler");
+const {login} = require("./controllers/loginController");
+const {resetPassword} = require("./controllers/resetPassword");
+
+let  nodemailer = require("nodemailer")
+const db = require("./_helpers/db");
 
 
 // Initialize documentation module with SwaggerJsdoc
@@ -26,7 +34,7 @@ const swaggerOptions = {
     }
   },
 
-  router: ['.routes/*.js'],
+  router: ['./routes/*.js'],
   apis: [".bin/www.js"]
 }
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
@@ -52,30 +60,39 @@ app.use(cors(corsOptions));
 
 // built-in middleware to handle urlencoded form data
 app.use(express.urlencoded({ extended: false }));
-app.use(bodyParser.urlencoded({ extended: false }))
+
 // built-in middleware for json
 app.use(express.json());
 
 //middleware for cookies
 app.use(cookieParser());
-
+app.use(bodyParser.urlencoded({ extended: false }))
 //serve static files
 app.use('/', express.static(path.join(__dirname, '/public')));
-
-
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs))
-app.use('/',require('./routes/root'))
+app.use('/',root)
 
-app.use('/auth/login', require('./routes/login'));
-app.use('/register',  require('./routes/registerPage'))
-app.use('/forgotPassword', require('./routes/forgotPassword'));
+app.use('/auth/login', login);
+
+app.post(  '/signup',(req,res) => {
+
+  res.render('register.ejs', { title : 'Registration'})
+
+
+});
+
+
+
+app.use("/forgotPassword" , require('./routes/forgotPassword'))
+;
+app.post( '/resetPassword',resetPassword);
 app.use('/refresh', require('./routes/refresh'));
 
-app.use('/auth/register', require('./routes/register'));
+app.post('/auth/signup', signup1);
 app.use('/logout',verifyJWT, require('./routes/logout'));
 app.use('/employees',verifyJWT,require('./routes/api/employees'));
 app.use('/users',verifyJWT, require('./routes/api/users'));
@@ -84,16 +101,16 @@ app.use('/users',verifyJWT, require('./routes/api/users'));
 
 
 
-// app.all('*', (req, res) => {
-//   res.status(404);
-//   if (req.accepts('ejs')) {
-//     res.render('404.ejs', {accepts: req.accepts('ejs')});
-//   } else if (req.accepts('json')) {
-//     res.json({ "error": "404 Not Found" });
-//   } else {
-//     res.type('txt').send("404 Not Found");
-//   }
-// });
+app.all('*', (req, res) => {
+  res.status(404);
+  if (req.accepts('ejs')) {
+    res.render('404.ejs', {accepts: req.accepts('ejs')});
+  } else if (req.accepts('json')) {
+    res.json({ "error": "404 Not Found" });
+  } else {
+    res.type('txt').send("404 Not Found");
+  }
+});
 
-app.use(errorHandler);
+//app.use(errorHandler);
 module.exports = app;

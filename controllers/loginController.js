@@ -1,17 +1,19 @@
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const {db} = require("../_helpers/db");
+const db= require("../_helpers/db");
+
+
 
 exports.login = async (req, res, next) => {
     const cookies = req.cookies;
 
+    const user= req.body
+    const pwd = req.body.password;
+    if (!pwd || !user) return res.status(400).json({ 'message': 'Username and password are required.' });
 
-    let pwd = req.body.password;
-    if (!req.body.password || !req.body.email || !req.body.username) return res.status(400).json({ 'message': 'Username and password are required.' });
-
-    const foundUser = await db.User.findOne({where:{ email: req.body.email }}).exec();
-    if (!foundUser) return res.status(403).send({ 'message': 'Incorrect Username or password !' }); //Unauthorized
+    const foundUser = await db.User.findOne({where:{ email: req.body.email }}).then()
+    if (!foundUser) return res.status(403).json({ 'message': 'Incorrect email or password !' }); //Unauthorized
     // evaluate password
     const match = await bcrypt.compare(pwd, foundUser.password);
     if (match) {

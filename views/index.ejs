@@ -1,13 +1,12 @@
 
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/html" style="background-color:darkblue">
- <meta charset="UTF-8"   />
-
+<html lang="en" xmlns="http://www.w3.org/1999/html" style="background-color: #00B7FF">
+<meta charset="utf-8">
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="description" content="">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="public/images/SmallSquareLogoJpg.jpg">
  <head style="background-color:lightblue">
-     <meta charset="utf-8">
-     <meta http-equiv="x-ua-compatible" content="ie=edge">
-     <meta name="description" content="">
-     <meta name="viewport" content="width=device-width, initial-scale=1">
 
      <title>CryptoInvestor</title>
 
@@ -20,20 +19,15 @@
 
 </head>
 
-<h1 style="background-color: #00B7FF; color: #0123; text-align: center; text-transform: uppercase">                        CryptoInvestor        </h1>
-
-
-
-
+<h1>CryptoInvestor</h1>
  <h2>                </h2>
-
 <body style="animation-play-state: running">
 
-<div class="container style="aria-labelledby="animatezoom"   >
+<div class="containers"   >
     <div class="wrapper">
-        <form action="/auth/login" method="post" name="Login_Form" class="form-signin" style="background-color: #00B7FF;">
+        <form action="/auth/login" method="post" name="Login_Form" class="form-signing" style="background-color: #00B7FF;">
 
-            <h3 class="form-signin-heading">Welcome! Please Sign In</h3>
+            <h3 class="form-inline">Welcome! Please Sign In</h3>
               <div class="container">
            <p> <label>Email:
                 <input type="text" class="form-control" name="email" placeholder="Enter your email " autocomplete="off" autofocus="" />
@@ -46,12 +40,15 @@
    <input type="hidden" name="token" value="mytoken" />
             <label for="checkbox">Remember me?</label><input type="checkbox" name="checkbox" id="checkbox" value="Checkbox" />
 
-                  <div class="animatezoom"  id="animatezoom" style="width: 100%; height: 100%;">
-                  <button class="btn btn-lg btn-primary btn-block" name="Submit" value="Sign In" type="Submit">Sign In</button>
-            <button class="btn btn-lg btn-primary btn-block" formaction="/register" name="Submit"  value="Sign Up" >Sign Up</button>
+
+                  <button class="btn btn-lg btn-primary btn-block" name="Submit" formmethod="post" value="Sign In" type="Submit">Sign In</button>
+            <button class="btn btn-lg
+
+
+            btn-primary btn-block" formaction="/signup" formmethod="post" name="Submit"  value="Sign Up" >Sign Up</button>
                   </div>
-            <i><a href="/forgotPassword" formaction="/forgotPassword">Forgot password?Click here!</a></i>
-              </div>
+            <i><a href="/forgotPassword" formaction="/forgotPassword"  id="forgotPassword" class="btn-block" >Forgot password?Click here!</a></i>
+
         </form>
     </div>
 </div>

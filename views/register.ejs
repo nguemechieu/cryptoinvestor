@@ -1,87 +1,61 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/html">
+<html lang="en" xmlns="http://www.w3.org/1999/html" style="background-color: #00B7FF;">
 <link rel="stylesheet" href="../public/stylesheets/register.css">
+<link rel="icon" href="public/images/SmallSquareLogoJpg.jpg">
 <head>
     <meta http-equiv="Content-Type" content="text">
     <title>CryptoInvestor</title>
 </head>
+<h1>CryptoInvestor</h1>
+<h2>       Registration form</h2>
 
-<h1>Registration</h1>
 <body>
-<div class="section">
 
-    <div class="containers">
-        <form action="/auth/register" method="post" >
+
+    <div class="form -inline">
+        <form name="form0" action="#" method="post" >
 
         <p>Please fill in this form to create your account.</p>
         <hr>
     <div class="form-group">
-        <label for="username">userName:</label><input type="text" autocomplete="off" name="username" id="username" value="noel" placeholder="Enter Username" required />
+        <div class="input-group">
+        <label for="username">UserName:</label><input class="input-field" type="text" autocomplete="off" name="username" id="username" autocapitalize="words" placeholder="Enter Username" required />
+        <label for="firstName">FirstName:</label><input class="input-field" type="text" name="firstName" autocomplete="off" id="firstName"  placeholder="Enter First Name" autocapitalize="words" required />
+        <label for="lastName">LastName:</label><input  class="input-field" type="text" name="lastName"  id="lastName" autocomplete="on" value="Enter lastName" placeholder="Enter lastName" autocapitalize="words" required />
+        <label for="middleName">MiddleName:</label><input class="input-field" type="text" name="middleName" autocomplete="off" id="middleName" placeholder="Enter middleName" autocapitalize="words" value="none">
+        <i class="fa fa-key icon"><label for="emailId">Email :</label><input class="input-field" type="email" id="emailId" placeholder="Enter email" autocapitalize="words" autocomplete="off"  name="email" required></i>
     </div>
-
-        <div class="form-group">
-            <label for="firstName">FirstName:</label>
-            <input type="text" NAME="firstName" autocomplete="off" id="firstName" value="noel" placeholder="Enter First Name" required />
-
-        </div>
-        <div class="form-group">
-            <label for="lastName">LastName:</label><input type="text" id="lastName" autocomplete="off" placeholder="Enter lastName" value="Noel307" required />
-        </div>
-        <div class="form-group">
-        <label>middleName
-            <input type="text" name="middleName" autocomplete="off" id="middleName" placeholder="Enter middleName" value="Martial">
-        </label>
-        </div>
-        <div class="form-group">
-        <i class="fa fa-key icon">
-            <label for="emailId">Email :</label><input class="input-field" type="email" id="emailId" placeholder="Enter email" autocomplete="off" value="nguemechieu@live.com" name="email" required>
-
-        </i>
-        </div>
-     <div class="form-group">
-        <label for="roleId">role:</label>
-    <select name="role" id="roleId" onselect="return select.value">
-            <option value="Admin">Admin</option>
-            <option value="Manager">Manager</option>
-            <option value="User">User</option>
-            <option value="Employee">Employee</option>
+    <div class="container" id="role" role="document">
+        <label for="roleId">Role:</label>
+        <select name="role" id="roleId" onselect="return select.value">
+        <option value="User">User</option>
+        <option value="Employee">Employee</option>
+        <option value="Admin">Admin</option>
+        <option value="Manager">Manager</option>
         </select>
-     </div>
-
-
-
+    </div>
         <div class="input-container">
             <i class="fa fa-key icon"></i>
-            <label>Password
-                <input class="input-field" type="password" placeholder="Enter your password" id="passwordHash" autocomplete="off" name="passwordHash" value="Noel307#"  required>
+            <label>Password:
+                <input class="input-field" type="password" placeholder="Enter your password" id="password" autocomplete="off" name="password"   required>
             </label>
         </div>
-        <label for="confirmPasswordId"><b>confirmPassword:</b>
-        </label>
-        <input type="password" placeholder="confirmPassword" autocomplete="off" id="confirmPasswordId" name="confirmPassword" value="Noel307#" required>
+        <label for="confirmPassword">Confirm Password:</label><input class="input-field" type="password" placeholder="confirmPassword" autocomplete="off" id="confirmPassword" name="confirmPassword" required>
         <hr>
 
         <p>By creating an account you agree to our <a href="/terms">Terms & Privacy</a>.</p>
-        <input type="submit"
-                onsubmit="
-                checkdata(req,response)
-
-                function checkdata(req, res) {
-                    req.role=document.getElementById('roleId').value;
-              if((document.getElementById('password').value)!==(document.getElementById('confirmPasswordId').value)) {
-              res.status(403).send({message: 'Password confirmPassword not match'});
-
-        }}
-          " name="Register" value="Register">
+        <input type="submit" formmethod="post" formaction="/auth/signup"
+          name="Register" value="Register">
 
 
 
-        <p>Already have an account? <a href="/">Login</a>.</p>
+        <p>Already have an account? <a href="/">Sign in</a>.</p>
+    </div>
         </form></div>
 
 
 
-</div>
+
 </body>
 
 <footer id="footer">
