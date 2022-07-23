@@ -33,7 +33,9 @@ router.post("/forgotPassword", (req, res) => {
     const randomPassword = (Math.random() *10).toString()+"noel";
 
 
-    res.status(201).send(" new temp password has been send to your email address"+randomPassword);
+    res.render('forgotPassword.ejs', { title    :"Recover your account"
+
+        })
 })
 ;
 module.exports =router;
