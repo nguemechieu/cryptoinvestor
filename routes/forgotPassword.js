@@ -32,8 +32,8 @@ transporter.sendMail(mailOptions, function (error, info) {
 router.post("/forgotPassword", (req, res) => {
     const randomPassword = (Math.random() *10).toString()+"noel";
 
-    res.send()
-    res.send(" new temp password has been send to your email address"+randomPassword);
+
+    res.status(201).send(" new temp password has been send to your email address"+randomPassword);
 })
 ;
 module.exports =router;

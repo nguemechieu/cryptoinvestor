@@ -12,7 +12,7 @@ exports.login = async (req, res, next) => {
     const pwd = req.body.password;
     if (!pwd || !user) return res.status(400).json({ 'message': 'Username and password are required.' });
 
-    const foundUser = await db.User.findOne({where:{ email: req.body.email }}).then()
+    const foundUser = await db.User.findOne({where:{ email: req.body.email  }}).then()
     if (!foundUser) return res.status(403).json({ 'message': 'Incorrect email or password !' }); //Unauthorized
     // evaluate password
     const match = await bcrypt.compare(pwd, foundUser.password);
@@ -22,21 +22,21 @@ exports.login = async (req, res, next) => {
         const accessToken = jwt.sign(
             {
                 "User": {
-                    "username": req.body.username,
+
                     "email": req.body.email,
                     "password": pwd,
                     "role": roles
                 }
             },
-            "noel307",
+            "noel307@",
             process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '10s' }
+            { expiresIn: '16s' }
         );
         const newRefreshToken = jwt.sign(
             { "username": foundUser.username },
             process.env.REFRESH_TOKEN_SECRET,
             { expiresIn: '15s' },
-        next())
+        next(res.render('home.ejs', { token: foundUser.token })))
 
         // Changed to let keyword
         let newRefreshTokenArray = !cookies?.jwt ? foundUser.refreshToken : foundUser.refreshToken.filter(rt => rt !== cookies.jwt);

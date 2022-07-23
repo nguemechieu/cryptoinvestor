@@ -73,8 +73,8 @@ app.use('/', express.static(path.join(__dirname, '/public')));
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs))
-app.use('/',root)
+app.get("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs))
+app.get('/',root)
 
 app.use('/auth/login', login);
 
@@ -87,15 +87,15 @@ app.post(  '/signup',(req,res) => {
 
 
 
-app.use("/forgotPassword" , require('./routes/forgotPassword'))
+app.post("/forgotPassword" , require('./routes/forgotPassword'))
 ;
 app.post( '/resetPassword',resetPassword);
 app.use('/refresh', require('./routes/refresh'));
 
 app.post('/auth/signup', signup1);
-app.use('/logout',verifyJWT, require('./routes/logout'));
-app.use('/employees',verifyJWT,require('./routes/api/employees'));
-app.use('/users',verifyJWT, require('./routes/api/users'));
+app.post('/logout', require('./routes/logout'));
+app.get('/employees',require('./routes/api/employees'));
+app.get('/users/:userId/roles', require('./routes/api/users'));
 
 
 
@@ -112,5 +112,5 @@ app.all('*', (req, res) => {
   }
 });
 
-//app.use(errorHandler);
+app.use(errorHandler);
 module.exports = app;
