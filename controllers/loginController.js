@@ -1,82 +1,111 @@
+const { UserModel } = require("../model/User");
 
+const joi = require("joi");
+const comFunc=require('../_helpers/commonFuns');
+const {DataTypes} = require("sequelize");
+const {config} = require("dotenv");
 const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const db= require("../_helpers/db");
+const db = require("../_helpers/db");
+const {jwt} = require("twilio");
+
+let checkUser;
+
+exports.login = async (req, res) => {
+
+        const schema = joi.object().keys({
+            email: joi.string().required(),
+            password: joi.string().required(),
+            role: joi.string().required()
+        });
+        const result = schema.validate(req.body, { abortEarly: true });
+if (result.errors) {return result.errors}
+        let { email, password, access_token } = req.body;
+      let  password1 = bcrypt.hash(password,10);
+
+         checkUser = await db.User.findOne({email,password1 });
+        //console.log(checkUser,"here")
+        if (checkUser) {
+            console.log(checkUser);
+            const cookies = req.cookies;
+            if (!cookies?.jwt) return res.sendStatus(204); //No content
+            const refreshToken = cookies.jwt;
+
+            access_token = jwt;
+
+            checkUser = await db.User.findOne({access_token:access_token}).then(user => {
+
+                user.update( access_token)   ;
+
+
+                user.update({ id: checkUser.id });
+
+                 //   { new: true })
+
+            } );
+
+
+        //    res.status(200).json({ message: "User login successfully!"});
+
+            res.render("home.ejs", {    title: "Welcome to CryptoInvestor Application"})
+            console.log(checkUser);
+        }
+        else {
+            // throw new Error("not matched ");
+            res.status(201).json({message:"User not matched!"})
+
+        }
 
 
 
-exports.login = async (req, res, next) => {
-    const cookies = req.cookies;
 
-    const user= req.body
-    const pwd = req.body.password;
-    if (!pwd || !user) return res.status(400).json({ 'message': 'Username and password are required.' });
 
-    const foundUser = await db.User.findOne({where:{ email: req.body.email  }}).then()
-    if (!foundUser) return res.status(403).json({ 'message': 'Incorrect email or password !' }); //Unauthorized
-    // evaluate password
-    const match = await bcrypt.compare(pwd, foundUser.password);
-    if (match) {
-        const roles = Object.values(req.body.role).filter(Boolean);
-        // create JWTs
-        const accessToken = jwt.sign(
-            {
-                "User": {
 
-                    "email": req.body.email,
-                    "password": pwd,
-                    "role": roles
-                }
-            },
-            "noel307@",
-            process.env.ACCESS_TOKEN_SECRET,
-            { expiresIn: '16s' }
+exports.updateprofile = async (req, res) => {
+
+    //res.status(200).json({message:'accesstoken passed'})
+
+    try {
+        console.log("hi");
+        const schema = joi.object().keys({
+            email: joi.string(),
+            firstName: joi.string(),
+
+            lastName: joi.string(),
+
+            password: joi.string(),
+
+            phone: joi.number()
+        });
+        //  // console.log(schema);
+
+        let result = schema.validate(req.body);
+        //console.log(result);
+        if (result.error) {
+            throw new Error(result.error);
+
+        }
+
+// let { first_name,
+//       last_name,
+//       email,
+//       mobaile_number,
+//       password}
+//       = req.body;
+        // console.log(req.body)
+        let user_id =  checkUser.id;
+
+        let updateddata = await db.User.update(
+            {id: user_id.id},
+            {$set: req.body},
+            {new: true}
         );
-        const newRefreshToken = jwt.sign(
-            { "username": foundUser.username },
-            process.env.REFRESH_TOKEN_SECRET,
-            { expiresIn: '15s' },
-        next(res.render('home.ejs', { token: foundUser.token })))
-
-        // Changed to let keyword
-        let newRefreshTokenArray = !cookies?.jwt ? foundUser.refreshToken : foundUser.refreshToken.filter(rt => rt !== cookies.jwt);
-
-        if (cookies?.jwt) {
-
-            /*
-            Scenario added here:
-                1) User logs in but never uses RT and does not logout
-                2) RT is stolen
-                3) If 1 & 2, reuse detection is needed to clear all RTs when user logs in
-            */
-            const refreshToken = cookies?.jwt;
-            const foundToken = await db.User.findOne({ refreshToken }).exec();
-
-            // Detected refresh token reuse!
-            if (!foundToken) {
-                // clear out ALL previous refresh tokens
-                newRefreshTokenArray = [];
-            }
-
-            res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
-        }
-
-        // Saving refreshToken with current user
-        foundUser.refreshToken = [...newRefreshTokenArray, newRefreshToken];
-        let result = await foundUser.save();
-        if(!result){
-            res.status(404).json(result+ "user not saved!")
-
-        }
-
-        // Creates Secure Cookie with refresh token
-        res.cookie('jwt', newRefreshToken, { httpOnly: true, secure: true, sameSite: 'None', maxAge: 24 * 60 * 60 * 1000 });
-
-        // Send authorization roles and access token to user
-        res.json({ accessToken });
-
-    } else {
-        res.sendStatus(401);
+        console.log(updateddata);
+        res.status(200).json({
+            status: 1,
+            message: "profile updated successfully",
+            userdata: updateddata,
+        });
+    } catch (error) {
+        res.status(401).json({status: 0, message: error.message});
     }
-
-}
+}}

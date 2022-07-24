@@ -2,7 +2,7 @@ const db = require("../_helpers/db");
 
 
 const getAllEmployees = async (req, res) => {
-    const employees = await db.Employee.find();
+    const employees = await db.Employee.findOne(req.params.id);
     if (!employees) return res.status(204).json({ 'message': 'No employees found.' });
     res.json(employees);
 }

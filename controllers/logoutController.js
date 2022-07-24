@@ -1,4 +1,4 @@
-const {db} = require("../_helpers/db");
+const db= require("../_helpers/db");
 
 
 const handleLogout = async (req, res,next) => {
@@ -9,7 +9,7 @@ const handleLogout = async (req, res,next) => {
     const refreshToken = cookies.jwt;
 
     // Is refreshToken in db?
-    const foundUser = await db.User.findOne({ refreshToken }).exec();
+    const foundUser = await db.User.findOne({ where :{ refreshToken:refreshToken} }).exec();
     if (!foundUser) {
         res.clearCookie('jwt', { httpOnly: true, sameSite: 'None', secure: true });
         return res.sendStatus(204);

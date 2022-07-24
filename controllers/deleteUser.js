@@ -17,11 +17,10 @@ exports.delete = (req, res, next) => {
 exports.deleteUser = (req, res, next) => {
     if (req.body===db.User) return next
     {
-
         res.sendDate();
         res.json("User 'deleted successfully ");
-        next()
-        ;res.redirect('/');
+        next(
+        res.redirect('/'))
     }
 
 

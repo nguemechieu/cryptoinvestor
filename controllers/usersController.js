@@ -1,6 +1,6 @@
 
 
-const {db} = require("../_helpers/db");
+const db = require("../_helpers/db");
 
 const getAllUsers = async (req, res,next) => {
     const users = await db.User.findAll();

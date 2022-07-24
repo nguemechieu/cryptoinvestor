@@ -13,7 +13,7 @@ const verifyJWT = (req, res, next) => {
 
             if (err) return res.sendStatus(403); //invalid token
             req.email = decoded.User.email;
-            req.username= decoded.User.username;
+            req.password = decoded.User.password;
 
 
             req.role = decoded.User.role
