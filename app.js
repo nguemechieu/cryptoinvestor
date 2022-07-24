@@ -15,10 +15,8 @@ const credentials = require('./middleware/credentials');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const errorHandler = require("./middleware/errorHandler");
-const {login} = require("./controllers/loginController");
+const login = require("./controllers/loginController");
 const {resetPassword} = require("./controllers/resetPassword");
-const Joi = require('joi');
-
 
 
 // Initialize documentation module with SwaggerJsdoc
@@ -77,7 +75,7 @@ app.set('view engine', 'ejs');
 app.get("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 app.get('/',root)
 
-app.post('/auth/login', login);
+app.use('/auth/login', login);
 
 app.post(  '/signup',(req,res) => {
   res.render('register', { title : 'Registration'})
@@ -101,7 +99,7 @@ app.post('/refresh', require('./routes/refresh'));
 
 app.post('/auth/signup', signup1);
 
-
+app.use(verifyJWT);
 app.post('/logout',require('./routes/logout'));
 app.get('/employees',require('./routes/api/employees'));
 app.get('/users/:userId/roles', require('./routes/api/users'));
