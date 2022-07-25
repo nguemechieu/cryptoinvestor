@@ -4,13 +4,13 @@ const employeesController = require('../../controllers/employeesController');
 const ROLES_LIST = require('../../config/roles_list');
 const verifyRoles = require('../../middleware/verifyRoles');
 
-router.route('/employees')
+router.route('/api/employees')
     .get(employeesController.getAllEmployees)
     .post(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.Editor), employeesController.createNewEmployee)
     .put(verifyRoles(ROLES_LIST.Admin, ROLES_LIST.Editor), employeesController.updateEmployee)
     .delete(verifyRoles(ROLES_LIST.Admin), employeesController.deleteEmployee);
 
-router.route('/employees/:id')
+router.route('/api/employees/:id')
     .get(employeesController.getEmployee);
 
 module.exports = router;

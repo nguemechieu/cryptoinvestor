@@ -1,58 +1,67 @@
-const joi = require("joi");
+
 const bcrypt = require("bcrypt");
 
 
 const db = require("../_helpers/db");
 const validateRequest = require("../middleware/validate-request");
 
-exports.signup = async (req, res,next) => {
 
-    try {
-        let data = req.body;
-        const schema = joi.object().keys({
+const jwt = require("jsonwebtoken");
 
-            username: joi.string().required(),
-            email: joi.string().required(),
-            password: joi.string().min(6).max(100).required(),
-            confirmPassword: joi.string().required(),
-            phone: joi.string().required(),
-            country_code: joi.string().required(),
-            firstName: joi.string().required(),
-            lastName: joi.string().required(),
-            middleName: joi.string().required(),
-            age: joi.date().required(),
-            role: joi.string().required()
+exports.signup = (req, res, next) => {
+   // validate
 
+    const Joi= require('joi');
+    const schema = Joi.object({
+        email: Joi.string().required(),
+        role: Joi.string().required(),
+        password: Joi.string().required(),
+        confirmPassword: Joi.string().required(),
+        firstName: Joi.string().required(),
+        middleName: Joi.string().required(),
+        lastName: Joi.string().required(),
+        phone: Joi.string().required(),
 
-        });
-      validateRequest(req, next ,schema);
+    });
+    validateRequest(req, next, schema);
 
 
-        // res.status(200).json({message: "validation passed", data: req.body});
 
 
-        const {user, pwd} = req.body;
 
-        // check for duplicate usernames in the db
-        const duplicate = await db.User.findOne({where:{email:req.body.email}});
-        if (duplicate) return res.status(409).json({messages: 'This email is already used'}); //Conflict
 
-        try {
-            //encrypt the password
-            const hashedPwd = await bcrypt.hash(req.body.password, 10);
+   db.User.findOne({ where: { email: req.body.email } })
+   .then(async user => {
+     if(!user){
+         const user = new db.User(req.body);
+         // hash password
 
-            //create and store the new user
-            const result = await db.User.create({
-                "username": user,
-                "password": hashedPwd
-            });
+         if(req.body.password!==req.body.confirmPassword){
 
-            console.log(result);
+             return next(new Error(`Password Not Matched: ${req.body.password}`));
+         }
 
-            res.status(201).json({'success': `New user ${user} created!`});
-        } catch (err) {
-            res.status(500).json({'message': err.message});
-        }
-    }catch (err) {  console.log(err);
-        let result = err.message; }
+         user.password= await bcrypt.hash(req.body.password, 10);
+         user.confirmPassword= await bcrypt.hash(req.body.confirmPassword, 10);
+         user.access_token=  jwt.sign(
+             { "username": user.username },
+             process.env.REFRESH_TOKEN_SECRET,
+             { expiresIn: '10s' },next
+         );
+         user.refreshToken=  jwt.sign(
+             { "username": user.username },
+             process.env.REFRESH_TOKEN_SECRET,
+             { expiresIn: '15s' },next
+         );
+         // save user
+         await user.save()
+             .then(() => res.json({ message: 'New user created successfully'+user }))
+             .catch(next);
+       }
+     else {
+       return res.json({message: 'This email already exists .Please choose a new one or contact the administrator to update this email.'})
+     }
+   })
+   .catch(next)
+
 }

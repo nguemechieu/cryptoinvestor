@@ -1,11 +1,10 @@
 require('dotenv').config();
-const  express = require('express'), path = require('path');
-const router = express.Router()
+const express= require('express'),app=  express() , path = require('path')
     ,
     root= require('./routes/root'),
     cookieParser = require('cookie-parser'),
         signup1= require('./routes/register'),
-     app = express();
+        signin= require('./routes/login')
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const corsOptions = require('./config/corsOptions');
@@ -15,15 +14,16 @@ const credentials = require('./middleware/credentials');
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const errorHandler = require("./middleware/errorHandler");
-const login = require("./controllers/loginController");
+
 const {resetPassword} = require("./controllers/resetPassword");
+const signup = require("./routes/registerPage");
 
 
 // Initialize documentation module with SwaggerJsdoc
 const swaggerOptions = {
   swaggerDefinition: {
     info: {
-      title: 'CryptoInvestor API',
+      title: 'CryptoInvestor',
       description: "Trade Management Application ",
       contact: {
         name: "CryptoInvestor",
@@ -32,7 +32,7 @@ const swaggerOptions = {
     }
   },
 
-  router: ['./routes/*.js'],
+//  router: ['./routes/*.js'],
   apis: [".bin/www.js"]
 }
 const swaggerDocs = swaggerJsDoc(swaggerOptions);
@@ -59,8 +59,8 @@ app.use(credentials);
 app.use(cors(corsOptions));
 
 // built-in middleware to handle urlencoded form data
-app.use(express.urlencoded({ extended: false}));
-app.use(bodyParser.urlencoded({ extended: false}))
+app.use(express.urlencoded({ extended: true}));
+app.use(bodyParser.urlencoded({ extended: true}))
 // built-in middleware for json
 app.use(express.json());
 
@@ -72,52 +72,33 @@ app.use(cookieParser());
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
-app.get("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs))
+
+app.use('/api/documentation', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 app.get('/',root)
 
-app.use('/auth/login', login);
+app.post('/api/users/login', signin);
 
-app.post(  '/signup',(req,res) => {
-  res.render('register', { title : 'Registration'})
-});
-
-
-// Routing Implement
-app.get('/api/v1', router);
-
-// Undefined Route Implement
-router.route("*").get ((req, res) => {
-  res.status(404).json({status: "Failed", data: "Not Found"})
-})
-
-app.post("/forgotPassword" , require('./routes/forgotPassword'))
+app.get("/api/users/forgot/password" , require('./routes/forgotPassword'))
 ;
-app.post('/recoverAccount' , require('./routes/recoverAccount.js'));
+app.post('/api/users/recover/account' , require('./routes/recoverAccount.js'));
 
-app.post( '/resetPassword',resetPassword);
-app.post('/refresh', require('./routes/refresh'));
+app.post( '/api/users/reset/password',resetPassword);
+app.post('/api/users/refresh', require('./routes/refresh'));
 
-app.post('/auth/signup', signup1);
+app.post('/api/users/signup/now', signup1);
 
-app.use(verifyJWT);
-app.post('/logout',require('./routes/logout'));
-app.get('/employees',require('./routes/api/employees'));
-app.get('/users/:userId/roles', require('./routes/api/users'));
+//app.use(verifyJWT);
+app.post('/api/users/logout',verifyJWT,require('./routes/logout'));
+app.get('/api/employees',verifyJWT,require('./routes/api/employees'));
+app.use('/api/users/:id/role',verifyJWT, require('./routes/api/users'));
+
+app.get(  '/api/users/signup',signup);
+// Routing Implement
 
 
 
 
 app.use(errorHandler);
 
-app.all('*', (req, res) => {
-  res.status(404);
-  if (req.accepts('ejs')) {
-    res.render('404.ejs', {accepts: req.accepts('ejs')});
-  } else if (req.accepts('json')) {
-    res.json({ "error": "404 Not Found" });
-  } else {
-    res.type('txt').send("404 Not Found");
-  }
-});
 
 module.exports = app;

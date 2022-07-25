@@ -4,7 +4,7 @@ let router = express.Router();
 const db = require("../_helpers/db");
 
 
-router.route('/recoverAccount').post((req, res,next) => {
+router.post('/api/users/recover/account',(req, res) => {
 
   let emails = req.body.email;
 

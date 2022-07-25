@@ -24,12 +24,12 @@
 
 <div class="containers"   >
     <div class="wrapper">
-        <form action="/auth/login" method="post" name="Login_Form" class="form-signing" style="background-color: #00B7FF;">
+        <form action="/api/users/login" method="post" name="Login_Form" class="form-signing" style="background-color: #00B7FF;">
 
             <h3 class="form-inline">Welcome! Please Sign In</h3>
               <div class="container">
            <p> <label>Email:
-                <input type="text" class="form-control" name="email" placeholder="Enter your email " autocomplete="off" autofocus="" />
+                <input type="text" class="form-control" name="username" placeholder="Enter username" id="username"   autocomplete="off" autofocus="" />
             </label>
               </p>
             <p><label>Password:
@@ -53,8 +53,8 @@
             <button class="btn btn-lg
 
 
-            btn-primary btn-block" formaction="/signup" formmethod="post" name="Submit"  value="Sign Up" >Sign Up</button>
-                  <input type="submit" class="btn btn-primary btn-block" formmethod="post" formaction="/forgotPassword" value="Forgot password?Click here!" id="forgotPassword" >
+            btn-primary btn-block" formaction="/api/users/signup" formmethod="get" name="Submit"  value="Sign Up" >Sign Up</button>
+                  <input type="submit" class="btn btn-primary btn-block" formmethod="get" formaction="/api/users/forgotPassword" value="Forgot password?Click here!" id="forgotPassword" >
               </div>
         </form>
     </div>
