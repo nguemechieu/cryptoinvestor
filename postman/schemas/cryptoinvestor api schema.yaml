@@ -7,7 +7,7 @@ info:
 servers:
   - url: 'localhost:4000'
 paths:
-  /api:
+  /:
     get:
       summary: 'api endpoint: Returns details about a particular user'
       operationId: listUser
@@ -66,8 +66,8 @@ components:
         message:
           type: string
   securitySchemes:
-    BasicAuth:
+    Auth2.0:
       type: http
       scheme: basic
 security:
-  - BasicAuth: []
+  - Auth2.0: []
