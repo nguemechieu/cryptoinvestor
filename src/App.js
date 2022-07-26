@@ -2,7 +2,7 @@
 import './App.css';
 import logo from './logo.svg';
 import { Footer,Blog,Header,Possibility,whatGP3} from './containers'
-import {Brand, Cta, Feature, Navbar,Articles} from "./components";
+import {Brand, Cta, Features, Navbar,Articles} from "./components";
 
 function App() {
   return (
@@ -12,7 +12,7 @@ function App() {
         <Header/>
          </div><Brand/>
            <whatGP3/>
-            <Feature />
+            <Features />
              <Possibility />
              <Cta />
                <Blog />

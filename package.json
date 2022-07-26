@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "main": ".bin/www.js",
-  "homepage": "http://localhost:3001/",
+  "homepage": "http://localhost:4000/",
   "author": "Nguemechieu Noel Martial",
   "repository": {
     "url": "git+https://github.com/nguemechieu/cryptoinvestor.git"
