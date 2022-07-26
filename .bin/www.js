@@ -6,7 +6,7 @@ const http = require("http");
 
 const server = http.createServer(app);
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 3000;
 
 
     console.log('Connected to Mysql Server');

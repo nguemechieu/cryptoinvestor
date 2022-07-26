@@ -5,9 +5,9 @@ info:
   license:
     name: MIT
 servers:
-  - url: 'localhost:4000'
+  - url: 'localhost:3000'
 paths:
-  /:
+  /api/users:
     get:
       summary: 'api endpoint: Returns details about a particular user'
       operationId: listUser

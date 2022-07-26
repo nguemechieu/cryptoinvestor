@@ -4,8 +4,8 @@ const express= require('express'),app=  express() , path = require('path')
     root= require('./routes/root'),
     cookieParser = require('cookie-parser'),
         signup1= require('./routes/register'),
-        signin= require('./routes/login')
-const bodyParser = require('body-parser');
+        signIn= require('./routes/login')
+
 const cors = require('cors');
 const corsOptions = require('./config/corsOptions');
 const { logger } = require('./middleware/logEvents');
@@ -17,6 +17,7 @@ const errorHandler = require("./middleware/errorHandler");
 
 const {resetPassword} = require("./controllers/resetPassword");
 const signup = require("./routes/registerPage");
+const bodyParser = require("body-parser");
 
 
 // Initialize documentation module with SwaggerJsdoc
@@ -28,7 +29,7 @@ const swaggerOptions = {
       contact: {
         name: "CryptoInvestor",
       },
-      servers: ["http://localhost:4000"]
+      servers: ["http://localhost:3001"]
     }
   },
 
@@ -49,8 +50,6 @@ app.use((req, res, next) => {
 // custom middleware logger
 app.use(logger);
 
-app.use(bodyParser.json());
-
 // Handle options credentials check - before CORS!
 // and fetch cookies credentials requirement
 app.use(credentials);
@@ -59,10 +58,13 @@ app.use(credentials);
 app.use(cors(corsOptions));
 
 // built-in middleware to handle urlencoded form data
-app.use(express.urlencoded({ extended: true}));
-app.use(bodyParser.urlencoded({ extended: true}))
+app.use(express.urlencoded({ extended: false}));
+//app.use(bodyParser.urlencoded({extended: false}))
 // built-in middleware for json
 app.use(express.json());
+
+//app.use(bodyParser.json());
+
 
 //middleware for cookies
 app.use(cookieParser());
@@ -76,7 +78,7 @@ app.set('view engine', 'ejs');
 app.use('/api/documentation', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 app.get('/',root)
 
-app.post('/api/users/login/now', signin);
+app.post('/api/users/login/now', signIn);
 
 app.post("/api/users/forgot/password" , require('./routes/forgotPassword'));
 app.post('/api/users/recover/account' , require('./routes/recoverAccount.js'));
