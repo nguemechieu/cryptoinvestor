@@ -24,7 +24,7 @@
 
 <div class="containers"   >
     <div class="wrapper">
-        <form action="/api/users/login" method="post" name="Login_Form" class="form-signing" style="background-color: #00B7FF;">
+        <form action="/api/users/login/now" method="post" name="Login_Form" class="form-signing" style="background-color: #00B7FF;">
 
             <h3 class="form-inline">Welcome! Please Sign In</h3>
               <div class="container">
@@ -54,7 +54,7 @@
 
 
             btn-primary btn-block" formaction="/api/users/signup" formmethod="get" name="Submit"  value="Sign Up" >Sign Up</button>
-                  <input type="submit" class="btn btn-primary btn-block" formmethod="get" formaction="/api/users/forgotPassword" value="Forgot password?Click here!" id="forgotPassword" >
+                  <input type="submit" class="btn btn-primary btn-block" formmethod="post" formaction="/api/users/forgot/password" value="Forgot password?Click here!" id="forgotPassword" >
               </div>
         </form>
     </div>

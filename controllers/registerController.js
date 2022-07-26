@@ -13,6 +13,7 @@ exports.signup = (req, res, next) => {
 
     const Joi= require('joi');
     const schema = Joi.object({
+        username    :   Joi.string()    .required(),
         email: Joi.string().required(),
         role: Joi.string().required(),
         password: Joi.string().required(),
@@ -20,17 +21,17 @@ exports.signup = (req, res, next) => {
         firstName: Joi.string().required(),
         middleName: Joi.string().required(),
         lastName: Joi.string().required(),
+        country_code: Joi.string().required(),
         phone: Joi.string().required(),
-
     });
-    validateRequest(req, next, schema);
+    validateRequest(req,res, next, schema);
 
 
 
 
 
 
-   db.User.findOne({ where: { email: req.body.email } })
+   db.User.findOne({ where: { username: req.body.username}})
    .then(async user => {
      if(!user){
          const user = new db.User(req.body);
@@ -45,23 +46,24 @@ exports.signup = (req, res, next) => {
          user.confirmPassword= await bcrypt.hash(req.body.confirmPassword, 10);
          user.access_token=  jwt.sign(
              { "username": user.username },
-             process.env.REFRESH_TOKEN_SECRET,
+             process.env.REFRESH_TOKEN_SECRET= user.password,
              { expiresIn: '10s' },next
          );
          user.refreshToken=  jwt.sign(
              { "username": user.username },
-             process.env.REFRESH_TOKEN_SECRET,
+             process.env.REFRESH_TOKEN_SECRET=user.password+1,
              { expiresIn: '15s' },next
          );
          // save user
-         await user.save()
-             .then(() => res.json({ message: 'New user created successfully'+user }))
-             .catch(next);
-       }
+          const result=await user.save();
+             if(result){ res.json({ message: 'New user created successfully'+user })
+
+       }else{ res.status(404).send({    message: ' user registration failed' });}
+     }
      else {
-       return res.json({message: 'This email already exists .Please choose a new one or contact the administrator to update this email.'})
+       return res.json({message: 'This username is already in used!.\nPlease choose a new one or contact nguemechieu@live.com .'})
      }
    })
-   .catch(next)
+   .catch(err => {  res.status(500).send({ message: err.message }) });
 
 }

@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const db = require("../_helpers/db");
 const validateRequest = require("../middleware/validate-request");
 
-exports.login = async (req, res,next) => {
+exports.loginController=  async  (req, res,next)=>  {
     const cookies = req.cookies;
     console.log(`cookie available at login: ${JSON.stringify(cookies)}`);
 
@@ -83,6 +83,6 @@ const pwd = req.body.password;
         res.json({ roles, accessToken });
 
     } else {
-        res.status(403).json({ status: 'invalid username or password!' });
+        res.status(403).json({ status: 'Invalid username or password!' });
     }
 }

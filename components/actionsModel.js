@@ -1,6 +1,6 @@
 
 let message="No message";
-const model=require("../model/User");
+
 
 exports._getAll = (model) => {
     return model.findAll();

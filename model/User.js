@@ -14,12 +14,10 @@ function User(sequelize) {
         firstName: { type: DataTypes.STRING, allowNull: false },
         lastName: { type: DataTypes.STRING, allowNull: false },
         middleName:{ type: DataTypes.STRING, allowNull: false },
-        age: { type: DataTypes.DATE, allowNull: false , defaultValue: '1990-04-03 02:04:05'    },
-        role: { type: DataTypes.STRING, allowNull: false , defaultValue: 'User' },
-        refreshToken: { type: DataTypes.STRING, allowNull: false , defaultValue: config.token },
-        access_token: { type: DataTypes.STRING, allowNull: false},
-        country_code: { type: DataTypes.STRING, allowNull: false, defaultValue: config.country},
-        phone: { type: DataTypes.STRING, allowNull: false, defaultValue: config.phone}
+        age: { type: DataTypes.DATE, allowNull: false , defaultValue: '1980-04-03 02:04:05'    },
+        role: { type: DataTypes.STRING, allowNull: false , defaultValue: 'user' },
+         country_code: { type: DataTypes.STRING, allowNull: false},
+        phone: { type: DataTypes.STRING, allowNull: false}
     };
 
     const options = {

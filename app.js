@@ -76,10 +76,9 @@ app.set('view engine', 'ejs');
 app.use('/api/documentation', swaggerUi.serve, swaggerUi.setup(swaggerDocs))
 app.get('/',root)
 
-app.post('/api/users/login', signin);
+app.post('/api/users/login/now', signin);
 
-app.get("/api/users/forgot/password" , require('./routes/forgotPassword'))
-;
+app.post("/api/users/forgot/password" , require('./routes/forgotPassword'));
 app.post('/api/users/recover/account' , require('./routes/recoverAccount.js'));
 
 app.post( '/api/users/reset/password',resetPassword);
@@ -89,7 +88,7 @@ app.post('/api/users/signup/now', signup1);
 
 //app.use(verifyJWT);
 app.post('/api/users/logout',verifyJWT,require('./routes/logout'));
-app.get('/api/employees',verifyJWT,require('./routes/api/employees'));
+app.post('/api/admin/employee',verifyJWT,require('./routes/api/employees'));
 app.use('/api/users/:id/role',verifyJWT, require('./routes/api/users'));
 
 app.get(  '/api/users/signup',signup);

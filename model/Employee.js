@@ -5,9 +5,9 @@ let { DataTypes} = require('sequelize');
 function Employee(sequelize) {
         const attributes = {
 
-            id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false},
-            username:{ type: DataTypes.STRING, allowNull: false },
-              email:{ type: DataTypes.STRING, allowNull: false },
+                id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true, allowNull: false},
+                username:{ type: DataTypes.STRING, allowNull: false },
+                email:{ type: DataTypes.STRING, allowNull: false },
                 telephone:{ type: DataTypes.STRING, allowNull: false },
                 address:{ type: DataTypes.STRING, allowNull: false },
                 city: { type: DataTypes.STRING, allowNull: false },

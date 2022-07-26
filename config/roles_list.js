@@ -1,10 +1,10 @@
 const ROLES_LIST = {
-    "Manager": "manager",
-    "Employee": "employee",
-    "Admin":   "admin",
-    "Editor": "editor",
+    "manager": "manager",
+    "employee": "employee",
+    "admin":   "admin",
+    "editor": "editor",
     "supervisor": "supervisor",
-    "User": "user"
+    "user": "user"
 }
 
 module.exports = ROLES_LIST
