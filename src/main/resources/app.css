@@ -1,0 +1,285 @@
+.app {
+    -fx-border-radius: 15%;
+    -fx-font-size: 90%;
+    -fx-background-color: #12304f;
+    -fx-text-fill-color: #bcd5f8;
+    -fx-font-family: sans-serif;
+    -fx-text-stroke-width: 1px;
+    -fx-touch-action: none;
+    -fx-user-select: none;
+
+}
+.Toolbar{
+-fx-border-radius:5px !important;
+-fx-background-color: BLACK;
+}
+
+.MenuBar{
+
+-fx-border-radius:3px !important;
+-fx-background-color: GOLD;
+
+-fx-text-stroke-width:2;
+}
+.text-field {
+    -fx-background-color: #8cb8e5;
+}
+
+.tabPanes {
+    -fx-prefHeight: 780.0;
+    -fx-prefWidth: 1530.0;
+    -fx-background-color: #1ca5ef;
+    -fx-text-fill-color: #0de7bf;
+    -fx-border-radius: 3;
+    -fx-text-fill: #d0dce3;
+}
+.FlowPane {-fx-background-color:BLACK; }
+.TabPane {-fx-background-color:BLACK; }
+.label {
+    -fx-font-size: 90%;
+    -fx-touch-action: none;
+    -fx-user-select: none;
+    -fx-font-family: sans-serif;
+    -fx-text-fill: #1d61a8;
+
+
+    -fx-text-stroke-width: 2px;
+}
+
+.text-area {
+    -fx-font-size: 100%;
+    -fx-text-fill-color: #e4efed;
+}
+
+.tab-pane {
+    -fx-font-size: 90%;
+    -fx-border-radius: 5%;
+    -fx-background-color: #0f2a46;
+    -fx-text-fill-color: #5bd5bf;
+
+
+}
+
+.chart-plot-background {
+    -fx-background-color: black;
+}
+.chart{
+    -fx-background-color: black;
+}
+.AnchorPane {
+    -fx-background-color:rgba(0,45,255,0);
+    -fx-border-color: #1dbd37;
+    -fx-text-fill-color: #5ed372;
+    -fx-prefHeight: 780.0;
+    -fx-prefWidth: 1530.0;
+    -fx-border-radius: 3;
+
+    -fx-font-size:90%;
+    -fx-focus-traversable:true;
+    -fx-alignment: center;
+
+
+    -fx-animated: false;
+    -fx-page-information-alignment: bottom;
+    -fx-scale-shape: inherit;
+    -fx-text-shadow: none;
+}
+
+.tab{
+    -fx-background-color: rgb(82, 152, 206);
+    -fx-border-color: rgb(45, 176, 151);
+    -fx-text-fill-color: rgb(255, 255, 255);
+    -fx-alignment: center;
+    -fx-border-radius: 5%;
+    -fx-border-width: 1px;
+
+}
+.menu-items {
+    -fx-background-color: rgb(77, 141, 225);
+    -fx-border-color: rgb(161, 227, 192);
+}
+
+.menu-item {
+    -fx-background-color: rgb(214, 226, 241);
+    -fx-border-color: rgb(115, 218, 162);
+
+
+}
+
+.text-hover {
+    -fx-background-color: rgb(120, 153, 196);
+}
+
+.menu-item:hover {
+    -fx-background-color: rgb(120, 153, 196);
+}
+.candlestick-tooltip-label {
+    -fx-font-size: 0.75em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #666666;
+    -fx-padding: 2 5 2 0;
+}
+
+.candlestick-average-line {
+    -fx-stroke: #106ece;
+    -fx-stroke-width: 2px;
+}
+
+.candlestick-candle {
+    -fx-background-color: rgb(255,34,34,1.00);
+}
+
+.candlestick-line {
+    -fx-stroke: #FFFFFF;
+    -fx-stroke-width: 1px;
+}
+
+
+.candlestick-bar.close-above-open {
+    -fx-background-color: rgb(25,225,25,1.00);
+    -fx-border-width: 1, 1,1,1;
+    -fx-border-color: #e2e2e2;
+}
+
+.candlestick-bar.open-above-close {
+    -fx-background-color: rgb(255,34,34,1.00);
+    -fx-border-width: 1, 1,1,1;
+    -fx-font-weight: bold;
+    -fx-border-color: #e2e2e2;
+}
+
+
+.label-gray {
+    -fx-background-color: rgb(25,25,25,0.70);
+}
+
+.axis {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-color: #FFFFFF;
+    -fx-tick-label-fill: #FFFFFF;
+    -fx-font-size: 18pt;
+    -fx-font-family: "Segoe UI Light";
+    -fx-tick-length: 20;
+    -fx-minor-tick-length: 10;
+}
+
+.chart-title {
+     -fx-text-fill: #FFFFFF;
+    -fx-font-size: 20pt;
+    -fx-font-family: "Segoe UI Light";
+}
+
+.axis-label {
+    -fx-text-fill: #462300;
+}
+
+.axis-tick-mark {
+    -fx-stroke: #637040;
+    -fx-stroke-width: 3;
+}
+.axis-minor-tick-mark {
+    -fx-stroke: #859656;
+}
+
+/*{
+
+}
+*/
+.chart {
+  -fx-background-color: #657F92;
+}
+.fx-background-color {
+  -fx-background-color: red;
+}
+.chart-plot-background {
+    -fx-background-color: rgb(0,0,0,0.25);
+}
+
+tab-pane-selected {
+    -fx-background-color: rgb(63, 236, 80);
+    -fx-border-color: rgb(128, 41, 41);
+}
+
+.candlestick-tooltip-label {
+    -fx-font-size: 0.75em;
+    -fx-font-weight: bold;
+    -fx-text-fill: #666666;
+    -fx-padding: 2 5 2 0;
+}
+
+.candlestick-average-line {
+    -fx-stroke: #106ece;
+    -fx-stroke-width: 2px;
+}
+
+.candlestick-candle {
+    -fx-background-color: rgb(255,34,34,1.00);
+}
+
+.candlestick-line {
+    -fx-stroke: #FFFFFF;
+    -fx-stroke-width: 1px;
+}
+
+.Pane{
+  -fx-background-color:rgba(1,25,245,1.1)
+
+}
+.candlestick-bar.close-above-open {
+    -fx-background-color: rgb(25,225,25,1.00);
+    -fx-border-width: 1, 1,1,1;
+    -fx-border-color: #e2e2e2;
+}
+
+.candlestick-bar.open-above-close {
+    -fx-background-color: rgb(255,34,34,1.00);
+    -fx-border-width: 1, 1,1,1;
+    -fx-font-weight: bold;
+    -fx-border-color: #e2e2e2;
+}
+
+
+.label-gray {
+    -fx-background-color: rgb(25,25,25,0.70);
+}
+
+.axis {
+    -fx-text-fill: #FFFFFF;
+    -fx-font-color: #FFFFFF;
+    -fx-tick-label-fill: #FFFFFF;
+    -fx-font-size: 18pt;
+    -fx-font-family: "Segoe UI Light";
+    -fx-tick-length: 20;
+    -fx-minor-tick-length: 10;
+}
+
+.chart-title {
+     -fx-text-fill: #FFFFFF;
+    -fx-font-size: 20pt;
+    -fx-font-family: "Segoe UI Light";
+}
+
+.axis-label {
+    -fx-text-fill: #462300;
+}
+
+.axis-tick-mark {
+    -fx-stroke: #637040;
+    -fx-stroke-width: 3;
+}
+.axis-minor-tick-mark {
+    -fx-stroke: #859656;
+}
+
+/*{
+}
+*/
+.chart {
+  -fx-background-color: #657F92;
+}
+.fx-background-color {
+  -fx-background-color: red;
+}
+.chart-plot-background {
+    -fx-background-color: rgb(0,0,0,0.25);
+}
