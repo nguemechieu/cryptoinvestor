@@ -1585,7 +1585,10 @@ public class Oanda extends Exchange {
                 payload.getJSONObject("orders") != null) {
 
             for (int i = 0; i < payload.getJSONArray("orders").length(); i++) {
-                OandaOrder oandaOrder = null;
+
+                OandaOrder oandaOrder
+                        = null;
+                oandaOrder.setOrderId(payload.getJSONArray("orders").getJSONObject(i).get("orderId"));;
                 oandaOrder.setOrderId(payload.getJSONArray("orders").getJSONObject(i).get("orderId"));
 
             }

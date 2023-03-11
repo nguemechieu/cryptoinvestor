@@ -77,7 +77,7 @@ public class ChartContainer extends Region{
             if (!oldDurationValue.equals(newDurationValue)) {
                 try {
                     createNewChart(newDurationValue.intValue(), liveSyncing);
-                } catch (ParseException e) {
+                } catch (ParseException | TelegramApiException | IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
                 try {
@@ -94,7 +94,7 @@ public class ChartContainer extends Region{
         //secondsPerCandle.set(300);
     }
 
-    private void createNewChart(int secondsPerCandle, boolean liveSyncing) throws ParseException {
+    private void createNewChart(int secondsPerCandle, boolean liveSyncing) throws ParseException, TelegramApiException, IOException, InterruptedException {
         if (secondsPerCandle <= 0) {
             throw new IllegalArgumentException("secondsPerCandle must be positive but was: " + secondsPerCandle);
         }

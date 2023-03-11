@@ -84,6 +84,7 @@ public abstract class ExchangeWebSocketClient implements WebSocket {
                     }
                     if (connectionEstablished.get()) {
                         connectionEstablished.set(false);
+
                     }
                 });
                 Log.info(String.valueOf(TAG),"Connection closed");

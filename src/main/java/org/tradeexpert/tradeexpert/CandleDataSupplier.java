@@ -1,6 +1,9 @@
 package org.tradeexpert.tradeexpert;
 
 import javafx.beans.property.IntegerProperty;
+import org.tradeexpert.tradeexpert.BinanceUs.Binance;
+import org.tradeexpert.tradeexpert.Coinbase.Coinbase;
+import org.tradeexpert.tradeexpert.oanda.Oanda;
 
 import java.time.Instant;
 import java.util.List;
@@ -14,10 +17,7 @@ import java.util.function.Supplier;
 import static java.lang.System.out;
 
 public abstract class CandleDataSupplier implements Supplier<Future<List<CandleData>>> {
-    private static final Set<Integer> GRANULARITIES = Set.of(60, 60 * 5, 60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7, 3600 * 24 * 7 * 4, 3600 * 24 * 365);
-    /**
-     * The number of candles supplied per call to {@link #get()}.
-     */
+
     protected final int numCandles;
     protected final int secondsPerCandle;
     protected final String tradePair;
@@ -44,7 +44,27 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
     }
 
     public Set<Integer> getSupportedGranularities() {
-        return GRANULARITIES;
+        if (this.get() instanceof Coinbase) {
+
+            return Set.of( 60,60 * 5, 60 * 15,3600,3600*6,3600*24);
+
+        } else if (this.get()  instanceof Binance) {
+
+            return Set.of(60, 60 * 5, 60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7,
+                    3600 * 24 * 7 * 4, 3600 * 24 * 365);
+
+        }
+        else if (this.get()  instanceof Oanda) {
+            return Set.of(60, 60 * 5,
+                    60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7,
+                    3600 * 24 * 7 * 4, 3600 * 24 * 365);
+        }
+        else  return Set.of(60, 60 * 5, 60 * 15,3600,
+                    3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7,
+                    3600 * 24 * 7 * 4, 3600 * 24 * 365);
+
+
+
     }
 
     @Override

@@ -1,60 +1,76 @@
 package org.tradeexpert.tradeexpert;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Date;
 
  public class Order {
-    public String timestamp;
-    public TRADE_ORDER_TYPE order_type;
-    public double remaining;
-    public double fee;
+    public static String timestamp;
+     private static int lastError;
+     private static int ticket;
+     public static TRADE_ORDER_TYPE order_type;
+    public static double remaining;
+    public static double fee;
 
 
      protected Long id;
-    protected double lotSize;
-    protected double price;
+    protected static double lotSize;
+    protected static double price;
     protected double total;
     protected String currency;
     protected Date created;
-    protected double stopLoss;
+    protected static double stopLoss;
     protected double takeProfit;
     protected Date updated;
     protected Date closed;
     protected String status;
-    protected String symbol;
-    protected String type;
+    protected static String symbol;
+    protected static String type;
 
 
      public Order(String timestamp, TRADE_ORDER_TYPE order_type, double remaining, double fee, double lotSize, double price) {
+         Order.timestamp = timestamp;
+         Order.order_type = order_type;
+         Order.remaining = remaining;
+         Order.fee = fee;
+         Order.lotSize = lotSize;
+         Order.price = price;
 
-         this.order_type = order_type;
 
-         this.id = id;
-
-         this.created = created;
-
-         this.updated = updated;
-         this.closed = closed;
-
-         this.timestamp = timestamp;
-         this.remaining = remaining;
-         this.fee = fee;
-         this.lotSize = lotSize;
-         this.price = price;
-         this.total = total;
-         this.currency = currency;
-         this.stopLoss = stopLoss;
-         this.takeProfit = takeProfit;
-         this.status = status;
-         this.symbol = symbol;
-         this.type = type;
      }
 
-     public double getStopLoss() {
+     public static Object getOpenTime() {
+         return timestamp;
+     }
+
+     public static int getLastError() {
+         return lastError;
+     }
+
+     @Contract(pure = true)
+     public static @NotNull String getErrorDescription(int err) {
+         return "Error " + err;
+     }
+
+     public static long getMagicNumber() {
+         return timestamp.length();
+     }
+
+     public static int getTicket() {
+         return ticket;
+     }
+
+     public static double getStopLoss() {
         return stopLoss;
     }
 
-    public void setStopLoss(double stopLoss) {
-        this.stopLoss = stopLoss;
+     public static double getOpenPrice() {
+         return price;
+     }
+
+     public void setStopLoss(double stopLoss) {
+        Order.stopLoss = stopLoss;
     }
 
     public double getTakeProfit() {
@@ -88,7 +104,7 @@ import java.util.Date;
     }
 
     public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+        Order.timestamp = timestamp;
     }
 
     public String getId() {
@@ -104,7 +120,7 @@ import java.util.Date;
     }
 
     public void setOrder_type(TRADE_ORDER_TYPE order_type) {
-        this.order_type = order_type;
+        Order.order_type = order_type;
     }
 
     public double getLotSize() {
@@ -112,7 +128,7 @@ import java.util.Date;
     }
 
     public void setLotSize(double lotSize) {
-        this.lotSize = lotSize;
+        Order.lotSize = lotSize;
     }
 
     public double getPrice() {
@@ -120,7 +136,7 @@ import java.util.Date;
     }
 
     public void setPrice(double price) {
-        this.price = price;
+        Order.price = price;
     }
 
     public double getTotal() {
@@ -136,7 +152,7 @@ import java.util.Date;
     }
 
     public void setRemaining(double remaining) {
-        this.remaining = remaining;
+        Order.remaining = remaining;
     }
 
     public double getFee() {
@@ -144,7 +160,7 @@ import java.util.Date;
     }
 
     public void setFee(double fee) {
-        this.fee = fee;
+        Order.fee = fee;
     }
 
     public String getCurrency() {
@@ -187,20 +203,20 @@ import java.util.Date;
         this.status = status;
     }
 
-    public String getSymbol() {
+    public static String getSymbol() {
         return symbol;
     }
 
     public void setSymbol(String symbol) {
-        this.symbol = symbol;
+        Order.symbol = symbol;
     }
 
-    public String getType() {
+    public static String getType() {
         return type;
     }
 
     public void setType(String type) {
-        this.type = type;
+        Order.type = type;
     }
 
     public void showOrderDetails() {

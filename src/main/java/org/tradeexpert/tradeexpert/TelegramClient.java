@@ -135,6 +135,7 @@ public class TelegramClient {
     private String from_first_name;
     private String judulnews;
     private boolean DrawLines;
+    private Object marketInfo;
 
     public TelegramClient(String token) throws IOException, InterruptedException, TelegramApiException {
 
@@ -2297,6 +2298,10 @@ public class TelegramClient {
         makeRequest("https://api.telegram.org/bot" + getToken() + "/sendKeyboard" + "?chat_id=" + chat_id + "&text=" + keyboard + "&parse_mode=" + parse_mode + "&disable_web_page_preview=" + false + "&disable_notification=" + false, "POST"
 
         );
+    }
+
+    public Object MarketInfo() {
+        return marketInfo;
     }
 
 

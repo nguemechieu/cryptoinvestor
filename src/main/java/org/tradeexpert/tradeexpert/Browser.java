@@ -41,8 +41,8 @@ import java.util.Objects;
     static ImageView selectedImage = new ImageView();
     static WebView smallView = new WebView();
     static
-    WebView webWiew = new WebView();
-    static final WebEngine webEngine = webWiew.getEngine();
+    WebView webView = new WebView();
+    static final WebEngine webEngine = webView.getEngine();
     final Image[] images = new Image[imageFiles.length];
     final Button showPrevDoc = new Button("Toggle Previous Docs");
     String[] captions = new String[]{
@@ -58,7 +58,7 @@ import java.util.Objects;
     boolean needDocumentationButton = false;
 
     public Browser() {
-        //apply the styles
+        //apply the styles'
         //pane.getStyleClass().add("app.css");
         for (int i = 0; i < captions.length; i++) {
             // create hyperlinks

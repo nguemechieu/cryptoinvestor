@@ -9,6 +9,11 @@ public enum Side {
     BUY,
     SELL;
 
+    public static final javafx.geometry.Side BOTTOM =
+            javafx.geometry.Side.BOTTOM;
+    public static final javafx.geometry.Side TOP =
+            javafx.geometry.Side.TOP;
+
     public static Side getSide(@NotNull String type) {
         if (type.equalsIgnoreCase("BUY")) {
             return BUY;

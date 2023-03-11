@@ -18,10 +18,15 @@ import static java.lang.System.out;
 
 public class CryptoCurrencyDataProvider extends CurrencyDataProvider {
     public CryptoCurrencyDataProvider() {
+        super();
+        registerCurrencies();
+
     }
+    List<Currency> coinsToRegister = new ArrayList<>();
 
     @Override
     protected void registerCurrencies() {
+
 
         HttpRequest.Builder request = HttpRequest.newBuilder();
         request.setHeader("Accept", "application/json");
@@ -34,19 +39,20 @@ public class CryptoCurrencyDataProvider extends CurrencyDataProvider {
                         HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenApply(response -> {
-
+                    String id = "";
+                    String name = "";
+                    String status = "";
+                    String symbol = "";
+                    String message = "";
+                    int max_precision = 0;
+                    String type = "";
 
                     JSONObject json = new JSONObject(response);
 
                     for (int i = 0; i < json.length(); i++) {
-                        String id = "";
-                        String name = "";
-                        String status = "";
-                        String symbol = "";
-                        String message = "";
-                        String max_precision = "";
-                        int maxPrecision = 0;
-                        String type = "";
+
+
+
                         String crypto_address_link = null;
                         if (json.has("id")) {
                             id = json.getString("id");
@@ -70,7 +76,7 @@ public class CryptoCurrencyDataProvider extends CurrencyDataProvider {
                         if (
                                 json.has("max_precision")
                         ) {
-                            maxPrecision = json.getInt("max_precision");
+                            max_precision = json.getInt("max_precision");
                         }
 
                         if (json.has("details")) {
@@ -80,15 +86,20 @@ public class CryptoCurrencyDataProvider extends CurrencyDataProvider {
 
                         }
                         if (json.has("type")) {
-                            type = json.getString("type");
+                             type = json.getString("type");
                         }
 
 
                         out.println("currency id" + id);
-                        List<Currency> coinsToRegister = new ArrayList<>();
 
+                        out.println("name " + name);
+                        out.println("status " + status);
+                        out.println("message " + message);
+                        out.println("symbol " + symbol);
+                        out.println("max_precision " + max_precision);
+                        out.println("type " + type);
 
-                        coinsToRegister.add(i, new CryptoCurrency(name, id, symbol, maxPrecision, crypto_address_link) {
+                        coinsToRegister.add(i, new CryptoCurrency(name, id, symbol, max_precision, crypto_address_link) {
                             @Override
                             public int compareTo(@NotNull java.util.Currency o) {
                                 return 0;
@@ -112,8 +123,11 @@ public class CryptoCurrencyDataProvider extends CurrencyDataProvider {
 
 
                     out.println("Cannot register currencies");
-                    return null;
-                });
+
+                            return coinsToRegister;
+                        }
+                );
+
 
 
     }

@@ -25,10 +25,9 @@ public abstract class Currency implements Comparable<java.util.Currency> {
 
     static {
         //  FIXME: Replace with ServiceLoaders
-        CryptoCurrencyDataProvider cryptoCurrencyDataProvider = new CryptoCurrencyDataProvider();
-        cryptoCurrencyDataProvider.registerCurrencies();
         FiatCurrencyDataProvider fiatCurrencyDataProvider = new FiatCurrencyDataProvider();
         fiatCurrencyDataProvider.registerCurrencies();
+
 
 //
         ServiceLoader<CurrencyDataProvider> serviceLoader = ServiceLoader.load(CurrencyDataProvider.class);
@@ -120,11 +119,8 @@ public abstract class Currency implements Comparable<java.util.Currency> {
         }
     }
 
-    /**
-     * Get the fiat currency that has a currency code equal to the
-     * given {@code}. Using {@literal "¤¤¤"} as the currency code
-     * returns {@literal NULL_FIAT_CURRENCY}.
-     */
+
+
     public static FiatCurrency ofFiat(@NotNull String code) {
         if (code.equals("¤¤¤")) {
             return NULL_FIAT_CURRENCY;
@@ -134,11 +130,7 @@ public abstract class Currency implements Comparable<java.util.Currency> {
         return result == null ? NULL_FIAT_CURRENCY : result;
     }
 
-    /**
-     * Get the crypto currency that has a currency code equal to the
-     * given {@code}. Using {@literal "¤¤¤"} as the currency code
-     * returns {@literal NULL_CRYPTO_CURRENCY}.
-     */
+
     public static CryptoCurrency ofCrypto(@NotNull String code) {
         if (code.equals("¤¤¤")) {
             return NULL_CRYPTO_CURRENCY;
@@ -171,6 +163,8 @@ public abstract class Currency implements Comparable<java.util.Currency> {
                 .filter(currency -> currency.currencyType == CurrencyType.FIAT)
                 .findAny().orElse(NULL_FIAT_CURRENCY);
     }
+
+
 
     public CurrencyType getCurrencyType() {
         return this.currencyType;

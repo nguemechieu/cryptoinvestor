@@ -18,8 +18,9 @@ module org.tradeexpert.tradeexpert {
     requires com.fasterxml.jackson.datatype.jsr310;
     requires java.persistence;
     requires java.sql;
-    requires java.websocket;
+
     requires jdk.hotspot.agent;
+    requires Java.WebSocket;
 
 
     opens org.tradeexpert.tradeexpert to javafx.fxml;

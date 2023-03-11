@@ -1,8 +1,8 @@
 package org.tradeexpert.tradeexpert;
 
-import org.json.JSONObject;
-
+import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Trade implements Runnable{
+
     public static CandleData candle;
-    private ConcurrentHashMap<Object,Object> trade=new ConcurrentHashMap<>();
     private String tradePair;
     private Money price;
     private Money amount;
@@ -43,6 +43,16 @@ public class Trade implements Runnable{
                     )
                    );
     private Money fee;
+    private final ArrayList<String> symbols=new ArrayList<>();
+    private int NumOfSymbols;
+    private boolean SmartBot;
+    private final List<Order> Orders=new ArrayList<>();
+    private TradeMode inpTradeMode;
+    private boolean UseTime;
+    private long MagicNumber;
+    private boolean telegram;
+    private Exchange exchange;
+    private double ProfitValue;
 
     public Trade(String tradePair, Money price, Money amount, Side transactionType,
                  long localTradeId, Instant timestamp, Money fee) {
@@ -75,14 +85,15 @@ public class Trade implements Runnable{
 
     public Trade(String tradeID, String instrument, String side, String quantity, String price, String time, String transactionID, String clientExtensions) {
 
-        this.trade.put("tradeID", tradeID);
-        this.trade.put("instrument", instrument);
-        this.trade.put("side", side);
-        this.trade.put("quantity", quantity);
-        this.trade.put("price", price);
-        this.trade.put("time", time);
-        this.trade.put("transactionID", transactionID);
-        this.trade.put("clientExtensions", clientExtensions);
+        ConcurrentHashMap<Object, Object> trade = new ConcurrentHashMap<>();
+        trade.put("tradeID", tradeID);
+        trade.put("instrument", instrument);
+        trade.put("side", side);
+        trade.put("quantity", quantity);
+        trade.put("price", price);
+        trade.put("time", time);
+        trade.put("transactionID", transactionID);
+        trade.put("clientExtensions", clientExtensions);
     }
 
 
@@ -152,14 +163,30 @@ public class Trade implements Runnable{
 
 
 
-void OnInit(CandleData candle) {
-
-
+    TelegramClient smartBot;
+public Object MarketInfo() throws TelegramApiException, IOException, InterruptedException {
+    if(smartBot==null)
+    {
+        smartBot = new TelegramClient(getTradePair());
+    }
+    return smartBot.MarketInfo();
 }
+
+
+
+    private int OrdersTotal() {
+        int count = 0;
+        for (Order i:  Orders) {
+            if (i!= null) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     @Override
     public void run() {
 
-        OnInit(candle);
 
         OnTick();
     }

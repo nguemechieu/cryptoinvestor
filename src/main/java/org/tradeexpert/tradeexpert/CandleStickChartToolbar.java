@@ -13,16 +13,15 @@ import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
+import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 import org.jetbrains.annotations.Contract;
@@ -33,6 +32,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -61,13 +61,13 @@ public class CandleStickChartToolbar extends Region {
     private final Separator functionOptionsSeparator;
     private MouseExitedPopOverFilter mouseExitedPopOverFilter;
     private volatile boolean mouseInsideOptionsButton;
+    private String tradeSymbol;
 
     public CandleStickChartToolbar(ObservableNumberValue containerWidth, ObservableNumberValue containerHeight,
                             Set<Integer> granularities) {
         Objects.requireNonNull(containerWidth);
         Objects.requireNonNull(containerHeight);
         Objects.requireNonNull(granularities);
-        Paint[] xColor = new Color[]{Color.RED, Color.WHITE, Color.GOLD, Color.GREEN, Color.BROWN, Color.CORAL, Color.LAVENDER};
 
         List<Node> toolbarNodes = new ArrayList<>((2 * granularities.size()) + Tool.values().length + 1);
         boolean passedMinuteHourBoundary = false;
@@ -77,8 +77,7 @@ public class CandleStickChartToolbar extends Region {
         for (Integer granularity : granularities) {
             if (granularity < 3600) {
                 ToolbarButton toolbar0 = new ToolbarButton((granularity / 60) + "m", granularity);
-                toolbar0.setBackground(Background.fill(xColor[(int) (Math.random() * xColor.length - 1)]));
-                toolbar0.setPadding(new Insets(20, 20, 20, 20));
+                      toolbar0.setPadding(new Insets(20, 20, 20, 20));
                 toolbarNodes.add(toolbar0);
 
 
@@ -90,8 +89,7 @@ public class CandleStickChartToolbar extends Region {
                     toolbarNodes.add(minuteHourSeparator);
                 }
                 ToolbarButton toolbar1 = new ToolbarButton((granularity / 3600) + "h", granularity);
-                toolbar1.setBackground(Background.fill(xColor[(int) (Math.random() * xColor.length - 1)]));
-                toolbarNodes.add(toolbar1);
+                      toolbarNodes.add(toolbar1);
             } else if (granularity < 604800) {
                 if (!passedHourDayBoundary) {
                     passedHourDayBoundary = true;
@@ -108,8 +106,7 @@ public class CandleStickChartToolbar extends Region {
                     toolbarNodes.add(dayWeekSeparator);
                 }
                 ToolbarButton toolbar3 = new ToolbarButton((granularity / 604800) + "w", granularity);
-                toolbar3.setBackground(Background.fill(xColor[(int) (Math.random() * xColor.length - 1)]));
-                toolbarNodes.add(toolbar3);
+                      toolbarNodes.add(toolbar3);
             } else {
                 if (!passedWeekMonthBoundary) {
                     passedWeekMonthBoundary = true;
@@ -119,9 +116,7 @@ public class CandleStickChartToolbar extends Region {
                 }
                 ToolbarButton toolbar9 = new ToolbarButton((granularity / 2592000) + "mo", granularity);
 
-                toolbar9.setBackground(Background.fill(xColor[(int) (Math.random() * xColor.length - 1)]));
-
-                toolbarNodes.add(toolbar9);
+                     toolbarNodes.add(toolbar9);
             }
         }
         Separator intervalZoomSeparator = new Separator();
@@ -211,7 +206,83 @@ public class CandleStickChartToolbar extends Region {
                         }
                     });
 
+                }else if (tool.tool!= null && tool.tool.isOptions()) {
+                    tool.setOnAction(event -> optionsPopOver.show(tool));
+                }else if (tool.tool!= null && tool.tool.isPrint()) {
+                    tool.setOnAction(event -> {
+                        try {
+                            Desktop.getDesktop().browse(new URI("https://www.google.com/"));
+                        } catch (IOException | URISyntaxException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }else if (tool.tool!= null && tool.tool.isSymbol()) {
+                    tool.setOnAction(event -> {
+
+                        VBox symbolBox = new VBox();
+                        symbolBox.getStyleClass().add("symbol-box");
+
+                        ChoiceBox <Currency> symbolChoiceBox = new ChoiceBox<>();
+                        symbolChoiceBox.getItems().addAll(candleStickChart.getSymbols());
+
+                        tradeSymbol = String.valueOf(symbolChoiceBox.getSelectionModel().getSelectedItem());
+
+                    });
+                }else if (tool.tool!= null && tool.tool.isAutoTrading()) {
+                    tool.setOnAction(event -> {
+                        candleStickChart.setAutoTrading(true);
+                    });
+                }else if (tool.tool!= null && tool.tool.isArea()) {
+                    tool.setOnAction(event -> {
+                        candleStickChart.setAreaChart();
+                    });
+                }else if (tool.tool!= null && tool.tool.isVolume()) {
+                    tool.setOnAction(event -> {
+                        candleStickChart.setVolumeChart();
+                    });
+                }else if (tool.tool!= null && tool.tool.isBar()) {
+                    tool.setOnAction(event -> {
+                        candleStickChart.setBarChart();
+                    });
                 }
+
+                else if (tool.tool!= null && tool.tool.isLine()) {
+                    tool.setOnAction(event -> {
+                        candleStickChart.setLineChart();
+                    });
+                }
+                else if (tool.tool!= null && tool.tool.isPie()) {
+                    tool.setOnAction(event -> {
+                        candleStickChart.setPieChart();
+                    });
+                }
+                else if (tool.tool!= null && tool.tool.isScatter()) {
+                    tool.setOnAction(event -> {
+                        candleStickChart.setScatterChart();
+                    });
+                }
+                else if (tool.tool!= null && tool.tool.isHistogram()) {
+                    tool.setOnAction(event -> {
+                        candleStickChart.setHistogramChart();
+                    });
+                }else if (tool.tool!= null && tool.tool.isCandlestick()) {
+                    tool.setOnAction(event -> {
+                        candleStickChart.setCandlestickChart();
+                    });
+                }
+                else if (tool.tool!= null && tool.tool.isNews()) {
+                    tool.setOnAction(event -> {
+                        try {
+                            candleStickChart.getNews();
+                        } catch (ParseException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+                }
+
+
+
+
 
 
             }
@@ -226,8 +297,27 @@ public class CandleStickChartToolbar extends Region {
         ZOOM_IN("/img/search-plus-solid.png"),
         ZOOM_OUT("/img/search-minus-solid.png"),
         SCREENSHOT("/img/Screen Shot.png"),
+        AUTO_TRADING("/img/auto-trading-solid.png"),
+        SYMBOL("/img/symbol.png"),
+        BAR("/img/bar-solid.png"),
+        AREA("/img/area-solid.png"),
+
+        LINE("/img/line-solid.png"),
+
+        HISTOGRAM("/img/histogram-solid.png"),
+
+
+
+        PIE("/img/pie-solid.png"),
+        SCATTER("/img/scatter-solid.png"),
+        VOLUME("/img/volume-chart-solid.png"),
+
+        NEWS("/img/news-solid.png"),
+
         SEARCHTOOL("/img/search.png"),
-        OPTIONS("/img/cog-solid.png");
+        OPTIONS("/img/cog-solid.png"), PRINTS(
+                "/img/print-solid.png"
+        ), CANDLESTICK("/img/candlestick-chart-solid.png");
 
         private final String img;
 
@@ -248,17 +338,71 @@ public class CandleStickChartToolbar extends Region {
         }
 
         boolean isScreenShot() {
-
-
             return this == SCREENSHOT;
         }
+        boolean isAutoTrading() {
+            return this == AUTO_TRADING;
+        }
+
+
+        boolean isBar() {
+            return this == BAR;
+        }
+        boolean isArea() {
+            return this == AREA;
+        }
+
+        boolean isLine() {
+            return this == LINE;
+        }
+        boolean isHistogram() {
+            return this == HISTOGRAM;
+        }
+        boolean isPie() {
+            return this == PIE;
+        }
+        boolean isScatter() {
+            return this == SCATTER;
+        }
+        boolean isVolume() {
+            return this == VOLUME;
+        }
+        boolean isNews() {
+            return this == NEWS;
+        }
+        boolean isSearchTool() {
+            return this == SEARCHTOOL;
+        }
+
+
 
 
         boolean isSearch() {
             return this == SEARCHTOOL;
         }
+        boolean isSymbol() {
+            return this == SYMBOL;
+        }
 
 
+
+
+
+
+
+
+
+        public boolean isOptions() {
+            return this == OPTIONS;
+        }
+
+        public boolean isPrint() {
+            return this == PRINTS;
+        }
+
+        public boolean isCandlestick() {
+            return this == CANDLESTICK;
+        }
     }
 
 

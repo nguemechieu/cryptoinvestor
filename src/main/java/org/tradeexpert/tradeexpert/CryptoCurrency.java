@@ -1,5 +1,6 @@
 package org.tradeexpert.tradeexpert;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 public abstract class CryptoCurrency extends Currency {
@@ -11,11 +12,11 @@ public abstract class CryptoCurrency extends Currency {
     Logger logger = Logger.getLogger(CryptoCurrency.class.getName());
     String maxCoinsIssued;
 
-    protected CryptoCurrency() {
-        super(CurrencyType.CRYPTO, "", "", "", 0, "");
-
-        maxCoinsIssued = "";
-    }
+//    protected CryptoCurrency() {
+//        super(CurrencyType.CRYPTO, "", "", "", 0, "");
+//
+//        maxCoinsIssued = "";
+//    }
 
     protected CryptoCurrency(String fullDisplayName, String shortDisplayName, String code, int fractionalDigits,
                              String symbol) {
@@ -30,6 +31,8 @@ public abstract class CryptoCurrency extends Currency {
 
 
     }
+
+
 
     @Override
     public String toString() {

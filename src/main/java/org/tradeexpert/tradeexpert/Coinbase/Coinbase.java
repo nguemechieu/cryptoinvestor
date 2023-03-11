@@ -64,12 +64,28 @@ public class Coinbase extends Exchange {
      String url;
      String method;
     private final String tradePair;
-
+    static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
     public Coinbase(String tradePair) {
         this.tradePair = tradePair;
 
 
+        requestBuilder.header("CB-ACCESS-KEY", API_KEY0);
+        requestBuilder.header("CB-ACCESS-PASSPHRASE", PASSPHRASE);
+        requestBuilder.header("CB-ACCESS-SIGNATURE", timestampSignature(tradePair));
+        requestBuilder.header("CB-ACCESS-TIMESTAMP", Date.from(Instant.now()).toString());
+        requestBuilder.header("CB-ACCESS-VERSION", API_VERSION);
+
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+
+
+    }
+
+    private String timestampSignature(String tradePair) {
+        Objects.requireNonNull(tradePair);
+        return String.format("%s%s%s", tradePair, System.currentTimeMillis(), API_SECRET);
     }
 
     @Override
@@ -112,7 +128,6 @@ public class Coinbase extends Exchange {
             // For Public Endpoints, our rate limit is 3 requests per second, up to 6 requests per second in
             // burst.
             // We will know if we get rate limited if we get a 429 response code.
-            // FIXME: We need to address this!
             for (int i = 0; !futureResult.isDone(); i++) {
                 String uriStr = "https://api.pro.coinbase.com/";
                 uriStr += "products/" + tradePair + "/trades";
@@ -120,12 +135,12 @@ public class Coinbase extends Exchange {
                 if (i != 0) {
                     uriStr += "?after=" + afterCursor.get();
                 }
+                requestBuilder.uri(URI.create(uriStr));
+                //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
 
                 try {
-                    HttpResponse<String> response = HttpClient.newHttpClient().send(
-                            HttpRequest.newBuilder()
-                                    .uri(URI.create(uriStr))
-                                    .GET().build(),
+                             HttpResponse<String> response = HttpClient.newHttpClient().send(requestBuilder.build()
+                        ,
                             HttpResponse.BodyHandlers.ofString());
 
                     Log.info("response headers: " + response.headers(), news.toString());
@@ -255,11 +270,6 @@ public class Coinbase extends Exchange {
 
 
 
-    public void init() throws IOException {
-        makeRequest(
-        );
-
-    }
 
     //makeRequest return JSONObject
     @Contract(" -> new")
@@ -311,30 +321,6 @@ public class Coinbase extends Exchange {
         return  new JSONObject(response.toString());
     }
 
-    public Node start() throws ParseException {
-        JSONObject jsonObject = getJSON();
-
-
-        out.println(jsonObject.toString(4));
-        out.println(jsonObject.toString(4));
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.registerModule(new JavaTimeModule());
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-        mapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT, true);
-        mapper.configure(DeserializationFeature.ACCEPT_EMPTY_ARRAY_AS_NULL_OBJECT, true);
-
-
-        CandleStickChart cad = new CandleStickChart(exchangeUrl,getCandleDataSupplier(200,tradePair),tradePair);
-        cad.setAnimated(true);
-        VBox b = new VBox(cad);
-        StackPane stackPane = new StackPane(b);
-        stackPane.setStyle("-fx-background-color: white;");
-        return stackPane;
-    }
 
     private @NotNull JSONObject getJSON() {
 
@@ -429,6 +415,21 @@ public class Coinbase extends Exchange {
     }
 
     public void createMarketOrder(String tradePair, String side, double size) {
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
+
+        String uriStr = "https://api.pro.coinbase.com/" +
+                "products/" + tradePair + "/orders" +
+                "?side=" + side +
+                "&type=market" +
+                "&quantity=" + size +
+                "&price=" + jsonObject.getJSONObject("data").getJSONObject("rates").getDouble("USD");
+
+        System.out.println(uriStr);
+
+
+
+
     }
 
     public static abstract class CoinbaseCandleDataSupplier extends CandleDataSupplier {
@@ -471,11 +472,10 @@ public class Coinbase extends Exchange {
                 // signal more data is false
                 return CompletableFuture.completedFuture(Collections.emptyList());
             }
-
+            requestBuilder.uri(URI.create(uriStr));
+            //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
             return HttpClient.newHttpClient().sendAsync(
-                            HttpRequest.newBuilder()
-                                    .uri(URI.create(uriStr))
-                                    .GET().build(),
+                            requestBuilder.build(),
                             HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
                     .thenApply(response -> {
