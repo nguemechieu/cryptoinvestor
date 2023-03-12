@@ -1,7 +1,10 @@
 package org.tradeexpert.tradeexpert;
 
 
+import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.net.URI;
 import java.net.http.WebSocket;
@@ -13,6 +16,12 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class Exchange {
 
+    private final String urlu;
+
+    public Exchange(String ur) {
+        this.urlu = ur;
+
+    }
 
     public abstract CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, String tradePair);
 
@@ -24,8 +33,8 @@ public abstract class Exchange {
     public ExchangeWebSocketClient getWebsocketClient() {
 
         return new ExchangeWebSocketClient(
-                URI.create("wss://api.oanda.com/ws/v1/"),
-                null
+                URI.create(urlu),
+                new Draft_6455()
         ) {
             @Override
             public CompletableFuture<WebSocket> sendText(CharSequence data, boolean last) {
@@ -102,7 +111,7 @@ public abstract class Exchange {
         };
     }
 
-    private Object getExchangeName() {
+    private @NotNull @Unmodifiable Object getExchangeName() {
         return this.getClass().getSimpleName();
     }
 
@@ -114,4 +123,6 @@ public abstract class Exchange {
     public abstract void onClose(int code, String reason, boolean remote);
 
     public abstract void onError(Exception ex);
+
+
 }

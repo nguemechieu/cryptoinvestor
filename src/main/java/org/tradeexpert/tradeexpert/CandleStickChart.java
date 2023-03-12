@@ -9,9 +9,10 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
-import javafx.geometry.*;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.geometry.Side;
-import javafx.scene.Node;
+import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.chart.*;
@@ -32,12 +33,11 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Pair;
 import org.jetbrains.annotations.NotNull;
-import org.tradeexpert.tradeexpert.BinanceUs.Binance;
+import org.tradeexpert.tradeexpert.BinanceUs.BinanceUs;
 import org.tradeexpert.tradeexpert.Coinbase.Coinbase;
 import org.tradeexpert.tradeexpert.oanda.Oanda;
 
 import java.io.IOException;
-import java.net.URI;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.time.Instant;
@@ -52,7 +52,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.System.out;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static javafx.scene.layout.TilePane.setAlignment;
 import static javafx.scene.paint.Color.rgb;
 import static org.tradeexpert.tradeexpert.CandleStickChartUtils.*;
 import static org.tradeexpert.tradeexpert.ChartColors.*;
@@ -91,36 +90,36 @@ import static org.tradeexpert.tradeexpert.NewsManager.news;
  */
 public class CandleStickChart extends Region {
     private static final DecimalFormat MARKER_FORMAT = new DecimalFormat("#.000");
-     CandleDataPager candleDataPager;
-     CandleDataSupplier candleDataSupplier;
+    CandleDataPager candleDataPager;
+    CandleDataSupplier candleDataSupplier;
     CandleStickChartOptions chartOptions;
     /**
      * Maps an open time (as a Unix timestamp) to the computed candle data (high price, low price, etc.) for a trading
      * period beginning with that opening time. Thus, the key "1601798498" would be mapped to the candle data for trades
      * from the period of 1601798498 to 1601798498 + secondsPerCandle.
      */
- NavigableMap<Integer, CandleData> data;
+    NavigableMap<Integer, CandleData> data;
 
     Exchange exchange;
     String tradePair;
     boolean liveSyncing;
-     Map<Integer, ZoomLevel> zoomLevelMap;
-     Consumer<List<CandleData>> candlePageConsumer;
+    Map<Integer, ZoomLevel> zoomLevelMap;
+    Consumer<List<CandleData>> candlePageConsumer;
     ScheduledExecutorService updateInProgressCandleExecutor;
-     UpdateInProgressCandleTask updateInProgressCandleTask;
-   InProgressCandle inProgressCandle;
+    UpdateInProgressCandleTask updateInProgressCandleTask;
+    InProgressCandle inProgressCandle;
     StableTicksAxis xAxis;
-  StableTicksAxis yAxis;
+    StableTicksAxis yAxis;
     StableTicksAxis extraAxis;
     ProgressIndicator progressIndicator;
 
-  Line extraAxisExtension;
+    Line extraAxisExtension;
     EventHandler<MouseEvent> mouseDraggedHandler;
-  EventHandler<ScrollEvent> scrollHandler;
-      EventHandler<KeyEvent> keyHandler;
-    private Font canvasNumberFont;
+    EventHandler<ScrollEvent> scrollHandler;
+    EventHandler<KeyEvent> keyHandler;
+    private final Font canvasNumberFont;
     int secondsPerCandle;
-     URI exchangeUrl;
+
     private Canvas canvas;
     private GraphicsContext graphicsContext;
     private int candleWidth = 10;
@@ -134,12 +133,12 @@ public class CandleStickChart extends Region {
     private volatile boolean paging;
     private boolean animated;
 
- TelegramClient   telegramClient = new TelegramClient("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+    TelegramClient   telegramClient = new TelegramClient("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
     private boolean autoTrading;
 
     public CandleStickChart(Exchange exchange, CandleDataSupplier candleDataSupplier, String tradePair,
                             boolean liveSyncing, int secondsPerCandle, ObservableNumberValue containerWidth,
-                            ObservableNumberValue containerHeight) throws TelegramApiException, IOException, InterruptedException {
+                            ObservableNumberValue containerHeight) throws TelegramApiException {
         Objects.requireNonNull(exchange);
         Objects.requireNonNull(candleDataSupplier);
         Objects.requireNonNull(tradePair);
@@ -347,7 +346,7 @@ public class CandleStickChart extends Region {
                 telegramLabel.setTranslateY(0);
                 Circle isConnected = new Circle(5);
                 try {
-                                    telegramClient.run();
+                    telegramClient.run();
                     isConnected.setFill(Color.GREEN);
                     isConnected.setStroke(Color.GREEN);
 
@@ -360,12 +359,12 @@ public class CandleStickChart extends Region {
                     isConnected.setFill(Color.YELLOW);
                     isConnected.setStroke(Color.  GREEN);
                     isConnected.setStrokeWidth(4);
-                    isConnected.setTranslateX(950);
+
                 }
 
                 telegramLabel.setText(" Bot :" + telegramClient.getUsername() + "  " + TelegramClient.getLast_name());
-                telegramLabel.setTranslateX(800);
-                isConnected.setTranslateX(950);
+                telegramLabel.setTranslateX(1200);
+                isConnected.setTranslateX(1350);
                 isConnected.setTranslateY(7);
 
 
@@ -377,16 +376,16 @@ public class CandleStickChart extends Region {
                 gridPaneOrderBook.add(new Label("Time"), 0, 0);
                 int time = inProgressCandle.getOpenTime();
                 Label timeText = new Label();
-                  timeText.setText(      DateTimeFormatter.ofPattern(
-                                "yyyy-MM-dd HH:mm:ss").format(LocalDateTime.ofInstant(Instant.from(
-                                        Instant.ofEpochSecond(time)), ZoneId.systemDefault())));
+                timeText.setText(      DateTimeFormatter.ofPattern(
+                        "yyyy-MM-dd HH:mm:ss").format(LocalDateTime.ofInstant(Instant.from(
+                        Instant.ofEpochSecond(time)), ZoneId.systemDefault())));
 
 
 
                 gridPaneOrderBook.add(timeText, 1, 0);
                 gridPaneOrderBook.setTranslateX(canvas.getWidth()/12);
                 gridPaneOrderBook.add(new Label("Open"), 2, 0);
-               String  open = String.valueOf(0);
+                String  open = String.valueOf(0);
                 Label openText = new Label(open);
                 gridPaneOrderBook.add(openText, 3, 0);
 
@@ -424,9 +423,9 @@ public class CandleStickChart extends Region {
                 currentPriceLine.setEndX(canvas.getWidth());
                 currentPriceLine.setStyle("-fx-stroke: WHITE; -fx-stroke-width: 2;");
                 currentPriceLine.setEndY(candleDataSupplier.secondsPerCandle);
-                getChildren().addAll( canvas,gridPaneOrderBook,currentPriceLine, telegramLabel,isConnected, symbolLabel, loadingIndicatorContainer);
+                getChildren().addAll( canvas,gridPaneOrderBook, telegramLabel,isConnected, symbolLabel, loadingIndicatorContainer);
                 // grid.setPrefSize(300, 250);
-              //  grid.setTranslateX(0);
+                //  grid.setTranslateX(0);
                 //grid.setTranslateY(500);
                 graphicsContext = canvas.getGraphicsContext2D();
                 graphicsContext.setFill(Color.BLACK.brighter());
@@ -466,7 +465,7 @@ public class CandleStickChart extends Region {
 
         switch (exchangeName) {
             case Coinbase coinbase -> coinbase.createMarketOrder(tradePair, side, size);
-            case Binance binance -> Binance.createMarketOrder(tradePair, side, size);
+            case BinanceUs binance -> BinanceUs.createMarketOrder(tradePair, side, size);
             case Oanda oanda -> Oanda.createMarketOrder(tradePair, side, size);
             default -> {
             }
@@ -571,7 +570,7 @@ public class CandleStickChart extends Region {
      * Sets the y-axis and extra axis bounds using only the x-axis lower bound.
      */
     private void setYAndExtraAxisBounds() {
-        Log.info("xAxis lower bound: " + (int) xAxis.getLowerBound(), news.toString());
+        Log.info("xAxis lower bound: " , String.valueOf(xAxis.getLowerBound()));
         final double idealBufferSpaceMultiplier = 0.35;
         if (!currZoomLevel.getExtremaForCandleRangeMap().containsKey((int) xAxis.getLowerBound())) {
             // TODO(mike): Does this *always* represent a coding error on our end or can this happen during
@@ -586,7 +585,7 @@ public class CandleStickChart extends Region {
         // my future self.
         Pair<Extrema<Integer>, Extrema<Integer>> extremaForRange = currZoomLevel.getExtremaForCandleRangeMap().get(
                 (int) xAxis.getLowerBound() - secondsPerCandle);
-        // FIXME: Figure out why this is null
+
         if (extremaForRange == null) {
             Log.error("extremaForRange was null!");
             return;
@@ -606,7 +605,7 @@ public class CandleStickChart extends Region {
         extraAxisExtension.setStartX(chartWidth - 2);
         extraAxisExtension.setEndX(chartWidth - 2);
         extraAxisExtension.setStartY(10);
-        extraAxisExtension.setEndY((chartHeight - 10) * 0.75);
+        extraAxisExtension.setEndY((chartHeight - 2) * 0.75);
 
         graphicsContext.setFill(Color.BLACK);
         graphicsContext.fillRect(10, 0, chartWidth - 2, chartHeight - 2);
@@ -668,8 +667,7 @@ public class CandleStickChart extends Region {
      * bounds.
      */
     private void drawChartContents(boolean clearCanvas) {
-        // TODO should this expression start with (xAxis.getUpperBound() - secondsPerCandle)?
-        // This value allows for us to go past the highest x-value by skipping the drawing of some candles.
+            // This value allows for us to go past the highest x-value by skipping the drawing of some candles.
         int numCandlesToSkip = (int) Math.max((xAxis.getUpperBound() - data.lastEntry().getValue().getOpenTime()) /
                 secondsPerCandle, 0);
 
@@ -701,11 +699,11 @@ public class CandleStickChart extends Region {
                 ((int) xAxis.getUpperBound() - secondsPerCandle) - (numCandlesToSkip * secondsPerCandle), true);
 
 
-        Log.info("Drawing " + candlesToDraw.size() + " candles.", news.toString());
+        Log.info("Drawing " , candlesToDraw.size() + " candles.");
         if (chartOptions.isHorizontalGridLinesVisible()) {
             // Draw horizontal grid lines aligned with y-axis major tick marks
             for (Axis.TickMark<Number> tickMark : yAxis.getTickMarks()) {
-                graphicsContext.setStroke(rgb(0, 189, 189, 1));
+                graphicsContext.setStroke(rgb(120, 119, 112, 1));
                 graphicsContext.setLineWidth(2);
                 graphicsContext.strokeLine(0, tickMark.getPosition(), canvas.getWidth(), tickMark.getPosition());
             }
@@ -714,7 +712,7 @@ public class CandleStickChart extends Region {
         if (chartOptions.isVerticalGridLinesVisible()) {
             // Draw vertical grid lines aligned with x-axis major tick marks
             for (Axis.TickMark<Number> tickMark : xAxis.getTickMarks()) {
-                graphicsContext.setStroke(rgb(130, 244, 130, 1));
+                graphicsContext.setStroke(rgb(120, 119, 112, 1));
                 graphicsContext.setLineWidth(2);
                 graphicsContext.strokeLine(tickMark.getPosition(), 0, tickMark.getPosition(), canvas.getHeight());
 
@@ -902,12 +900,12 @@ public class CandleStickChart extends Region {
             // draw high marker to the right of the candle (arrow points to the left)
             double xPos = ((canvas.getWidth() - (candleIndexOfHighest * candleWidth)) + halfCandleWidth) + 2;
             graphicsContext.setTextAlign(TextAlignment.LEFT);
-            graphicsContext.fillText("← " + MARKER_FORMAT.format(highestCandleValue), xPos, highMarkYPos);
+            graphicsContext.fillText("←-- " + MARKER_FORMAT.format(highestCandleValue), xPos, highMarkYPos);
         } else {
             // draw high marker to the left of the candle (arrow points to the right)
             double xPos = ((canvas.getWidth() - (candleIndexOfHighest * candleWidth)) + halfCandleWidth) - 3;
             graphicsContext.setTextAlign(TextAlignment.RIGHT);
-            graphicsContext.fillText(MARKER_FORMAT.format(highestCandleValue) + " →", xPos, highMarkYPos);
+            graphicsContext.fillText(MARKER_FORMAT.format(highestCandleValue) + " --→", xPos, highMarkYPos);
         }
 
         if (!skipLowMark) {
@@ -1086,7 +1084,7 @@ public class CandleStickChart extends Region {
     public List<Currency> getSymbols() {
 
 
-       return  new CryptoCurrencyDataProvider().coinsToRegister;
+        return  new CryptoCurrencyDataProvider().coinsToRegister;
 
     }
 
@@ -1242,24 +1240,24 @@ public class CandleStickChart extends Region {
 
         news = NewsManager.getNewsList();
 
-       setPadding(new Insets(10, 10, 10, 10));
+        setPadding(new Insets(10, 10, 10, 10));
 
-       Line newsLine = new Line();
-       newsLine.setStroke(Color.BLUE);
-       newsLine.setStrokeWidth(2);
-       newsLine.setStrokeLineCap(StrokeLineCap.ROUND);
-       newsLine.setStrokeLineJoin(StrokeLineJoin.ROUND);
-       newsLine.setOpacity(0.5);
-       newsLine.setRotate(90);
-       newsLine.setTranslateX(10);
-       newsLine.setTranslateY(10);
-       newsLine.setStrokeType(StrokeType.INSIDE);
-       newsLine.setStyle("-fx-stroke-width: 2; -fx-stroke-line-cap:");
-       newsLine.setStyle("-fx-stroke-line-join:");
+        Line newsLine = new Line();
+        newsLine.setStroke(Color.BLUE);
+        newsLine.setStrokeWidth(2);
+        newsLine.setStrokeLineCap(StrokeLineCap.ROUND);
+        newsLine.setStrokeLineJoin(StrokeLineJoin.ROUND);
+        newsLine.setOpacity(0.5);
+        newsLine.setRotate(90);
+        newsLine.setTranslateX(10);
+        newsLine.setTranslateY(10);
+        newsLine.setStrokeType(StrokeType.INSIDE);
+        newsLine.setStyle("-fx-stroke-width: 2; -fx-stroke-line-cap:");
+        newsLine.setStyle("-fx-stroke-line-join:");
 
-       newsLine.setStartY(10);
-       newsLine.setEndX(canvas.getHeight()-10);
-       newsLine.setEndY(10);
+        newsLine.setStartY(10);
+        newsLine.setEndX(canvas.getHeight()-10);
+        newsLine.setEndY(10);
 
         for (News value : news) {
             Text text = new Text(value.getTitle());
@@ -1282,21 +1280,10 @@ public class CandleStickChart extends Region {
                 newsLine.setStroke(Color.YELLOW);
                 text.setFill(Color.YELLOW);
             }
-           out.println(value.getImpact());
+            out.println(value.getImpact());
             getChildren().add(text);
             getChildren().setAll(newsLine);
         }
-
-
-
-
-
-
-
-
-
-
-
 
 
     }

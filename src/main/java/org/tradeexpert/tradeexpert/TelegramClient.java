@@ -137,7 +137,7 @@ public class TelegramClient {
     private boolean DrawLines;
     private Object marketInfo;
 
-    public TelegramClient(String token) throws IOException, InterruptedException, TelegramApiException {
+    public TelegramClient(String token) throws TelegramApiException {
 
         if (token == null) throw new TelegramApiException("Telegram token can't be  null ");
         this.token = token;
@@ -1986,7 +1986,7 @@ public class TelegramClient {
     }
 
     boolean newsTrade() throws IOException, ParseException//RETURN TRUE IF TRADE IS ALLOWED
-    {
+    {    ArrayList<News> mynews = NewsManager.getNewsList();
 
         offset = gmtoffset();
         double CheckNews = 0;
@@ -2006,28 +2006,29 @@ public class TelegramClient {
             WindowRedraw();
             //---Draw a line on the chart news--------------------------------------------
 
-            News[] mynews=new News[100] ;
-            if (DrawLines) {
-                for (int i = NomNews - 1; i > 0; i--) {
 
-                    String Name = (mynews[i].getMinutes() + "_" + mynews[i].getImpact() + "_" + mynews[i].getTitle());
+            if (DrawLines) {
+                for (int i = mynews.size() - 1; i > 0; i--) {
+
+                    String Name = (mynews.get(i).getMinutes() + "_" + mynews.get(i).getImpact() + "_" + mynews.get(i).getTitle());
                     sendAlert(Name);
                     if (TimeNewsFunck(i) < new Date().getTime() && Next) continue;
 
                     Color clrf = new Color(255, 67, 23, 45);
-                    if (Vhigh && StringFind(mynews[i].getTitle(), judulnews)) clrf = Color.RED;
+                    if (Vhigh && StringFind(mynews.get(i).getTitle(), judulnews)) clrf = Color.RED;
 
-                    if (Vhigh && Objects.equals(mynews[i].getImpact(), "High")) clrf = Color.RED;
-                    if (Vmedium && Objects.equals(mynews[i].getImpact(), "Medium")) clrf = Color.YELLOW;
-                    if (Vlow && Objects.equals(mynews[i].getImpact(), "Low")) clrf = Color.GREEN;
+                    if (Vhigh && Objects.equals(mynews.get(i).getImpact(), "High")) clrf = Color.RED;
+                    if (Vmedium && Objects.equals(mynews.get(i).getImpact(), "Medium")) clrf = Color.YELLOW;
+                    if (Vlow && Objects.equals(mynews.get(i).getImpact(), "Low")) clrf = Color.GREEN;
 
                     if (clrf == Color.WHITE) continue;
 
-                    if (!Objects.equals(mynews[i].getTitle(), "")) {
+                    if (!Objects.equals(mynews.get(i).getTitle(), "")) {
 //                            ObjectCreate(0,Name,OBJ_VLINE,0,TimeNewsFunck(i),Bid);
 //                            ObjectSet(Name,OBJPROP_COLOR,clrf);
 //                            ObjectSet(Name,OBJPROP_STYLE,Style);
 //                            ObjectSetInteger(0,Name,OBJPROP_BACK,true);
+
                     }
                 }
             }
@@ -2036,25 +2037,26 @@ public class TelegramClient {
             int power = 0;
 
             for (i = 0; i < NomNews; i++) {
-                String google_urlx = "https://www.forexfactory.com/calendar?day";
+            //    String google_urlx = "https://www.forexfactory.com/calendar?day";
 
 
-                if (Vhigh && String.valueOf(judulnews).equals(mynews[i].getTitle())) power = 1;
+                if (Vhigh && String.valueOf(judulnews).equals(mynews.get(i).getTitle())) power = 1;
 
-                if (Vhigh && Objects.equals(mynews[i].getImpact(), "high")) power = 1;
-                if (Vmedium && Objects.equals(mynews[i].getImpact(), "medium")) power = 2;
-                if (Vlow && Objects.equals(mynews[i].getImpact(), "low")) power = 3;
+                if (Vhigh && Objects.equals(mynews.get(i).getImpact(), "high")) power = 1;
+                if (Vmedium && Objects.equals(mynews.get(i).getImpact(), "medium")) power = 2;
+                if (Vlow && Objects.equals(mynews.get(i).getImpact(), "low")) power = 3;
                 if (power == 0) {
+
                     continue;
                 }
-                String jamberita;
-                if (new Date().getTime() + BeforeNewsStop > TimeNewsFunck(i) && new Date().getTime() - 60L * AfterNewsStop < TimeNewsFunck(i) && mynews[i].getTitle() != "") {
-                    jamberita = "==>Within " + mynews[i].getMinutes() + " minutes\n" + mynews[i].toString();
+                String ambergris;
+                if (new Date().getTime() + BeforeNewsStop > TimeNewsFunck(i) && new Date().getTime() - 60L * AfterNewsStop < TimeNewsFunck(i) && mynews.get(i).getTitle() != "") {
+                    ambergris = "==>Within " + mynews.get(i).getMinutes() + " minutes\n" + mynews.get(i).toString();
 
                     CheckNews = 1;
-                    String ms = message = mynews[i].toString();//get message data with format
+                    String ms = message = mynews.get(i).toString();//get message data with format
 
-                    sendAlert(jamberita + " " + ms);
+                    sendAlert(ambergris + " " + ms);
 
                 } else {
                     CheckNews = 0;
@@ -2062,7 +2064,7 @@ public class TelegramClient {
                 }
                 if ((CheckNews == 1 && i != Now && Signal) || (CheckNews == 1 && i != Now && sendnews)) {
 
-                    message = mynews[i].toString();
+                    message = mynews.get(i).toString();
                     sendMessage(message);
 
                     Now = i;
@@ -2070,23 +2072,23 @@ public class TelegramClient {
 
                 }
                 if (CheckNews > 0 && NewsFilter) trade = false;
-                String infoberita;
+                String inferiority;
                 if (CheckNews > 0) {
 
                     if (!StopTarget() && NewsFilter) {
-                        infoberita = " we are in the framework of the news\nAttention!! News Time \n!";
+                        inferiority = " we are in the framework of the news\nAttention!! News Time \n!";
 
 
                         /////  We are doing here if we are in the framework of the news
 
-                        sendAlert(infoberita);
-                        if (mynews[i].getMinutes() == AfterNewsStop - 1 && FirstAlert && i == Now && sendnews) {
+                        sendAlert(inferiority);
+                        if (mynews.get(i).getMinutes() == AfterNewsStop - 1 && FirstAlert && i == Now && sendnews) {
                             sendMessage("-->>First Alert\n " + message);
 
 
                         }
                         //--- second alert
-                        if (mynews[i].getMinutes() == BeforeNewsStop - 1 && SecondAlert && i == Now && sendnews) {
+                        if (mynews.get(i).getMinutes() == BeforeNewsStop - 1 && SecondAlert && i == Now && sendnews) {
                             sendMessage(">>Second Alert\n " + message);
                             SecondAlert = true;
 

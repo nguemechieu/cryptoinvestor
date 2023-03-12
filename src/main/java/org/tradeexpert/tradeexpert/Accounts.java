@@ -4,6 +4,7 @@ package org.tradeexpert.tradeexpert;
 import org.tradeexpert.tradeexpert.oanda.Oanda;
 
 import static java.lang.System.out;
+import static org.tradeexpert.tradeexpert.oanda.Oanda.getApi_key;
 
 public class Accounts {
     double balance;
@@ -82,11 +83,11 @@ public class Accounts {
 
     public String getToken() throws Exception {
         Oanda oanda=new Oanda(
-                Oanda.getApi_key(),Oanda.getAccountID()
+                getApi_key(),Oanda.accountID
         );
 
         out.println(oanda);
         return
-                Oanda.getApi_key();
+                getApi_key();
     }
 }

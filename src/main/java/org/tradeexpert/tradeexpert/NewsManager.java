@@ -89,11 +89,14 @@ public class NewsManager {
 
     @Contract("null -> fail")
     public static Date StringToDate(String str) throws ParseException {//TODO implement date
-        if (str == null) throw new IllegalArgumentException("Invalid date string");
+        if (str == null)
+            throw new IllegalArgumentException("Invalid date string");
 
 
         //ZonedDateTime.from(DateTimeFormatter.ofPattern( "yyyy-MM-dd'T'HH:mm:ss").parse(str.substring(0, 19)));
-        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        return new SimpleDateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss"
+        )
                 .parse(str);
     }
 

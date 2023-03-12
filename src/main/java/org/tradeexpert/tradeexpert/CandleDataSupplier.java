@@ -1,7 +1,7 @@
 package org.tradeexpert.tradeexpert;
 
 import javafx.beans.property.IntegerProperty;
-import org.tradeexpert.tradeexpert.BinanceUs.Binance;
+import org.tradeexpert.tradeexpert.BinanceUs.BinanceUs;
 import org.tradeexpert.tradeexpert.Coinbase.Coinbase;
 import org.tradeexpert.tradeexpert.oanda.Oanda;
 
@@ -48,7 +48,7 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
 
             return Set.of( 60,60 * 5, 60 * 15,3600,3600*6,3600*24);
 
-        } else if (this.get()  instanceof Binance) {
+        } else if (this.get()  instanceof BinanceUs) {
 
             return Set.of(60, 60 * 5, 60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7,
                     3600 * 24 * 7 * 4, 3600 * 24 * 365);
@@ -101,8 +101,9 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
 
     public abstract List<CandleData> getCandleData();
 
-    public abstract CompletableFuture<Optional<CompletableFuture<Optional<CompletableFuture<Optional<CompletableFuture<Optional<CompletableFuture<Optional<CompletableFuture<Optional<CandleData>>>>>>>>>>>> fetchCandleDataForInProgressCandle(
+
+    public abstract CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(
             String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
 
-    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt);
+    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt) throws TelegramApiException;
 }

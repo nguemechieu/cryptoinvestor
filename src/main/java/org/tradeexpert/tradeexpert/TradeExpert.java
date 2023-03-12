@@ -18,23 +18,11 @@ public class TradeExpert extends Application {
     @Override
     public void start(@NotNull Stage primaryStage) throws Exception {
         primaryStage.setTitle("TradeExpert   ");
-
-
-        try {
-            primaryStage.setScene( new TradeExpertScene());
-
-
-        } catch (OandaException e) {
-            throw new RuntimeException(e);
-        }
+        primaryStage.setScene(new Scene( new TradeExpertScene(),1530,780));
         primaryStage.setResizable(true);
         primaryStage.sizeToScene();
         primaryStage.setIconified(true);
-        primaryStage.getIcons().setAll(
-                new Image(Objects.requireNonNull(TradeExpert.class.getResourceAsStream("/img/TradeExpert.ico")))
-
-        );
-
+        primaryStage.getIcons().setAll(new Image(Objects.requireNonNull(TradeExpert.class.getResourceAsStream("/img/symbol.png"))));
         primaryStage.centerOnScreen();
         primaryStage.show();
 

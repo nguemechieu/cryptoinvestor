@@ -24,12 +24,10 @@ public abstract class Currency implements Comparable<java.util.Currency> {
     private static final Map<SymmetricPair<String, CurrencyType>, Currency> CURRENCIES = new ConcurrentHashMap<>();
 
     static {
-        //  FIXME: Replace with ServiceLoaders
+
         FiatCurrencyDataProvider fiatCurrencyDataProvider = new FiatCurrencyDataProvider();
         fiatCurrencyDataProvider.registerCurrencies();
 
-
-//
         ServiceLoader<CurrencyDataProvider> serviceLoader = ServiceLoader.load(CurrencyDataProvider.class);
         Log.info("service loader: " , serviceLoader.toString());
         for (CurrencyDataProvider provider : serviceLoader) {
@@ -57,9 +55,9 @@ public abstract class Currency implements Comparable<java.util.Currency> {
         this.currencyType = CurrencyType.NULL;
         this.fullDisplayName = "";
         this.shortDisplayName = "";
-        this.code = "";
-        this.fractionalDigits = 0;
-        this.symbol = "";
+        this.code = "XXX";
+        this.fractionalDigits = 5;
+        this.symbol = "XXX";
     }
 
     /**
@@ -171,11 +169,11 @@ public abstract class Currency implements Comparable<java.util.Currency> {
     }
 
     public String getFullDisplayName() {
-        return this.fullDisplayName;
+        return fullDisplayName;
     }
 
     public String getShortDisplayName() {
-        return this.shortDisplayName;
+        return shortDisplayName;
     }
 
     public String getCode() {
@@ -251,13 +249,13 @@ public abstract class Currency implements Comparable<java.util.Currency> {
 
     private static abstract class NullCryptoCurrency extends CryptoCurrency {
         private NullCryptoCurrency() {
-            super(String.valueOf(CurrencyType.CRYPTO), "", "", 0,"XXX");
+            super(String.valueOf(CurrencyType.CRYPTO), "XXX", "XXX", 5,"XXX");
         }
     }
 
     private static abstract class NullFiatCurrency extends FiatCurrency {
         private NullFiatCurrency() {
-            super(String.valueOf(CurrencyType.FIAT), "","", 0, "XXX",Locale.getDefault(),"",0);
+            super(String.valueOf(CurrencyType.FIAT), "","", 5, "XXX",Locale.getDefault(),"",0);
         }
     }
 }

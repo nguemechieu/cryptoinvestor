@@ -21,17 +21,17 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
- class Browser {
-//    static final String[] urls = new String[]{
-//
-//            "https://www.google.com/search?q",
-//            "https://www.ebay.com",
-//            "https://www.amazon.com",
-//
-//
-//            "https://www.facebook.com"
-//
-//    };
+ public class Browser {
+    static final String[] urls = new String[]{
+
+            "https://www.google.com/search?q",
+            "https://www.ebay.com",
+            "https://www.amazon.com",
+
+
+            "https://www.facebook.com"
+
+    };
 
     static String[] imageFiles = new String[]{
             "7123025_logo_google_g_icon.png",
@@ -42,7 +42,7 @@ import java.util.Objects;
     static WebView smallView = new WebView();
     static
     WebView webView = new WebView();
-    static final WebEngine webEngine = webView.getEngine();
+     WebEngine webEngine = webView.getEngine();
     final Image[] images = new Image[imageFiles.length];
     final Button showPrevDoc = new Button("Toggle Previous Docs");
     String[] captions = new String[]{
@@ -63,9 +63,9 @@ import java.util.Objects;
         for (int i = 0; i < captions.length; i++) {
             // create hyperlinks
             Hyperlink hpl = pls[i] = new Hyperlink(captions[i]);
-            //  Image image = images[i] = new Image(Objects.requireNonNull(getClass().getResourceAsStream(imageFiles[i])));
-            // hpl.setGraphic(new ImageView(image));
-            //  String url = urls[i];
+             Image image = images[i] = new Image(Objects.requireNonNull(getClass().getResourceAsStream(imageFiles[i])));
+             hpl.setGraphic(new ImageView(image));
+              String url = urls[i];
 
 
             boolean addButton = (hpl.getText().equals("Documentation"));

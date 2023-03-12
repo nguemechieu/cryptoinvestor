@@ -5,10 +5,17 @@ import javafx.scene.chart.Chart;
 
 public class HistogramChart<T, T1> extends Chart {
 
-    private StableTicksAxis xAxis=
-            new StableTicksAxis();
-    private StableTicksAxis yAxis=
-            new StableTicksAxis();
+    private StableTicksAxis xAxis;
+
+    {
+        new StableTicksAxis();
+    }
+
+    private StableTicksAxis yAxis;
+
+    {
+        new StableTicksAxis();
+    }
 
 
     public HistogramChart() {

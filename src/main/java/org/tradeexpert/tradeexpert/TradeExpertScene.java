@@ -6,34 +6,28 @@ import javafx.geometry.Pos;
 import javafx.scene.Cursor;
 import javafx.scene.DepthTest;
 import javafx.scene.Node;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
-
 import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
+import org.tradeexpert.tradeexpert.BinanceUs.BinanceUs;
 import org.tradeexpert.tradeexpert.Coinbase.Coinbase;
 import org.tradeexpert.tradeexpert.oanda.OANDA_ACCESS_TOKEN;
 import org.tradeexpert.tradeexpert.oanda.Oanda;
-import org.tradeexpert.tradeexpert.oanda.OandaException;
 
 import java.util.Objects;
 
-public class TradeExpertScene extends Scene {
-    private static final AnchorPane root =
-            new AnchorPane();
-    public TradeExpertScene() throws Exception, OandaException {
-        super(root,1530,780);
-        root.setPrefSize(1530, 780);
-        root.setStyle("-fx-background-color: rgb(45, 25, 144, 1)");
+public class TradeExpertScene extends AnchorPane {
 
-        setCursor(Cursor.DEFAULT);
+    private static final String BINANCE_ACCESS_TOKEN = "";
+    private static final String BINANCE_ACCESS_SECRET = "";
+    private static final String BINANCE_ACCESS_PASSWORD = "";
+ private static final TabPane  tabPane = new TabPane();
+    public TradeExpertScene() throws Exception {
 
-        VBox ordersBox=new VBox(listOrders());
-
-
-        VBox navigator=new VBox(listNavigator());
+        VBox ordersBox = new VBox(listOrders());
+        VBox navigator = new VBox(listNavigator());
         navigator.setPrefHeight(400);
         navigator.setPrefWidth(200);
         navigator.setAlignment(Pos.CENTER);
@@ -44,35 +38,43 @@ public class TradeExpertScene extends Scene {
         ordersBox.setTranslateY(600);
         ordersBox.setTranslateX(200);
         ordersBox.setPrefSize(1200, 600);
-        String tradePair="ETH-USD";
-       // Oanda oanda=new Oanda(OANDA_ACCESS_TOKEN.ACCESS_TOKEN.toString(),OANDA_ACCESS_TOKEN.ACCOUNT_ID.toString());
+        String tradePair = "BTC-USD";
+        Oanda oanda = new Oanda("77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99", OANDA_ACCESS_TOKEN.ACCOUNT_ID.toString());
+        BinanceUs binance = new BinanceUs(BINANCE_ACCESS_TOKEN, BINANCE_ACCESS_SECRET, BINANCE_ACCESS_PASSWORD);
+        Coinbase coinbase = new Coinbase(tradePair);
 
-        Coinbase coinbase=new Coinbase(tradePair);
+        CandleStickChartContainer coinbaseCandleStickChartContainer = new CandleStickChartContainer(coinbase, tradePair, true);
+        String tradePair1="EUR_USD";
+        CandleStickChartContainer oandaCandleStickChartContainer = new CandleStickChartContainer(oanda, tradePair1, true);
+        String tradePair2="LTCBTC";
+        CandleStickChartContainer binanceCandleStickChartContainer = new CandleStickChartContainer(binance, tradePair2, true);
 
+        DraggableTab oandaTab = new DraggableTab("Oanda");
+        oandaTab.setContent(new VBox(oandaCandleStickChartContainer));
+        DraggableTab binanceTab = new DraggableTab("Binance");
+        binanceTab.setContent(new VBox(binanceCandleStickChartContainer));
+        DraggableTab coinbaseTab = new DraggableTab("Coinbase");
+        coinbaseTab.setContent(new VBox(coinbaseCandleStickChartContainer));
+        tabPane.getTabs().addAll(oandaTab, binanceTab, coinbaseTab);
+        //candlestickChartContainer,new Separator(Orientation.VERTICAL),navigator,ordersBox, connex
+        tabPane.setTranslateY(25);
+        tabPane.setCursor(Cursor.DEFAULT);
+        tabPane.setTabDragPolicy(TabPane.TabDragPolicy.REORDER);
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
+        tabPane.setPrefSize(1530,780);
 
+        getChildren().addAll(getMenuBar(), tabPane);
 
-
-       // oanda.getAccountSummary();
-
-
-        CandleStickChartContainer candlestickChartContainer=new CandleStickChartContainer(coinbase,tradePair,true);
-
-        candlestickChartContainer.setTranslateX(200);
-        candlestickChartContainer.setTranslateY(30);
-        candlestickChartContainer.setPrefSize(1300, 400);
-
-
-         // candlestickChartContainer,new Separator(Orientation.VERTICAL),navigator,ordersBox, connexion();
-        root.getChildren().addAll(getMenuBar(),  new Separator(Orientation.VERTICAL),
-                candlestickChartContainer,
-                new Separator(Orientation.VERTICAL),
-                navigator,
-                new Separator(Orientation.VERTICAL),
-                ordersBox,
-                new Separator(Orientation.VERTICAL),
-                connexion()
+        setStyle(
+                "-fx-background-color: rgb(45, 25, 144, 1);" +
+                        "-fx-border-color: rgb(45, 25, 144, 1);" +
+                        "-fx-border-width: 2;" +
+                        "-fx-border-radius: 5;" +
+                        "-fx-border-insets: 5;" +
+                        "-fx-background-insets: 5;" +
+                        "-fx-background-radius: 5;" +
+                        "-fx-background-insets: 5;"
         );
-
 
         getStylesheets().setAll(Objects.requireNonNull(getClass().getResource("/app.css")).toExternalForm());
 

@@ -8,13 +8,13 @@ import java.util.Objects;
 
  public class CandleData extends RecursiveTreeObject<CandleData> {
     private final double averagePrice = -1;
-    public int closeTime = -1;
-    private int openTime = -1;
-    private double openPrice = -1;
-    private double closePrice = -1;
-    private double highPrice = -1;
-    private double lowPrice = -1;
-    private double volume = -1;
+    public int closeTime ;
+    private final int openTime ;
+    private final double openPrice ;
+    private final double closePrice ;
+    private final double highPrice ;
+    private final double lowPrice;
+    private final double volume;
     private double volumeWeightedAveragePrice;
     private boolean placeHolder;
 

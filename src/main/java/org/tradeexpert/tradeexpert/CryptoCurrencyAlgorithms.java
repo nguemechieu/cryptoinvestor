@@ -9,9 +9,7 @@ public final class CryptoCurrencyAlgorithms {
     private static final Map<String, Algorithm> ALGORITHM_MAP = new ConcurrentHashMap<>();
 
     static {
-        for (Algorithm algorithm : Algorithm.values()) {
-            ALGORITHM_MAP.put(algorithm.toString(), algorithm);
-        }
+        for (Algorithm algorithm : Algorithm.values()) ALGORITHM_MAP.put(algorithm.toString(), algorithm);
     }
 
     private CryptoCurrencyAlgorithms() {

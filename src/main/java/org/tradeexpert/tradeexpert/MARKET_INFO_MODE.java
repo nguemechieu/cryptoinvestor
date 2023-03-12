@@ -1,6 +1,6 @@
 package org.tradeexpert.tradeexpert;
 
-public enum MARKET_INFOS_MODE {
+public enum MARKET_INFO_MODE {
     MODE_LOTSTEP(0),
 
     MODE_DIGITS(1),
@@ -12,7 +12,7 @@ public enum MARKET_INFOS_MODE {
     public static final int init_error = 0;
     private final int value;
 
-    MARKET_INFOS_MODE(int value) {
+    MARKET_INFO_MODE(int value) {
         this.value = value;
     }
 

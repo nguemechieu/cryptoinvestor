@@ -3,6 +3,7 @@ package org.tradeexpert.tradeexpert;
 
 public class Chat {
 
+     String chat_type;
     public String message_text;
     String chat_id;
     String title;
@@ -14,6 +15,7 @@ public class Chat {
     public Chat(int chat_id, String chat_type, String chat_title, String text, String chat_first_name, String chat_last_name, String chat_username) {
 
         this.message_text = text;
+        this.chat_type = chat_type;
         this.chat_id = String.valueOf(chat_id);
         this.title = chat_title;
         this.photo = chat_first_name + " " + chat_last_name +

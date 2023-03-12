@@ -9,9 +9,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.scene.Node;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
 
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.Contract;
@@ -28,7 +25,6 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -51,22 +47,21 @@ public class Coinbase extends Exchange {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    private static final URI webSocket =
-            URI.create("wss://stream.coinbase.com:9443/ws/btcusdt@kline_15m");
+
+    private static final String ur0 = "wss://ws-direct.exchange.coinbase.com";
 
 
     protected String PASSPHRASE = "w73hzit0cgl";
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
-     URI exchangeUrl
-            = URI.create(API_URL);
-    String response;
-     String url;
-     String method;
+
+    String url;
+    String method;
     private final String tradePair;
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
     public Coinbase(String tradePair) {
+        super(ur0);
         this.tradePair = tradePair;
 
 
@@ -75,12 +70,30 @@ public class Coinbase extends Exchange {
         requestBuilder.header("CB-ACCESS-SIGNATURE", timestampSignature(tradePair));
         requestBuilder.header("CB-ACCESS-TIMESTAMP", Date.from(Instant.now()).toString());
         requestBuilder.header("CB-ACCESS-VERSION", API_VERSION);
-
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("Accept", "application/json");
         requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        requestBuilder.header("Origin", "https://www.coinbase.com");
+        requestBuilder.header("Referer", "https://www.coinbase.com/");
+        requestBuilder.header("Sec-Fetch-Dest", "empty");
+        requestBuilder.header("Sec-Fetch-Mode", "cors");
 
+    }
 
+    @Override
+    public CoinbaseCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, String tradePair) {
+        return
+                new CoinbaseCandleDataSupplier(secondsPerCandle, tradePair) {
+                    @Override
+                    public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+                        return null;
+                    }
+
+                    @Override
+                    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt) {
+                        return null;
+                    }
+                };
     }
 
     private String timestampSignature(String tradePair) {
@@ -88,21 +101,7 @@ public class Coinbase extends Exchange {
         return String.format("%s%s%s", tradePair, System.currentTimeMillis(), API_SECRET);
     }
 
-    @Override
-    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, String tradePair) {
-        return new CoinbaseCandleDataSupplier(secondsPerCandle, tradePair) {
-            @Override
-            public CompletableFuture<Optional<CompletableFuture<Optional<CompletableFuture<Optional<CompletableFuture<Optional<CompletableFuture<Optional<CompletableFuture<Optional<CandleData>>>>>>>>>>>> fetchCandleDataForInProgressCandle(String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-                return null;
-                 //CompletableFuture.supplyAsync(() -> Optional.of(fetchCandleDataForInProgressCandle(tradePair, currentCandleStartedAt, secondsIntoCurrentCandle, secondsPerCandle)));
-            }
 
-            @Override
-            public CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt) {
-                return null;
-            }
-        };
-    }
 
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
@@ -119,8 +118,6 @@ public class Coinbase extends Exchange {
         }
 
         CompletableFuture<List<Trade>> futureResult = new CompletableFuture<>();
-
-        // It is not easy to fetch trades concurrently because we need to get the "cb-after" header after each request.
         CompletableFuture.runAsync(() -> {
             IntegerProperty afterCursor = new SimpleIntegerProperty(0);
             List<Trade> tradesBeforeStopTime = new ArrayList<>();
@@ -136,17 +133,15 @@ public class Coinbase extends Exchange {
                     uriStr += "?after=" + afterCursor.get();
                 }
                 requestBuilder.uri(URI.create(uriStr));
-                //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
-
                 try {
-                             HttpResponse<String> response = HttpClient.newHttpClient().send(requestBuilder.build()
-                        ,
+                    HttpResponse<String> response = HttpClient.newHttpClient().send(requestBuilder.build()
+                            ,
                             HttpResponse.BodyHandlers.ofString());
 
                     Log.info("response headers: " + response.headers(), news.toString());
                     if (response.headers().firstValue("CB-AFTER").isEmpty()) {
                         futureResult.completeExceptionally(new RuntimeException(
-                                "coinbase trades response did not contain header \"cb-after\": " + response));
+                                "Coinbase trades response did not contain header \"CB-AFTER\": " + response));
                         return;
                     }
 
@@ -178,6 +173,8 @@ public class Coinbase extends Exchange {
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
+                } catch (TelegramApiException e) {
+                    throw new RuntimeException(e);
                 }
             }
         });
@@ -209,7 +206,7 @@ public class Coinbase extends Exchange {
                         HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenApply(response -> {
-                    Log.info("coinbase response: " + response, news.toString());
+                    Log.info("Coinbase response: " , response);
                     JsonNode res;
                     try {
                         res = OBJECT_MAPPER.readTree(response);
@@ -236,9 +233,9 @@ public class Coinbase extends Exchange {
                                 currCandle.get(0).asInt() >= currentCandleStartedAt.getEpochSecond() +
                                         secondsPerCandle) {
                             // skip this sub-candle if it is not in the parent candle's duration (this is just a
-                            // sanity guard) TODO(mike): Consider making this a "break;" once we understand why
-                            //  Coinbase is  not respecting start/end times
+                              //  Coinbase is  not respecting start/end times
                             continue;
+
                         } else {
                             if (!foundFirst) {
                                 // FIXME: Why are we only using the first sub-candle here?
@@ -302,7 +299,7 @@ public class Coinbase extends Exchange {
         //       conn.setRequestProperty("Accept-Language", "en-US,en;q=0" + ";q=0.9,en-GB;q=0.8,en-US;q=0.7,en;q=0.6");
         conn.setRequestProperty("Host", "https://api.telegram.org");
 //      conn.setRequestProperty("Origin", "https://api.telegram.org");
-       conn.setRequestProperty("Sec-Fetch-Mode", "cors");
+        conn.setRequestProperty("Sec-Fetch-Mode", "cors");
         //conn.setRequestProperty("Sec-Fetch-Site", "same-origin");
         //conn.setRequestProperty("Sec-Fetch-User", "?1");
         conn.setRequestProperty("Upgrade-Insecure-Requests", "1");
@@ -324,14 +321,14 @@ public class Coinbase extends Exchange {
 
     private @NotNull JSONObject getJSON() {
 
-         JSONObject jsonObject = new JSONObject();
+        JSONObject jsonObject = new JSONObject();
         try {
             URL url = new URL("https://api.coinbase.com/v2/exchange-rates");
             HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
-              conn.setRequestProperty("charset", "utf-8");
-             conn.setRequestProperty("Accept-Charset", "utf-8");
+            conn.setRequestProperty("charset", "utf-8");
+            conn.setRequestProperty("Accept-Charset", "utf-8");
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10)");
             conn.setRequestProperty("CB-ACCESS-KEY", API_KEY0);//    API key as a string
             String timestamp = new Date().toString();
@@ -356,14 +353,14 @@ public class Coinbase extends Exchange {
             jsonObject = new JSONObject(response.toString());
             out.println(jsonObject.toString(4));
 
-            String rates = null;
+            String rates;
             if (jsonObject.has("data")) {
                 JSONObject dat =new JSONObject(jsonObject.getJSONObject("data").toString(4));
                 if (dat.has("rates")) {
                     rates=dat.getJSONObject("rates").toString(4);
                     out.println(rates);
                 }
-                
+
             }
 
 
@@ -386,7 +383,7 @@ public class Coinbase extends Exchange {
 
         System.out.println("Connected");
         JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4));
+        System.out.println(jsonObject.toString(4) + " "+ handshake);
 
     }
 
@@ -394,7 +391,7 @@ public class Coinbase extends Exchange {
     public void onMessage(String message) {
         System.out.println(message);
         JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4));
+        System.out.println(jsonObject.toString(4) );
 
     }
 
@@ -430,6 +427,10 @@ public class Coinbase extends Exchange {
 
 
 
+    }
+
+    public String getTradePair() {
+        return tradePair;
     }
 
     public static abstract class CoinbaseCandleDataSupplier extends CandleDataSupplier {
