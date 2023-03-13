@@ -33,7 +33,6 @@ public class CryptoCurrencyDataProvider extends CurrencyDataProvider {
         request.setHeader("Content-Type", "application/json");
         request.uri(URI.create("https://api.exchange.coinbase.com/currencies"));
 
-
         HttpClient.newHttpClient().sendAsync(
                         request.build(),
                         HttpResponse.BodyHandlers.ofString())
@@ -48,22 +47,16 @@ public class CryptoCurrencyDataProvider extends CurrencyDataProvider {
                     String type = "";
 
                     JSONObject json = new JSONObject(response);
-
                     for (int i = 0; i < json.length(); i++) {
-
-
-
                         String crypto_address_link = null;
                         if (json.has("id")) {
                             id = json.getString("id");
                         }
 
                         if (json.has("name")) {
-
                             name = json.getString("name");
                         }
                         if (json.has("status")) {
-
                             status = json.getString("status");
                         }
                         if (json.has("message")) {
@@ -80,8 +73,6 @@ public class CryptoCurrencyDataProvider extends CurrencyDataProvider {
                         }
 
                         if (json.has("details")) {
-
-
                             crypto_address_link = json.getJSONObject("details").getString("crypto_address_link");
 
                         }

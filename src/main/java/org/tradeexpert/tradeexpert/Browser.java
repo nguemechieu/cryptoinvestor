@@ -21,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
- public class Browser {
+ public class Browser extends Region {
     static final String[] urls = new String[]{
 
             "https://www.google.com/search?q",
@@ -63,9 +63,9 @@ import java.util.Objects;
         for (int i = 0; i < captions.length; i++) {
             // create hyperlinks
             Hyperlink hpl = pls[i] = new Hyperlink(captions[i]);
-             Image image = images[i] = new Image(Objects.requireNonNull(getClass().getResourceAsStream(imageFiles[i])));
-             hpl.setGraphic(new ImageView(image));
-              String url = urls[i];
+//             Image image = images[i] = new Image(Objects.requireNonNull(getClass().getResourceAsStream(imageFiles[i])));
+//             hpl.setGraphic(new ImageView(image));
+//              String url = urls[i];
 
 
             boolean addButton = (hpl.getText().equals("Documentation"));
@@ -75,8 +75,6 @@ import java.util.Objects;
                 webEngine.load(Objects.requireNonNull(getClass().getResourceAsStream(imageFiles[1])).toString());
             });
         }
-
-
         // create the toolbar
         toolBar = new HBox();
         toolBar.setAlignment(Pos.CENTER);
@@ -199,7 +197,12 @@ import java.util.Objects;
         return region;
     }
 
-    // JavaScript interface object
+     @Override
+     public Node getStyleableNode() {
+         return super.getStyleableNode();
+     }
+
+     // JavaScript interface object
     public static class JavaApp {
         @Override
         public String toString() {

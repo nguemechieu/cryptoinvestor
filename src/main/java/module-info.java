@@ -21,6 +21,7 @@ module org.tradeexpert.tradeexpert {
 
     requires jdk.hotspot.agent;
     requires Java.WebSocket;
+    requires com.fasterxml.classmate;
 
 
     opens org.tradeexpert.tradeexpert to javafx.fxml;

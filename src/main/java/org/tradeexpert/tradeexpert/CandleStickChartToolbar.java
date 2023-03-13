@@ -7,9 +7,13 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableNumberValue;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
+import javafx.print.PageOrientation;
+import javafx.print.Paper;
+import javafx.print.Printer;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -26,10 +30,14 @@ import javafx.scene.text.Font;
 import javafx.util.Duration;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.tradeexpert.tradeexpert.BinanceUs.BinanceUs;
+import org.tradeexpert.tradeexpert.Coinbase.Coinbase;
+import org.tradeexpert.tradeexpert.oanda.Oanda;
 
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -38,6 +46,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import static java.lang.System.out;
 import static org.tradeexpert.tradeexpert.FXUtils.computeTextDimensions;
 
 
@@ -210,11 +219,7 @@ public class CandleStickChartToolbar extends Region {
                     tool.setOnAction(event -> optionsPopOver.show(tool));
                 }else if (tool.tool!= null && tool.tool.isPrint()) {
                     tool.setOnAction(event -> {
-                        try {
-                            Desktop.getDesktop().browse(new URI("https://www.google.com/"));
-                        } catch (IOException | URISyntaxException e) {
-                            throw new RuntimeException(e);
-                        }
+                        out.println("Now Printing ..." + candleStickChart.toString());
                     });
                 }else if (tool.tool!= null && tool.tool.isSymbol()) {
                     tool.setOnAction(event -> {
@@ -222,10 +227,27 @@ public class CandleStickChartToolbar extends Region {
                         VBox symbolBox = new VBox();
                         symbolBox.getStyleClass().add("symbol-box");
 
-                        ChoiceBox <Currency> symbolChoiceBox = new ChoiceBox<>();
-                        symbolChoiceBox.getItems().addAll(candleStickChart.getSymbols());
+                        ChoiceBox <Currency> baseCurrency= new ChoiceBox<>();
+                        ChoiceBox<Currency> counterCurrency= new ChoiceBox<>();
+                        if (event.getSource() instanceof Coinbase) {
+                            baseCurrency.setItems(FXCollections.observableArrayList(new  CryptoCurrencyDataProvider().coinsToRegister));
+                            counterCurrency.setItems(FXCollections.observableArrayList(Currency.getFiatCurrencies()));
+                        }else if (event.getSource() instanceof BinanceUs) {
 
-                        tradeSymbol = String.valueOf(symbolChoiceBox.getSelectionModel().getSelectedItem());
+                            baseCurrency.setItems(FXCollections.observableArrayList(Currency.getFiatCurrencies()));
+                            counterCurrency.setItems(FXCollections.observableArrayList(Currency.getCryptoCurrencies()));
+                        }else if (event.getSource() instanceof Oanda) {
+                            baseCurrency.setItems(FXCollections.observableArrayList(Currency.getFiatCurrencies()));
+                            counterCurrency.setItems(FXCollections.observableArrayList(Currency.getFiatCurrencies()));
+                        }
+                        baseCurrency.setValue(Currency.of("SELECT BASE CURRENCY"));
+                        counterCurrency.setValue(Currency.of("SELECT COUNTER CURRENCY"));
+                        VBox vBox = new VBox();
+                        vBox.getChildren().addAll(baseCurrency, counterCurrency);
+                        symbolBox.getChildren().add(vBox);
+
+
+
 
                     });
                 }else if (tool.tool!= null && tool.tool.isAutoTrading()) {
@@ -273,7 +295,7 @@ public class CandleStickChartToolbar extends Region {
                 else if (tool.tool!= null && tool.tool.isNews()) {
                     tool.setOnAction(event -> {
                         try {
-                            candleStickChart.getNews();
+                            candleStickChart.drawNews();
                         } catch (ParseException e) {
                             throw new RuntimeException(e);
                         }

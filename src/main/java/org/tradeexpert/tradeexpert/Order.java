@@ -13,6 +13,27 @@ import java.util.Date;
     public static double remaining;
     public static double fee;
 
+     public static void setLastError(int lastError) {
+         Order.lastError = lastError;
+     }
+
+     public static void setTicket(int ticket) {
+         Order.ticket = ticket;
+     }
+
+     @Override
+     public String toString() {
+         return "Order{" +
+                 "id=" + id +
+                 ", total=" + total +
+                 ", currency='" + currency + '\'' +
+                 ", created=" + created +
+                 ", takeProfit=" + takeProfit +
+                 ", updated=" + updated +
+                 ", closed=" + closed +
+                 ", status='" + status + '\'' +
+                 '}';
+     }
 
      protected Long id;
     protected static double lotSize;
@@ -81,25 +102,7 @@ import java.util.Date;
         this.takeProfit = takeProfit;
     }
 
-    @Override
-    public String toString() {
-        return
-                id +
-                        ", order_type=" + order_type +
-                        ", lotSize=" + lotSize +
-                        ", symbol='" + symbol + currency + '\'' + ", price=" + price +
-                        ", stopLoss=" + stopLoss +
-                        ", takeProfit=" + takeProfit +
-                        ", status='" + status + '\'' +
-                        ", fee=" + fee +
-
-                        ", created=" + created +
-                        ", updated=" + updated +
-
-                        ", type='" + type + '\'';
-    }
-
-    public String getTimestamp() {
+     public String getTimestamp() {
         return timestamp;
     }
 

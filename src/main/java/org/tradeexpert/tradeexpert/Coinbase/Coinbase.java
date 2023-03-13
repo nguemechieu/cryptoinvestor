@@ -268,56 +268,6 @@ public class Coinbase extends Exchange {
 
 
 
-    //makeRequest return JSONObject
-    @Contract(" -> new")
-    private @NotNull JSONObject makeRequest() throws IOException {
-        this.url = "https://api.coinbase.com/";
-        this.method = "GET";
-        HttpsURLConnection conn = (HttpsURLConnection) new URL("https://api.coinbase.com/").openConnection();
-        conn.setRequestMethod("GET");
-        conn.setDoOutput(true);
-        conn.setDoInput(true);
-        conn.setUseCaches(false);
-        conn.setAllowUserInteraction(false);
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestProperty("Accept", "html/text");
-        //   conn.setRequestProperty("charset", "utf-8");
-        // conn.setRequestProperty("Accept-Charset", "utf-8");
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10)");
-        conn.setRequestProperty("CB-ACCESS-KEY", API_KEY0);//	API key as a string
-        String timestamp = new Date().toString();
-
-        conn.setRequestProperty("CB-ACCESS-SIGN", timestamp + "GET" + "https://api.coinbase.com/");
-        //"base64-encoded signature (see Signing a Message)");
-        conn.setRequestProperty("CB-ACCESS-TIMESTAMP", new Date().toString());//	Timestamp for your request
-        conn.setRequestProperty("CB-ACCESS-PASSPHRASE", PASSPHRASE);//Passphrase you specified when creating the API key
-        conn.setRequestProperty("Connection", "Keep-Alive");
-        conn.setRequestProperty("Accept", "*/*");
-        conn.setRequestProperty("Pragma", "no-cache");
-        conn.setRequestProperty("Cache-Control", "no-cache");
-        //       conn.setRequestProperty("Accept-Language", "en-US,en;q=0" + ";q=0.9,en-GB;q=0.8,en-US;q=0.7,en;q=0.6");
-        conn.setRequestProperty("Host", "https://api.telegram.org");
-//      conn.setRequestProperty("Origin", "https://api.telegram.org");
-        conn.setRequestProperty("Sec-Fetch-Mode", "cors");
-        //conn.setRequestProperty("Sec-Fetch-Site", "same-origin");
-        //conn.setRequestProperty("Sec-Fetch-User", "?1");
-        conn.setRequestProperty("Upgrade-Insecure-Requests", "1");
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10)");
-        conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
-        conn.connect();
-        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        String inputLine;
-        StringBuilder response = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        out.println("COINBASE " + response);
-        in.close();
-
-        return  new JSONObject(response.toString());
-    }
-
 
     private @NotNull JSONObject getJSON() {
 

@@ -162,6 +162,11 @@ public abstract class Currency implements Comparable<java.util.Currency> {
                 .findAny().orElse(NULL_FIAT_CURRENCY);
     }
 
+    public static ArrayList<CryptoCurrency> getCryptoCurrencies() {
+        return (ArrayList<CryptoCurrency>) CURRENCIES.values().stream()
+               .filter(currency -> currency.currencyType == CurrencyType.CRYPTO)
+               .map(currency -> (CryptoCurrency) currency).toList();
+    }
 
 
     public CurrencyType getCurrencyType() {

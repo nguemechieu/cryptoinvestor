@@ -1,5 +1,9 @@
 package org.tradeexpert.tradeexpert;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import java.io.IOException;
 import java.text.ParseException;
 import java.time.Instant;
@@ -47,7 +51,7 @@ public class Trade implements Runnable{
     private final ArrayList<String> symbols=new ArrayList<>();
      int NumOfSymbols;
 
-    private final List<Order> Orders=new ArrayList<>();
+    private static final List<Order> Orders=new ArrayList<>();
     private TradeMode inpTradeMode;
     private boolean UseTime;
     private long MagicNumber;
@@ -104,6 +108,11 @@ public class Trade implements Runnable{
 
     public static int getConnexionInfo() {
         return 1;
+    }
+
+    @Contract(pure = true)
+    public static @NotNull ArrayList<Order> getOrders() {
+        return new ArrayList<>(Orders);
     }
 
     public String getTradePair() {

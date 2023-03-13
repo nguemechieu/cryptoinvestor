@@ -1,8 +1,16 @@
 package org.tradeexpert.tradeexpert;
 
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
+import javafx.geometry.Insets;
+import javafx.scene.canvas.Canvas;
+import javafx.scene.control.TreeItem;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Paint;
+import javafx.scene.shape.Line;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.w3c.dom.ranges.Range;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -15,10 +23,10 @@ import java.util.HashMap;
 
 import static java.lang.System.out;
 
- class News extends RecursiveTreeObject<News> {
+ class News extends RecursiveTreeObject<News>{
     int hours;
     int seconds;
-    private String title;// title of the newsdhb/k;lojoj
+    private String title;// title of the
     private String country;// country of the news
     private String description;// description of the news
     private String impact;// impact of the news
@@ -344,7 +352,13 @@ import static java.lang.System.out;
         for (int i = 0; i < data.length(); i++) {
             JSONObject obj = data.getJSONObject(i);
             String title = obj.getString("title");
+
+          seconds= (int) (date.getTime()/1000);
+
+          minutes=seconds/60;
             if (obj.has("title")) {
+
+
                 news = new HashMap<>();
                 news.put("title", title);
                 news.put("country", country);
@@ -354,7 +368,7 @@ import static java.lang.System.out;
                 news.put("forecast", forecast);
                 news.put("previous", previous);
                 news.put("hours", hours);
-                news.put("secondes", seconds);
+                news.put("seconds", seconds);
                 news.put("minutes", minutes);
                 news.put("offset", offset);
 
@@ -395,4 +409,65 @@ import static java.lang.System.out;
         return news.get("country");
 
             }
-    }
+
+
+     public void draw() {
+            Line newsLine = new Line();
+            newsLine.setRotate(90);
+            newsLine.setStroke(Paint.valueOf("BLACK"));
+
+            if (getImpact().equals("High")) {
+                newsLine.setStroke(Paint.valueOf("RED"));
+            }
+            if (getImpact().equals("Medium")) {
+                newsLine.setStroke(Paint.valueOf("YELLOW"));
+            }
+            if (getImpact().equals("Low")) {
+                newsLine.setStroke(Paint.valueOf("GREEN"));
+            }
+            newsLine.setStartX(0);
+            newsLine.setStartY(0);
+            newsLine.setEndX(100);
+            newsLine.setEndY(100);
+            Canvas canvas = new Canvas(500,400);
+        StableTicksAxis xAxis = new StableTicksAxis();
+        xAxis.setLabel("Hours");
+        xAxis.setMinorTickVisible(false);
+        xAxis.setAutoRangePadding(0.05);
+        xAxis.setMinorTickCount(1);
+
+        StableTicksAxis yAxis = new StableTicksAxis();
+        yAxis.setLabel("Percent");
+        yAxis.setMinorTickVisible(false);
+        yAxis.setAutoRangePadding(0.05);
+        yAxis.setMinorTickCount(1);
+
+        canvas.setLayoutX(0);
+
+        canvas.setLayoutY(0);
+         VBox vBox = new VBox();
+         vBox.getChildren().add(newsLine);
+         vBox.getChildren().add(xAxis);
+         vBox.getChildren().add(yAxis);
+         StackPane stackPane = new StackPane();
+         stackPane.getChildren().add(vBox);
+
+         StackPane.setMargin(vBox, new Insets(10, 10, 10, 10));
+         StackPane.setMargin(newsLine, new Insets(10, 10, 10, 10));
+         StackPane.setMargin(xAxis, new Insets(10, 10, 10, 10));
+         StackPane.setMargin(yAxis, new Insets(10, 10, 10, 10));
+         stackPane.setStyle("-fx-background-color: WHITE");
+
+
+
+
+
+
+
+
+
+
+
+
+     }
+ }

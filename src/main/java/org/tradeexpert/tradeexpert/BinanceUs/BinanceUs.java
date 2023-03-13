@@ -365,7 +365,7 @@ public class BinanceUs extends Exchange {
                                 HttpResponse.BodyHandlers.ofString())
                         .thenApply(HttpResponse::body)
                         .thenApply(response -> {
-                            Log.info("coinbase response: " + response, news.toString());
+                            Log.info("BinanceUs response: " ,response);
                             JsonNode res;
                             try {
                                 res = OBJECT_MAPPER.readTree(response);
@@ -477,7 +477,7 @@ public class BinanceUs extends Exchange {
 
                             if (!tradesResponse.isArray()) {
                                 futureResult.completeExceptionally(new RuntimeException(
-                                        "Oanda trades response was not an array!"));
+                                        "BinanceUs trades response was not an array!"));
                             }
                             if (tradesResponse.isEmpty()) {
                                 futureResult.completeExceptionally(new IllegalArgumentException("tradesResponse was empty"));
@@ -574,20 +574,22 @@ public class BinanceUs extends Exchange {
                                 if (res.get(0).asInt() + secondsPerCandle > endTime.get()) {
                                     ((ArrayNode) res).remove(0);
                                 }
-                                List<CandleData> candleData = new ArrayList<>();
 
-                                for (JsonNode candle : res) {
-                                    out.println("JSON " + candle);
-                                    candleData.add(new CandleData(candle.get(1).asDouble(),  // open price
-                                            candle.get(4).asDouble(),  // close price
-                                            candle.get(2).asDouble(),  // high price
-                                            candle.get(3).asDouble(),  // low price
-                                            (int) Long.parseLong( candle.get(0).asText()),     // open time
-                                            candle.get(5).asDouble())   // volume
-                                    );
-                                    endTime.set(candle.get(0).asInt());
-                                    Log.info("Candle D binance " + candleData, news.toString());
+
+                                List<CandleData> candleData = new ArrayList<>();
+                                for (JsonNode re : res) {
+                                    out.println("JSON " + re);
+                                    endTime.set(res.get(0).asInt());
+                                    Log.info("Candle D binance ", res.toString());
+                                    candleData.add(new CandleData(re.get(1).asDouble(),  // open price
+                                            re.get(4).asDouble(),  // close price
+                                            re.get(2).asDouble(),  // high price
+                                            re.get(3).asDouble(),  // low price
+                                            res.get(0).asInt(),// open time
+                                            re.get(5).asDouble()))   ;// volume
+                                    Log.info("Candle D binance " , candleData.toString());
                                 }
+
                                 candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
                                 return candleData;
                             } else {
