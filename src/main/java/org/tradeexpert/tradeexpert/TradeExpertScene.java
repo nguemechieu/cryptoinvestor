@@ -14,10 +14,11 @@ import javafx.scene.Cursor;
 import javafx.scene.DepthTest;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
+import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.util.Callback;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.tradeexpert.tradeexpert.BinanceUs.BinanceUs;
 import org.tradeexpert.tradeexpert.Coinbase.Coinbase;
@@ -25,12 +26,9 @@ import org.tradeexpert.tradeexpert.oanda.OANDA_ACCESS_TOKEN;
 import org.tradeexpert.tradeexpert.oanda.Oanda;
 
 import java.text.ParseException;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
-
-import static java.lang.System.out;
 public class TradeExpertScene extends AnchorPane {
 
     private static final String BINANCE_ACCESS_TOKEN = "";
@@ -51,18 +49,18 @@ public class TradeExpertScene extends AnchorPane {
         ordersBox.setTranslateX(150);
         ordersBox.setTranslateY(650);
         ordersBox.setPrefSize(1300, 650);
-        String tradePair = "BTC-USD";
+
 
         Oanda oanda = new Oanda("77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99", OANDA_ACCESS_TOKEN.ACCOUNT_ID.toString());
         BinanceUs binance = new BinanceUs(BINANCE_ACCESS_TOKEN, BINANCE_ACCESS_SECRET, BINANCE_ACCESS_PASSWORD);
+        TradePair tradePair=TradePair.of(Currency.of("BCH"),Currency.of("USD"));
         Coinbase coinbase = new Coinbase(tradePair);
-
         CandleStickChartContainer coinbaseCandleStickChartContainer = new CandleStickChartContainer(coinbase, tradePair, true);
-        String tradePair1="AUD_USD";
+        TradePair tradePair1=TradePair.of(Currency.of("AUD"),Currency.ofFiat("USD"));
         CandleStickChartContainer oandaCandleStickChartContainer = new CandleStickChartContainer(oanda, tradePair1, true);
-        String tradePair2="ETCUSD";
+        TradePair tradePair2=TradePair.of("XLM","BTC");
         CandleStickChartContainer binanceCandleStickChartContainer = new CandleStickChartContainer(binance, tradePair2, true);
-        DraggableTab oandaTab = new DraggableTab("Oanda.com ");
+        DraggableTab oandaTab = new DraggableTab("Oanda.Com ");
         oandaTab.setContent(new VBox(oandaCandleStickChartContainer));
         DraggableTab binanceTab = new DraggableTab("Binance Us ");
         binanceTab.setContent(new VBox(binanceCandleStickChartContainer));

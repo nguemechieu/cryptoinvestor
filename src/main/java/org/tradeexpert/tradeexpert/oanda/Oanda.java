@@ -132,7 +132,7 @@ public class Oanda extends Exchange {
 //    PUT	/v3/accounts/{accountID}/trades/{tradeSpecifier}/clientExtensions
 //    Update the Client Extensions for a Trade. Do not add, update, or delete the Client Extensions if your account is associated with MT4.
 
-    public static @Nullable Trade getTrade(String tradeSpecifier) throws OandaException, TelegramApiException {
+    public static @Nullable Trade getTrade(String tradeSpecifier) throws OandaException, TelegramApiException, IOException, InterruptedException {
 
         String path = "/v3/accounts/" + accountID + "/trades/" + tradeSpecifier;
 
@@ -162,10 +162,10 @@ public class Oanda extends Exchange {
 
     }
 
-    public static void createMarketOrder(String tradePair, String side, double size) {
+    public static void createMarketOrder(TradePair tradePair, String side, double size) {
         try {
 
-            String path = "/v3/accounts/" + accountID + "/trades/" + tradePair + "/orders"+
+            String path = "/v3/accounts/" + accountID + "/trades/" + tradePair.toString('_') + "/orders"+
                     "?side=" + side +
                     "&quantity=" + size;
 
@@ -1249,7 +1249,7 @@ public class Oanda extends Exchange {
         }
         return null;
     }
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt) {
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
         Objects.requireNonNull(tradePair);
         Objects.requireNonNull(stopAt);
         if (stopAt.isAfter(Instant.now())) {
@@ -1317,8 +1317,8 @@ public class Oanda extends Exchange {
                                 break;
                             } else {
                                 tradesBeforeStopTime.add(new Trade(tradePair,
-                                        DefaultMoney.ofFiat(j.get("price").asDouble(), tradePair),
-                                        DefaultMoney.ofCrypto(j.get("size").asDouble(), tradePair),
+                                        DefaultMoney.ofFiat(j.get("price").asDouble(), String.valueOf(tradePair.getCounterCurrency())),
+                                        DefaultMoney.ofCrypto(j.get("size").asDouble(), String.valueOf(tradePair.getBaseCurrency())),
                                         Side.getSide(j.get("side").toString()), j.get("trade_id").asLong(), time));
                                 out.println("Trade: " + time + " " + tradePair + " " + j.get("price"));
                             }
@@ -1336,7 +1336,7 @@ public class Oanda extends Exchange {
     }
 
     @Override
-    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
 
                         String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
                     currentCandleStartedAt, ZoneOffset.UTC));
@@ -1633,7 +1633,7 @@ public class Oanda extends Exchange {
         return null;
     }
 
-    public CandleDataSupplier getCandleDataSupplier(int i, String tradePair) {
+    public CandleDataSupplier getCandleDataSupplier(int i, TradePair tradePair) {
         return new OandaCandleDataSupplier(i, tradePair);
     }
 
@@ -1641,14 +1641,14 @@ public class Oanda extends Exchange {
 
 //            Note: This endpoint is served by the streaming URLs.
 
-    public class OandaCandleDataSupplier extends CandleDataSupplier {
+    public static class OandaCandleDataSupplier extends CandleDataSupplier {
         public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
                 .registerModule(new JavaTimeModule())
                 .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
 
-        public OandaCandleDataSupplier(int secondsPerCandle, String tradePair) {
+        public OandaCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
             super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
         }
 
@@ -1665,7 +1665,7 @@ public class Oanda extends Exchange {
 
         @Override
         public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(
-                String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+                TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
 //            String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
 //                    currentCandleStartedAt, ZoneOffset.UTC));
             long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
@@ -1696,7 +1696,7 @@ public class Oanda extends Exchange {
 
             String granularity = str + x;
             //   String uriStr = "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair + "/candles?price=BA&from=2016-10-17T15%3A00%3A00.000000000Z&granularity=" + granularity;
-            String uriStr = "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair + "/candles?price=BA&from=2016-10-17T15%3A00%3A00.000000000Z&granularity=" + granularity;
+            String uriStr = "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair.toString('_') + "/candles?price=BA&from=2016-10-17T15%3A00%3A00.000000000Z&granularity=" + granularity;
 
             return HttpClient.newHttpClient().sendAsync(
                             HttpRequest.newBuilder()
@@ -1795,7 +1795,7 @@ public class Oanda extends Exchange {
 
 
         @Override
-        public CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt) {
+        public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
             Objects.requireNonNull(tradePair);
             Objects.requireNonNull(stopAt);
 
@@ -1810,7 +1810,7 @@ public class Oanda extends Exchange {
                 IntegerProperty afterCursor = new SimpleIntegerProperty(-1);
                 List<Trade> tradesBeforeStopTime = new ArrayList<>();
                 for (int i = 0; !futureResult.isDone(); i++) {
-                    String uriStr = "https://api-fxtrade.oanda.com/v3/account/"+accountID+"/trades?symbol=" + tradePair;
+                    String uriStr = "https://api-fxtrade.oanda.com/v3/account/"+accountID+"/trades?symbol=" + tradePair.toString('_') + "&after=" + afterCursor.get() + "&limit=100";
 
                     if (i != 0) {
                         uriStr += "?after=" + afterCursor.get();
@@ -1858,8 +1858,8 @@ public class Oanda extends Exchange {
                                     break;
                                 } else {
                                     tradesBeforeStopTime.add(new Trade(tradePair,
-                                            DefaultMoney.ofFiat(j.get("price").toString(), tradePair.substring(3, tradePair.length() - 1)),
-                                            DefaultMoney.ofCrypto(j.get("qty").toString(), tradePair.substring(0, 3)),
+                                            DefaultMoney.ofFiat(j.get("price").toString(), String.valueOf(tradePair.getCounterCurrency())),
+                                            DefaultMoney.ofCrypto(j.get("qty").toString(), String.valueOf(tradePair.getBaseCurrency())),
                                             Side.getSide(j.get("isBuyerMaker").toString()), j.get("id").asLong(), time));
 
                                out.println("tradesBeforeStopTime " + tradesBeforeStopTime);

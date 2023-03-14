@@ -23,11 +23,8 @@ import static sun.jvm.hotspot.debugger.win32.coff.DebugVC50X86RegisterEnums.TAG;
 
 public abstract class ExchangeWebSocketClient implements WebSocket {
     protected final BooleanProperty connectionEstablished;
-    protected final Map<String, LiveTradesConsumer> liveTradeConsumers = new ConcurrentHashMap<>();
-    protected final Map<String, LiveOrdersConsumer> liveOrderConsumers = new ConcurrentHashMap<>();
-    protected final Map<String, LiveOrderBookConsumers> liveOrderBookConsumers = new ConcurrentHashMap<>();
-    protected final Map<String, LiveTickerConsumer> liveTickerConsumers = new ConcurrentHashMap<>();
-    protected final Map<String, News> liveNewsConsumers = new ConcurrentHashMap<>();
+    protected final Map<TradePair, LiveTradesConsumer> liveTradeConsumers = new ConcurrentHashMap<TradePair, LiveTradesConsumer>();
+
 
     protected final CountDownLatch webSocketInitializedLatch = new CountDownLatch(1);
 
@@ -117,7 +114,7 @@ public abstract class ExchangeWebSocketClient implements WebSocket {
         return webSocketInitializedLatch;
     }
 
-    public void streamLiveTrades(String tradePair, LiveTradesConsumer liveTradesConsumer) {
+    public void streamLiveTrades(TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
         liveTradeConsumers.put(tradePair, liveTradesConsumer);
         if (connectionEstablished.get()) {
             liveTradesConsumer.onConnectionEstablished();
@@ -143,7 +140,7 @@ public abstract class ExchangeWebSocketClient implements WebSocket {
     }
 
 
-    public boolean supportsStreamingTrades(String tradePair) {
+    public boolean supportsStreamingTrades(TradePair tradePair) {
 
         return liveTradeConsumers.containsKey(tradePair);
 

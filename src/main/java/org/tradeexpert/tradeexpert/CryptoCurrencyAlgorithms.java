@@ -1,19 +1,19 @@
 package org.tradeexpert.tradeexpert;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-
 public final class CryptoCurrencyAlgorithms {
     private static final Map<String, Algorithm> ALGORITHM_MAP = new ConcurrentHashMap<>();
 
-    static {
-        for (Algorithm algorithm : Algorithm.values()) ALGORITHM_MAP.put(algorithm.toString(), algorithm);
-    }
+    private CryptoCurrencyAlgorithms() {}
 
-    private CryptoCurrencyAlgorithms() {
-        throw new AssertionError("No instances.");
+    static {
+        for (Algorithm algorithm : Algorithm.values()) {
+            ALGORITHM_MAP.put(algorithm.toString(), algorithm);
+        }
     }
 
     public static Algorithm getAlgorithm(String algorithm) {

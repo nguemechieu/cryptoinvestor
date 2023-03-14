@@ -8,6 +8,9 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.util.Duration;
 
+import java.io.IOException;
+import java.text.ParseException;
+
 public abstract class DelayedSizeChangeListener implements ChangeListener<Number> {
     protected final ObservableValue<Number> containerWidth;
     protected final ObservableValue<Number> containerHeight;
@@ -29,7 +32,7 @@ public abstract class DelayedSizeChangeListener implements ChangeListener<Number
         timeline.play();
     }
 
-    public abstract void resize();
+    public abstract void resize() throws TelegramApiException, ParseException, IOException, InterruptedException;
 
     @Override
     public void changed(ObservableValue<? extends Number> observable, Number oldValue, final Number newValue) {
@@ -40,7 +43,11 @@ public abstract class DelayedSizeChangeListener implements ChangeListener<Number
         if (gotFirstSize.get()) {
             timeline.getKeyFrames().clear();
             timeline.getKeyFrames().add(new KeyFrame(Duration.millis(subsequentDelay), event -> {
-                resize();
+                try {
+                    resize();
+                } catch (TelegramApiException | ParseException | IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 timeline.stop();
             }));
         }

@@ -14,7 +14,7 @@ public abstract class ReverseRawTradeDataProcessor extends CandleDataSupplier {
     private final ReversedLinesFileReader fileReader;
     private int start;
 
-    public ReverseRawTradeDataProcessor(Path rawTradeData, int secondsPerCandle, String tradePair)
+    public ReverseRawTradeDataProcessor(Path rawTradeData, int secondsPerCandle, TradePair tradePair)
             throws IOException {
         super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
         fileReader = new ReversedLinesFileReader(rawTradeData, StandardCharsets.UTF_8);

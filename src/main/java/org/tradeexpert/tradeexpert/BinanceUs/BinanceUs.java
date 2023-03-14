@@ -30,7 +30,6 @@ import java.util.concurrent.Future;
 
 import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
-import static org.tradeexpert.tradeexpert.NewsManager.news;
 
 
 public class BinanceUs extends Exchange {
@@ -111,7 +110,7 @@ public class BinanceUs extends Exchange {
         Objects.requireNonNull(stopLimitPrice);
     }
 
-    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, String tradePair) {
+    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
         return
                 new BinanceCandleDataSupplier(secondsPerCandle, tradePair);
     }
@@ -152,7 +151,7 @@ public class BinanceUs extends Exchange {
          * This method only needs to be implemented to support live syncing.
          */
         @Override
-        public CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt) {
+        public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
             Objects.requireNonNull(tradePair);
             Objects.requireNonNull(stopAt);
 
@@ -210,8 +209,8 @@ public class BinanceUs extends Exchange {
                                     break;
                                 } else {
                                     tradesBeforeStopTime.add(new Trade(tradePair,
-                                            DefaultMoney.ofFiat(trade.get("price").asText(), tradePair.substring(3, tradePair.length() - 1)),
-                                            DefaultMoney.ofCrypto(trade.get("qty").asText(), tradePair.substring(0, 3)),
+                                            DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getBaseCurrency())),
+                                            DefaultMoney.ofCrypto(trade.get("qty").asText(), String.valueOf(tradePair.getBaseCurrency())),
                                             Side.getSide(trade.get("isBuyerMaker").asText()), trade.get("id").asLong(), time));
                                 }
                             }
@@ -232,7 +231,7 @@ public class BinanceUs extends Exchange {
          */
         @Override
         public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
-                String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+                TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
              String timeFrame = x + str;
             HttpRequest.Builder req=
                     HttpRequest.newBuilder();
@@ -314,7 +313,7 @@ public class BinanceUs extends Exchange {
             private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
             private static final Set<Integer> GRANULARITIES = Set.of(60, 60 * 5, 60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7, 3600 * 24 * 7 * 4, 3600 * 24 * 365);
 
-            BinanceCandleDataSupplier(int secondsPerCandle, String tradePair) {
+            BinanceCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
                 super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
                 endTime.set(-1);
 
@@ -333,7 +332,7 @@ public class BinanceUs extends Exchange {
 
             @Override
             public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(
-                    String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+                    TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
                 String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
                         currentCandleStartedAt, ZoneOffset.UTC));
                 long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
@@ -427,7 +426,7 @@ public class BinanceUs extends Exchange {
 
 
 
-            public CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt) {
+            public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
                 Objects.requireNonNull(tradePair);
                 Objects.requireNonNull(stopAt);
                 if (stopAt.isAfter(Instant.now())) {
@@ -491,8 +490,8 @@ public class BinanceUs extends Exchange {
                                         break;
                                     } else {
                                         tradesBeforeStopTime.add(new Trade(tradePair,
-                                                DefaultMoney.ofFiat(trade.get("price").asText(), tradePair),
-                                                DefaultMoney.ofCrypto(trade.get("size").asText(), tradePair),
+                                                DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getCounterCurrency())),
+                                                DefaultMoney.ofCrypto(trade.get("size").asText(), String.valueOf(tradePair.getBaseCurrency())),
                                                 Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
                                     }
                                 }

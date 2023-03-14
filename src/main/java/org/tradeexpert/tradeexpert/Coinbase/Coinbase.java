@@ -11,7 +11,6 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 
 import org.java_websocket.handshake.ServerHandshake;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.tradeexpert.tradeexpert.*;
@@ -55,12 +54,11 @@ public class Coinbase extends Exchange {
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
-    String url;
-    String method;
-    private final String tradePair;
+
+    private final TradePair tradePair;
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
-    public Coinbase(String tradePair) {
+    public Coinbase(TradePair tradePair) {
         super(ur0);
         this.tradePair = tradePair;
 
@@ -81,22 +79,22 @@ public class Coinbase extends Exchange {
     }
 
     @Override
-    public CoinbaseCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, String tradePair) {
+    public CoinbaseCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
         return
                 new CoinbaseCandleDataSupplier(secondsPerCandle, tradePair) {
                     @Override
-                    public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+                    public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
                         return null;
                     }
 
                     @Override
-                    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt) {
+                    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
                         return null;
                     }
                 };
     }
 
-    private String timestampSignature(String tradePair) {
+    private String timestampSignature(TradePair tradePair) {
         Objects.requireNonNull(tradePair);
         return String.format("%s%s%s", tradePair, System.currentTimeMillis(), API_SECRET);
     }
@@ -109,7 +107,7 @@ public class Coinbase extends Exchange {
      * This method only needs to be implemented to support live syncing.
      */
     @Override
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt) {
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
         Objects.requireNonNull(tradePair);
         Objects.requireNonNull(stopAt);
 
@@ -127,7 +125,7 @@ public class Coinbase extends Exchange {
             // We will know if we get rate limited if we get a 429 response code.
             for (int i = 0; !futureResult.isDone(); i++) {
                 String uriStr = "https://api.pro.coinbase.com/";
-                uriStr += "products/" + tradePair + "/trades";
+                uriStr += "products/" + tradePair.toString('-') + "/trades";
 
                 if (i != 0) {
                     uriStr += "?after=" + afterCursor.get();
@@ -164,8 +162,8 @@ public class Coinbase extends Exchange {
                                 break;
                             } else {
                                 tradesBeforeStopTime.add(new Trade(tradePair,
-                                        DefaultMoney.ofFiat(trade.get("price").asText(), tradePair.substring(4, tradePair.length() - 1)),
-                                        DefaultMoney.ofCrypto(trade.get("size").asText(), tradePair.substring(0, 3)),
+                                        DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getCounterCurrency())),
+                                        DefaultMoney.ofCrypto(trade.get("size").asText(), String.valueOf(tradePair.getBaseCurrency())),
                                         Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
                             }
                         }
@@ -187,7 +185,7 @@ public class Coinbase extends Exchange {
      */
     @Override
     public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
-            String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
         String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
                 currentCandleStartedAt, ZoneOffset.UTC));
         long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
@@ -201,7 +199,7 @@ public class Coinbase extends Exchange {
                         HttpRequest.newBuilder()
                                 .uri(URI.create(String.format(
                                         "https://api.pro.coinbase.com/products/%s/candles?granularity=%s&start=%s",
-                                        tradePair, actualGranularity, startDateString)))
+                                        tradePair.toString('-'), actualGranularity, startDateString)))
                                 .GET().build(),
                         HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
@@ -361,7 +359,7 @@ public class Coinbase extends Exchange {
 
     }
 
-    public void createMarketOrder(String tradePair, String side, double size) {
+    public void createMarketOrder(TradePair tradePair, String side, double size) {
         JSONObject jsonObject = getJSON();
         System.out.println(jsonObject.toString(4));
 
@@ -379,7 +377,7 @@ public class Coinbase extends Exchange {
 
     }
 
-    public String getTradePair() {
+    public TradePair getTradePair() {
         return tradePair;
     }
 
@@ -390,7 +388,7 @@ public class Coinbase extends Exchange {
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
 
-        CoinbaseCandleDataSupplier(int secondsPerCandle, String tradePair) {
+        CoinbaseCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
             super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
         }
 
@@ -414,7 +412,7 @@ public class Coinbase extends Exchange {
                     .format(LocalDateTime.ofEpochSecond(startTime, 0, ZoneOffset.UTC));
 
             String uriStr = "https://api.pro.coinbase.com/" +
-                    "products/" + tradePair + "/candles" +
+                    "products/" + tradePair.toString('-') + "/candles" +
                     "?granularity=" + secondsPerCandle +
                     "&start=" + startDateString +
                     "&end=" + endDateString;
@@ -463,6 +461,10 @@ public class Coinbase extends Exchange {
                         }
                     });
         }
+
+        public abstract CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
+
+        public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
     }
 
 }

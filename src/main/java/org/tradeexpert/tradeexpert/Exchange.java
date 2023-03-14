@@ -16,24 +16,24 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class Exchange {
 
-    private final String urlu;
+    private final String urlize;
 
     public Exchange(String ur) {
-        this.urlu = ur;
+        this.urlize = ur;
 
     }
 
-    public abstract CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, String tradePair);
+    public abstract CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair);
 
-    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt);
+    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
 
     public abstract CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
-            String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
+            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
 
     public ExchangeWebSocketClient getWebsocketClient() {
 
         return new ExchangeWebSocketClient(
-                URI.create(urlu),
+                URI.create(urlize),
                 new Draft_6455()
         ) {
             @Override

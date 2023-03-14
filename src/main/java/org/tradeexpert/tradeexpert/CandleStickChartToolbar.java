@@ -11,9 +11,6 @@ import javafx.collections.FXCollections;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
-import javafx.print.PageOrientation;
-import javafx.print.Paper;
-import javafx.print.Printer;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -37,7 +34,6 @@ import org.tradeexpert.tradeexpert.oanda.Oanda;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -50,27 +46,13 @@ import static java.lang.System.out;
 import static org.tradeexpert.tradeexpert.FXUtils.computeTextDimensions;
 
 
-/**
- * A resizable toolbar, placed at the top of a {@code CandleStickChart} and contained
- * inside of a {@code CandleStickChartContainer}, that contains a series of labelled
- * buttons that allow for controlling the chart paired with this toolbar. Some of the
- * functions of the buttons are:
- * <p>
- * <uldvat</li>
- * <li>Print the chart</li>
- * <li>Configure the chart's options (via a PopOver triggered by a button)</li>
- * </ul>
- * <p>
- * The toolbar buttons are labelled with either text (which is used for the duration buttons,
- * e.g. "6h") or a glyph (e.g. magnifying glasses with a plus/minus for zoom in/out).
- */
 public class CandleStickChartToolbar extends Region {
     private final HBox toolbar;
     private final PopOver optionsPopOver;
     private final Separator functionOptionsSeparator;
     private MouseExitedPopOverFilter mouseExitedPopOverFilter;
     private volatile boolean mouseInsideOptionsButton;
-    private String tradeSymbol;
+
 
     public CandleStickChartToolbar(ObservableNumberValue containerWidth, ObservableNumberValue containerHeight,
                             Set<Integer> granularities) {
@@ -198,8 +180,14 @@ public class CandleStickChartToolbar extends Region {
                 if (tool.duration != -1) {
                     tool.setOnAction(event -> secondsPerCandle.setValue(tool.duration));
                 } else if (tool.tool != null && tool.tool.isZoomFunction()) {
-                    tool.setOnAction(event -> candleStickChart.changeZoom(
-                            tool.tool.getZoomDirection()));
+                    tool.setOnAction(event -> {
+                        try {
+                            candleStickChart.changeZoom(
+                                    tool.tool.getZoomDirection());
+                        } catch (TelegramApiException | ParseException | IOException | InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
 
 
                 } else if (tool.tool != null && tool.tool.isScreenShot()) {
@@ -221,35 +209,7 @@ public class CandleStickChartToolbar extends Region {
                     tool.setOnAction(event -> {
                         out.println("Now Printing ..." + candleStickChart.toString());
                     });
-                }else if (tool.tool!= null && tool.tool.isSymbol()) {
-                    tool.setOnAction(event -> {
 
-                        VBox symbolBox = new VBox();
-                        symbolBox.getStyleClass().add("symbol-box");
-
-                        ChoiceBox <Currency> baseCurrency= new ChoiceBox<>();
-                        ChoiceBox<Currency> counterCurrency= new ChoiceBox<>();
-                        if (event.getSource() instanceof Coinbase) {
-                            baseCurrency.setItems(FXCollections.observableArrayList(new  CryptoCurrencyDataProvider().coinsToRegister));
-                            counterCurrency.setItems(FXCollections.observableArrayList(Currency.getFiatCurrencies()));
-                        }else if (event.getSource() instanceof BinanceUs) {
-
-                            baseCurrency.setItems(FXCollections.observableArrayList(Currency.getFiatCurrencies()));
-                            counterCurrency.setItems(FXCollections.observableArrayList(Currency.getCryptoCurrencies()));
-                        }else if (event.getSource() instanceof Oanda) {
-                            baseCurrency.setItems(FXCollections.observableArrayList(Currency.getFiatCurrencies()));
-                            counterCurrency.setItems(FXCollections.observableArrayList(Currency.getFiatCurrencies()));
-                        }
-                        baseCurrency.setValue(Currency.of("SELECT BASE CURRENCY"));
-                        counterCurrency.setValue(Currency.of("SELECT COUNTER CURRENCY"));
-                        VBox vBox = new VBox();
-                        vBox.getChildren().addAll(baseCurrency, counterCurrency);
-                        symbolBox.getChildren().add(vBox);
-
-
-
-
-                    });
                 }else if (tool.tool!= null && tool.tool.isAutoTrading()) {
                     tool.setOnAction(event -> {
                         candleStickChart.setAutoTrading(true);
@@ -294,12 +254,10 @@ public class CandleStickChartToolbar extends Region {
                 }
                 else if (tool.tool!= null && tool.tool.isNews()) {
                     tool.setOnAction(event -> {
-                        try {
-                            candleStickChart.drawNews();
-                        } catch (ParseException e) {
-                            throw new RuntimeException(e);
-                        }
+                        candleStickChart.drawNews();
                     });
+                }else if (tool.tool!= null && tool.tool.isCurrency()) {
+                    tool.setOnAction(event -> candleStickChart.setCurrencyChart());
                 }
 
 
@@ -320,7 +278,7 @@ public class CandleStickChartToolbar extends Region {
         ZOOM_OUT("/img/search-minus-solid.png"),
         SCREENSHOT("/img/Screen Shot.png"),
         AUTO_TRADING("/img/auto-trading-solid.png"),
-        SYMBOL("/img/symbol.png"),
+         CURRENCY("/img/symbol.png"),
         BAR("/img/bar-solid.png"),
         AREA("/img/area-solid.png"),
 
@@ -392,18 +350,11 @@ public class CandleStickChartToolbar extends Region {
         boolean isNews() {
             return this == NEWS;
         }
-        boolean isSearchTool() {
-            return this == SEARCHTOOL;
-        }
-
 
 
 
         boolean isSearch() {
             return this == SEARCHTOOL;
-        }
-        boolean isSymbol() {
-            return this == SYMBOL;
         }
 
 
@@ -424,6 +375,10 @@ public class CandleStickChartToolbar extends Region {
 
         public boolean isCandlestick() {
             return this == CANDLESTICK;
+        }
+
+        public boolean isCurrency() {
+            return this == CURRENCY;
         }
     }
 

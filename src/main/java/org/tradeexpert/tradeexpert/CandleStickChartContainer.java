@@ -2,6 +2,7 @@ package org.tradeexpert.tradeexpert;
 import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -27,10 +28,10 @@ public class CandleStickChartContainer extends Region {
     boolean liveSyncing;
     CandleStickChartToolbar toolbar;
     VBox candleChartContainer;
-     String tradePair;
+     TradePair tradePair;
      SimpleIntegerProperty secondsPerCandle;
     private CandleStickChart candleStickChart;
-    public CandleStickChartContainer(Exchange exchange, String tradePair, boolean liveSyncing) throws URISyntaxException, IOException {
+    public CandleStickChartContainer(Exchange exchange, TradePair tradePair, boolean liveSyncing) throws URISyntaxException, IOException {
         Objects.requireNonNull(exchange, "exchange must not be null");
         Objects.requireNonNull(tradePair, "tradePair must not be null");
 
@@ -41,7 +42,7 @@ public class CandleStickChartContainer extends Region {
         setPrefSize(Double.MAX_VALUE, Double.MAX_VALUE);
         CandleDataSupplier candleDataSupplier = exchange.getCandleDataSupplier(secondsPerCandle.get(), tradePair);
         toolbar = new CandleStickChartToolbar(widthProperty(), heightProperty(), candleDataSupplier.getSupportedGranularities());
-        VBox toolbarContainer = new VBox(toolbar);
+        HBox toolbarContainer = new HBox(toolbar);
         toolbarContainer.setPrefWidth(Double.MAX_VALUE);
         toolbarContainer.setPrefHeight(10);
         toolbarContainer.prefWidthProperty().bind(prefWidthProperty());
@@ -84,9 +85,8 @@ public class CandleStickChartContainer extends Region {
 
         candleStickChart = new CandleStickChart(exchange, exchange.getCandleDataSupplier(secondsPerCandle, tradePair),
                 tradePair, liveSyncing, secondsPerCandle, widthProperty(), heightProperty());
-        candleStickChart.setTranslateX(5);
 
-        candleStickChart.setPrefSize(widthProperty().get()-70, heightProperty().get()-50);
+
         candleChartContainer.getChildren().setAll(candleStickChart);
     }
 
@@ -94,7 +94,7 @@ public class CandleStickChartContainer extends Region {
         Objects.requireNonNull(newChart, "newChart must not be null");
 
         if (candleStickChart != null) {
-            FadeTransition fadeTransitionOut = new FadeTransition(Duration.millis(300), candleStickChart);
+            FadeTransition fadeTransitionOut = new FadeTransition(Duration.millis(200), candleStickChart);
             fadeTransitionOut.setFromValue(1.0);
             fadeTransitionOut.setToValue(0.0);
             fadeTransitionOut.setOnFinished(event -> {
@@ -110,7 +110,7 @@ public class CandleStickChartContainer extends Region {
         } else {
             candleStickChart = newChart;
             candleChartContainer.getChildren().setAll(newChart);
-            FadeTransition fadeTransitionIn = new FadeTransition(Duration.millis(400), candleStickChart);
+            FadeTransition fadeTransitionIn = new FadeTransition(Duration.millis(300), candleStickChart);
             fadeTransitionIn.setFromValue(0.0);
             fadeTransitionIn.setToValue(1.0);
             fadeTransitionIn.play();

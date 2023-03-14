@@ -1,5 +1,6 @@
 package org.tradeexpert.tradeexpert;
 
+import java.io.IOException;
 import java.util.List;
 
 
@@ -10,5 +11,5 @@ public interface LiveTradesConsumer {
 
     void onConnectionFailed();
 
-    void onMessage(String message);
+    void onMessage(String message) throws IOException, InterruptedException;
 }

@@ -8,6 +8,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.w3c.dom.ranges.Range;
@@ -220,17 +221,7 @@ import static java.lang.System.out;
         return super.clone();
     }
 
-    @Override
-    public String toString() {
-        return
-                getTitle() + " " + getCountry() +
-                        " impact " + getImpact() +
-                        " date " + getDate() +
-                        " forecast " + getForecast() +
-                        " previous " + getPrevious();
-    }
-
-    public String getCountry() {
+     public String getCountry() {
         return country;
     }
 
@@ -275,7 +266,23 @@ import static java.lang.System.out;
         return previous;
     }
 
-    public void setPrevious(String previous) {
+     @Override
+     public String toString() {
+         return
+                 "hours=" + hours +
+                 ", seconds=" + seconds +
+                 ", title='" + title + '\'' +
+                 ", country='" + country + '\'' +
+                 ", description='" + description + '\'' +
+                 ", impact='" + impact + '\'' +
+                 ", previous='" + previous + '\'' +
+                 ", date=" + date +
+                 ", forecast='" + forecast + '\'' +
+                 ", minutes=" + minutes +
+                 ", offset=" + offset ;
+     }
+
+     public void setPrevious(String previous) {
         this.previous = previous;
     }
 
@@ -312,7 +319,7 @@ import static java.lang.System.out;
     }
     String url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=1bed8a31256f1525dbb0b6daf6898823";
 
-        private JSONArray makeRequest() {
+        private @Nullable JSONArray makeRequest() {
             try {
                 HttpURLConnection connection = (HttpURLConnection) new URL(this.url).openConnection();
                 connection.setDoOutput(true);

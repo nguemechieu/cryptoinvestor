@@ -1,5 +1,7 @@
 package org.tradeexpert.tradeexpert;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Locale;
 import java.util.Objects;
 
@@ -45,4 +47,5 @@ public abstract class FiatCurrency extends Currency {
         this.numericCode = numericCode;
     }
 
+    public abstract int compareTo(@NotNull java.util.Currency o);
 }

@@ -2,7 +2,6 @@ package org.tradeexpert.tradeexpert;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -17,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Trade implements Runnable{
 
     public static CandleData candle;
-    private String tradePair;
+    private TradePair tradePair;
     private Money price;
     private Money amount;
     private Side transactionType;
@@ -59,8 +58,8 @@ public class Trade implements Runnable{
     private Exchange exchange;
     private double ProfitValue;
 
-    public Trade(String tradePair, Money price, Money amount, Side transactionType,
-                 long localTradeId, Instant timestamp, Money fee) throws TelegramApiException {
+    public Trade(TradePair tradePair, Money price, Money amount, Side transactionType,
+                 long localTradeId, Instant timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException {
 
         this.tradePair = tradePair;
         this.price = price;
@@ -71,39 +70,41 @@ public class Trade implements Runnable{
         this.fee = fee;
     }
 
-    public Trade(String tradePair, Money price, Money amount, Side transactionType,
-                 long localTradeId, Instant timestamp) throws TelegramApiException {
+    public Trade(TradePair tradePair, Money price, Money amount, Side transactionType,
+                 long localTradeId, Instant timestamp) throws TelegramApiException, IOException, InterruptedException {
         this(tradePair, price, amount, transactionType, localTradeId,
                 timestamp, DefaultMoney.NULL_MONEY);
     }
 
-    public Trade(String tradePair, Money price, Money amount, Side transactionType,
-                 long localTradeId, long timestamp) throws TelegramApiException {
+    public Trade(TradePair tradePair, Money price, Money amount, Side transactionType,
+                 long localTradeId, long timestamp) throws TelegramApiException, IOException, InterruptedException {
         this(tradePair, price, amount, transactionType, localTradeId, Instant.ofEpochSecond(timestamp),
                 DefaultMoney.NULL_MONEY);
     }
 
-    public Trade(String tradePair, Money price, Money amount, Side transactionType,
-                 long localTradeId, long timestamp, Money fee) throws TelegramApiException {
+    public Trade(TradePair tradePair, Money price, Money amount, Side transactionType,
+                 long localTradeId, long timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException {
         this(tradePair, price, amount, transactionType, localTradeId, Instant.ofEpochSecond(timestamp), fee);
     }
 
-    public Trade(String tradeID, String instrument, String side, String quantity, String price, String time, String transactionID, String clientExtensions) throws TelegramApiException {
+    public Trade(String tradeID, String instrument, String side, String quantity, String price, String time, String transactionID, String clientExtensions) throws TelegramApiException, IOException, InterruptedException {
 
-        ConcurrentHashMap<Object, Object> trade = new ConcurrentHashMap<>();
-        trade.put("tradeID", tradeID);
-        trade.put("instrument", instrument);
-        trade.put("side", side);
-        trade.put("quantity", quantity);
-        trade.put("price", price);
-        trade.put("time", time);
-        trade.put("transactionID", transactionID);
-        trade.put("clientExtensions", clientExtensions);
+        ConcurrentHashMap<Object, Object> tradeData = new ConcurrentHashMap<>();
+        tradeData.put("tradeID", tradeID);
+        tradeData.put("instrument", instrument);
+        tradeData.put("side", side);
+        tradeData.put("quantity", quantity);
+        tradeData.put("price", price);
+        tradeData.put("time", time);
+        tradeData.put("transactionID", transactionID);
+        tradeData.put("clientExtensions", clientExtensions);
     }
 
-    public Trade() throws TelegramApiException {
+    public Trade() throws TelegramApiException, IOException, InterruptedException {
 
     }
+
+
 
 
     public static int getConnexionInfo() {
@@ -115,7 +116,7 @@ public class Trade implements Runnable{
         return new ArrayList<>(Orders);
     }
 
-    public String getTradePair() {
+    public TradePair getTradePair() {
         return tradePair;
     }
 
@@ -177,11 +178,7 @@ public class Trade implements Runnable{
 
 
 
-    TelegramClient smartBot
-            =
-            new TelegramClient(TELEGRAM_API_INFOS.TELEGRAM_API_KEY.toString()
 
-            );
 
 
 
@@ -199,14 +196,9 @@ public class Trade implements Runnable{
     public void run() {
 
 
-        try {
-            OnTick();
-        } catch (IOException | ParseException e) {
-            throw new RuntimeException(e);
-        }
+       OnTick();
     }
 
-    private void OnTick() throws IOException, ParseException {
-        smartBot.newsTrade();
+    private void OnTick() {
     }
 }

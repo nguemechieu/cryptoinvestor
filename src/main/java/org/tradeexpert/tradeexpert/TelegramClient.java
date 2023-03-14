@@ -3,7 +3,7 @@ package org.tradeexpert.tradeexpert;
 import com.fasterxml.jackson.databind.JsonNode;
 import javafx.animation.Animation;
 import javafx.event.ActionEvent;
-import javafx.scene.paint.Color;
+import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -11,14 +11,16 @@ import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.*;
 
@@ -62,8 +64,7 @@ public class TelegramClient {
     static String location = "";
     static String last_name = "";
     static String first_name = "";
-    static TELEGRAM_API_INFOS telegramApiKey = TELEGRAM_API_INFOS.TELEGRAM_API_KEY;
-    static TELEGRAM_API_INFOS telegramApiUrl = TELEGRAM_API_INFOS.TELEGRAM_API_URL;
+
     static boolean supportsInlineQueries = false;
     static boolean canReadAllGroupMessages = false;
     static boolean isBot = false;
@@ -112,7 +113,7 @@ public class TelegramClient {
     private static String reply_to_message_id;
     public int MinAfter, LastUpd, Upd;
     protected String host = "https://api.telegram.org";
-    protected Path path;
+    protected static Path path;
     String reply_markup = "";
     String chat_title = "";
     String chat_type = "";
@@ -121,9 +122,9 @@ public class TelegramClient {
     int BeforeNewsStop = 30;
     int AfterNewsStop = 60;
     boolean FirstAlert, SecondAlert;
-    boolean sendnews = true;
+    boolean sendNews = true;
     private String from_id;
-    private String token;
+    private static String token;
     private String chat_photo_file_id = "";
     private String username;
     private boolean Signal;
@@ -136,12 +137,14 @@ public class TelegramClient {
     private String judulnews;
     private boolean DrawLines;
     private Object marketInfo;
+    private static boolean isOnline;
+    private String lastMessage;
 
-    public TelegramClient(String token) throws TelegramApiException {
+    public TelegramClient(String token) throws TelegramApiException, IOException, InterruptedException, ParseException {
 
         if (token == null) throw new TelegramApiException("Telegram token can't be  null ");
-        this.token = token;
-
+        TelegramClient.token = token;
+        run();
 
     }
 
@@ -299,42 +302,49 @@ public class TelegramClient {
 
     //makeRequest return JSONObject
     @Contract("_, _ -> new")
-    private static @NotNull JSONObject makeRequest(String url, String method) throws IOException {
-        HttpsURLConnection conn = (HttpsURLConnection) new URL(url).openConnection();
-        conn.setRequestMethod(method);
-        conn.setDoOutput(true);
-        conn.setDoInput(true);
-        conn.setUseCaches(false);
-        conn.setAllowUserInteraction(false);
-        conn.setRequestProperty("Content-Type", "application/json");
-        conn.setRequestProperty("charset", "utf-8");
-        conn.setRequestProperty("Accept-Charset", "utf-8");
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10)");
-        //  conn.setRequestProperty("Authorization","Bearer "+getToken());// "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
-        conn.setRequestProperty("Connection", "Keep-Alive");
-        conn.setRequestProperty("Accept", "*/*");
-        conn.setRequestProperty("Accept", "application/json");
-        conn.setRequestProperty("Pragma", "no-cache");
-        conn.setRequestProperty("Cache-Control", "no-cache");
-        //conn.setRequestProperty("Accept-Language", "en-US,en;q=0" + ";q=0.9,en-GB;q=0.8,en-US;q=0.7,en;q=0.6");
-//conn.setRequestProperty("Host", "https://api.telegram.org");
-//        conn.setRequestProperty("Origin", "https://api.telegram.org");
-//       conn.setRequestProperty("Sec-Fetch-Mode", "cors");
-        //conn.setRequestProperty("Sec-Fetch-Site", "same-origin");
-        //conn.setRequestProperty("Sec-Fetch-User", "?1");
-        conn.setRequestProperty("Upgrade-Insecure-Requests", "1");
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10)");
-        conn.setRequestProperty("Accept-Encoding", "gzip, deflate");
-        conn.connect();
-        BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        String inputLine;
-        StringBuilder response = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
+    private static @NotNull JSONObject makeRequest(String url, @NotNull String method) {
+        HttpResponse<String> response = null;
+
+        try {
+
+            if (method.equals("GET")) {
+                url = url + "?offset=" + offset + "&limit=" + length;
+            }
+            HttpRequest.Builder builder = HttpRequest.newBuilder();
+            builder.uri(URI.create(url));
+            builder.header("Authorization", "Bearer " + token);
+            builder.header("Content-Type", "application/json");
+            builder.header("Accept", "application/json");
+            builder.header("Accept-Language", language);
+            builder.header("Accept-Encoding", "gzip, deflate");
+
+
+
+            builder.header("Cache-Control", "no-cache");
+            builder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+            switch (method) {
+                case "GET" -> builder.GET();
+                case "POST" -> builder.POST(HttpRequest.BodyPublishers.noBody());
+                case "PUT" -> builder.PUT(HttpRequest.BodyPublishers.noBody());
+            }
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = builder.build();
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            isOnline = true;
+            if (response.statusCode() != 200) {
+                isOnline = false;
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText(response.statusCode() + "");
+                alert.setContentText(response.headers().firstValue("Content-Type").get() );
+                alert.showAndWait();
+            }
+        } catch (Exception e) {
+            out.println(e.getMessage());
         }
-        in.close();
-        out.println(response);
-        return new JSONObject(response.toString());
+        assert response != null;
+        out.println(response.body());
+        return new JSONObject(response.body());
     }
 
     public static @NotNull List<String> getCommands() {
@@ -775,10 +785,10 @@ public class TelegramClient {
 
     }
 
-    void run() throws IOException, InterruptedException {
+    void run() throws IOException, InterruptedException, ParseException {
         getMe();//initialize the chat client
-        Thread.sleep(200);
         getUpdates();// update the chat client
+        newsTrade();
 
     }
 
@@ -809,7 +819,7 @@ public class TelegramClient {
         return ("&force_reply=" + false + "&input_field_placeholder=" + 0 + "&selective=" + false);
     }
 
-    public void sendMessage(String text) throws IOException {
+    public void sendMessage(String text) throws IOException, InterruptedException {
 // String data = "key=" + API_KEY + "&chat_id=" + chatId + "&text=" + text + "&parse_mode=Markdown";
         boolean one_time_keyboard = false;
         String input_field_placeholder = "";
@@ -818,9 +828,48 @@ public class TelegramClient {
                 "&parse_mode=Markdown" + "&disable_notification=" + disable_notification + "&protect_content=" + protect_content + "&allow_sending_without_reply=" + allow_sending_without_reply + "&channel_id=" + getChannel_Id() + "&reply_markup=" + ReplyKeyboardMarkup() + "&force_reply=" + ForceReply() + "&reply_to_message_id=" + getReplyToMessageId() + "&one_time_keyboard=" + one_time_keyboard + "&input_field_placeholder=" + input_field_placeholder + "&selective=" + selective;
 
         sendChatAction(ENUM_CHAT_ACTION.typing);
-        makeRequest("https://api.telegram.org/bot" + getToken() + "/sendMessage?chat_id=" + getChatId() + "&text=" + text + params
+        String url = "https://api.telegram.org";
 
-                , "POST");
+        HttpResponse<String> response = null;
+
+        try {
+
+
+            String path = "/bot" + getToken() + "/sendMessage?chat_id=" + getChatId() + "&text=" + text;//params;
+            String url2 = url + path;
+
+            HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url2).openConnection();
+            httpURLConnection.setRequestMethod("POST");
+            httpURLConnection.setRequestProperty("Content-Type",
+                    "application/x-www-form-urlencoded");
+            httpURLConnection.setRequestProperty("Accept",
+                    "application/json");
+
+            httpURLConnection.setDoOutput(true);
+            httpURLConnection.setDoInput(true);
+            httpURLConnection.setUseCaches(false);
+            httpURLConnection.connect();
+            out.println(url2);
+            out.println(params);
+
+            response = HttpClient.newHttpClient().send(HttpRequest.newBuilder()
+                  .uri(URI.create(url2))
+                  .POST(HttpRequest.BodyPublishers.ofString(params))
+                  .build(), HttpResponse.BodyHandlers.ofString());
+
+
+
+            if (response.statusCode() != 200) {
+                isOnline = false;
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText(response.statusCode() + "");
+                alert.setContentText(response.headers().firstValue("Content-Type").get() );
+                alert.showAndWait();
+            }
+        } catch (Exception e) {
+            out.println(e.getMessage());
+        }
 
 
     }
@@ -847,7 +896,7 @@ public class TelegramClient {
     }
 
     public void setToken(String token1) {
-        token = token1;
+       token = token1;
     }
 
     public String getUsername() {
@@ -879,7 +928,7 @@ public class TelegramClient {
         TelegramClient.languageCode = languageCode;
     }
 
-    void sendGame(String chat_id, String game_short_name) throws IOException {
+    void sendGame(String chat_id, String game_short_name) throws IOException, InterruptedException {
 //    Use this method to send a game. On success, the sent Message is returned.
 //
 //    Parameter	Type	Required	Description
@@ -993,7 +1042,7 @@ public class TelegramClient {
         return message_thread_id;
     }
 
-    void logOut() throws IOException {
+    void logOut() throws IOException, InterruptedException {
 
         setMethod("DELETE");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/logout", "POST");
@@ -1001,14 +1050,14 @@ public class TelegramClient {
 
     }
 
-    void close() throws IOException {
+    void close() throws IOException, InterruptedException {
 
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/close" + "?chat_id=" + chat_id, "POST");
 
     }
 
-    void forwardMessage() throws IOException {
+    void forwardMessage() throws IOException, InterruptedException {
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/forwardMessage", "POST");
     }
@@ -1322,37 +1371,37 @@ public class TelegramClient {
         makeRequest("https://api.telegram.org/bot" + getToken() + "/unpinChatMessage", "POST");
     }
 
-    void setChatPhoto(String file) throws IOException {
+    void setChatPhoto(String file) throws IOException, InterruptedException {
         setMethod("POST");
         makeRequest("https://api.telegram.org/" + file + "bot" + getToken() + "/setChatPhoto", "POST");
     }
 
-    void unpinAllChatMessages() throws IOException {
+    void unpinAllChatMessages() throws IOException, InterruptedException {
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/unpinAllChatMessages", "POST");
     }
 
-    void editMyCommands() throws IOException {
+    void editMyCommands() throws IOException, InterruptedException {
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/editMyCommands", "POST");
     }
 
-    void getMyCommands() throws IOException {
+    void getMyCommands() throws IOException, InterruptedException {
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/getMyCommands", "POST");
     }
 
-    void answerCallbackQuery() throws IOException {
+    void answerCallbackQuery() throws IOException, InterruptedException {
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/answerCallbackQuery", "POST");
     }
 
-    void leaveChat() throws IOException {
+    void leaveChat() throws IOException, InterruptedException {
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/leaveChat", "POST");
     }
 
-    public void getUpdates() throws IOException {
+    public void getUpdates() throws IOException, InterruptedException {
 
         String url = "https://api.telegram.org/bot" + getToken() + "/getUpdates" + "?&offset=" + offset +//\tInteger\tOptional\tIdentifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. By default, updates starting with the earliest unconfirmed update are returned. An update is considered confirmed as soon as getUpdates is called with an offset higher than its update_id. The negative offset can be specified to retrieve updates starting from -offset update from the end of the updates queue. All previous updates will forgotten.\n" +
                 "&limit=" + 1 +//\tInteger\tOptional\tLimits the number of updates to be retrieved. Values between 1-100 are accepted. Defaults to 100.\n" +
@@ -1410,6 +1459,10 @@ public class TelegramClient {
                         JSONObject message = result.getJSONObject("message");
                         if (message.has("text")) {
                             text = message.getString("text");
+                            if (message.has("parse_mode")) {
+                                parse_mode = message.getString("parse_mode");
+                            }
+                            lastMessage=text;
                         }
                         if (message.has("date")) {
                             date = String.valueOf(message.getLong("date"));
@@ -1920,32 +1973,8 @@ public class TelegramClient {
     }
 
     public String getMe() {
-        StringBuilder response = new StringBuilder();
-        JSONObject jsonResponse = new JSONObject();
-        try {
-            URL obj = new URL("https://api.telegram.org/bot" + getToken() + "/getMe");
-            HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-            con.setRequestMethod("GET");
-            // con.setRequestProperty("Authorization", "Bearer " + getToken());
-            con.setRequestProperty("Content-Type", "application/json");
-            con.setRequestProperty("Accept", "application/json");
-            con.setDoOutput(true);
-            con.setDoInput(true);
-            con.connect();
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
 
-            while ((inputLine = in.readLine()) != null) {
-
-                response.append(inputLine);
-            }
-            out.println(response);
-            jsonResponse = new JSONObject(response.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
+        JSONObject jsonResponse = makeRequest("https://api.telegram.org/bot" + getToken() + "/getMe","GET");
 
         if (jsonResponse.has("ok") && jsonResponse.getBoolean("ok") && jsonResponse.has("result")) {
             JSONObject result = jsonResponse.getJSONObject("result");
@@ -1985,8 +2014,8 @@ public class TelegramClient {
         makeRequest("https://api.telegram.org/bot" + getToken() + "/getChatAdministrators", "POST");
     }
 
-    boolean newsTrade() throws IOException, ParseException//RETURN TRUE IF TRADE IS ALLOWED
-    {    ArrayList<News> mynews = NewsManager.getNewsList();
+    boolean newsTrade() throws IOException, ParseException, InterruptedException//RETURN TRUE IF TRADE IS ALLOWED
+    {    ArrayList<News> news = NewsManager.getNewsList();
 
         offset = gmtoffset();
         double CheckNews = 0;
@@ -1994,6 +2023,14 @@ public class TelegramClient {
 
             if (new Date().getTime() - LastUpd >= Upd) {
                 out.println("News Loading...");
+                sendMessage(
+                        """
+                                News Loading...
+
+                                Please wait until the news is updated
+
+                                """
+                );
 
                 LastUpd = (int) new Date().getTime();
 
@@ -2007,54 +2044,28 @@ public class TelegramClient {
             //---Draw a line on the chart news--------------------------------------------
 
 
-            if (DrawLines) {
-                for (int i = mynews.size() - 1; i > 0; i--) {
 
-                    String Name = (mynews.get(i).getMinutes() + "_" + mynews.get(i).getImpact() + "_" + mynews.get(i).getTitle());
-                    sendAlert(Name);
-                    if (TimeNewsFunck(i) < new Date().getTime() && Next) continue;
 
-                    Color clrf = new Color(255, 67, 23, 45);
-                    if (Vhigh && StringFind(mynews.get(i).getTitle(), judulnews)) clrf = Color.RED;
-
-                    if (Vhigh && Objects.equals(mynews.get(i).getImpact(), "High")) clrf = Color.RED;
-                    if (Vmedium && Objects.equals(mynews.get(i).getImpact(), "Medium")) clrf = Color.YELLOW;
-                    if (Vlow && Objects.equals(mynews.get(i).getImpact(), "Low")) clrf = Color.GREEN;
-
-                    if (clrf == Color.WHITE) continue;
-
-                    if (!Objects.equals(mynews.get(i).getTitle(), "")) {
-//                            ObjectCreate(0,Name,OBJ_VLINE,0,TimeNewsFunck(i),Bid);
-//                            ObjectSet(Name,OBJPROP_COLOR,clrf);
-//                            ObjectSet(Name,OBJPROP_STYLE,Style);
-//                            ObjectSetInteger(0,Name,OBJPROP_BACK,true);
-
-                    }
-                }
-            }
-            //---------------event Processing------------------------------------
-            int i;
-            int power = 0;
-
-            for (i = 0; i < NomNews; i++) {
+            for (News news1 : news) {
             //    String google_urlx = "https://www.forexfactory.com/calendar?day";
 
 
-                if (Vhigh && String.valueOf(judulnews).equals(mynews.get(i).getTitle())) power = 1;
+                int power = 0;
+                if (Vhigh && String.valueOf(judulnews).equals(news1.getTitle())) power = 1;
 
-                if (Vhigh && Objects.equals(mynews.get(i).getImpact(), "high")) power = 1;
-                if (Vmedium && Objects.equals(mynews.get(i).getImpact(), "medium")) power = 2;
-                if (Vlow && Objects.equals(mynews.get(i).getImpact(), "low")) power = 3;
+                if (Vhigh && Objects.equals(news1.getImpact(), "high")) power = 1;
+                if (Vmedium && Objects.equals(news1.getImpact(), "medium")) power = 2;
+                if (Vlow && Objects.equals(news1.getImpact(), "low")) power = 3;
                 if (power == 0) {
 
                     continue;
                 }
                 String ambergris;
-                if (new Date().getTime() + BeforeNewsStop > TimeNewsFunck(i) && new Date().getTime() - 60L * AfterNewsStop < TimeNewsFunck(i) && mynews.get(i).getTitle() != "") {
-                    ambergris = "==>Within " + mynews.get(i).getMinutes() + " minutes\n" + mynews.get(i).toString();
+                if (new Date().getTime() + BeforeNewsStop > news1.getDate().getTime() && new Date().getTime() - 60L * AfterNewsStop < news1.getDate().getTime() && news1.getTitle() != "") {
+                    ambergris = "==>Within " + news1.getMinutes() + " minutes\n" + news;
 
                     CheckNews = 1;
-                    String ms = message = mynews.get(i).toString();//get message data with format
+                    String ms = message = news1.toString();//get message data with format
 
                     sendAlert(ambergris + " " + ms);
 
@@ -2062,12 +2073,12 @@ public class TelegramClient {
                     CheckNews = 0;
 
                 }
-                if ((CheckNews == 1 && i != Now && Signal) || (CheckNews == 1 && i != Now && sendnews)) {
+                if ((CheckNews == 1 && Signal) || (CheckNews == 1  && sendNews)) {
 
-                    message = mynews.get(i).toString();
+                    message = news1.toString();
                     sendMessage(message);
 
-                    Now = i;
+                    CheckNews = 0;
 
 
                 }
@@ -2082,13 +2093,13 @@ public class TelegramClient {
                         /////  We are doing here if we are in the framework of the news
 
                         sendAlert(inferiority);
-                        if (mynews.get(i).getMinutes() == AfterNewsStop - 1 && FirstAlert && i == Now && sendnews) {
+                        if (news1.getMinutes() == AfterNewsStop - 1 && FirstAlert && sendNews) {
                             sendMessage("-->>First Alert\n " + message);
 
 
                         }
                         //--- second alert
-                        if (mynews.get(i).getMinutes() == BeforeNewsStop - 1 && SecondAlert && i == Now && sendnews) {
+                        if (news1.getMinutes() == BeforeNewsStop - 1 && SecondAlert && sendNews) {
                             sendMessage(">>Second Alert\n " + message);
                             SecondAlert = true;
 
@@ -2133,7 +2144,7 @@ public class TelegramClient {
         return true;
     }
 
-    public void getTradeNews() throws IOException, ParseException {
+    public void getTradeNews() throws IOException, ParseException, InterruptedException {
         if (newsTrade()) {
             sendAlert("Trade is allowed No news ");
         }
@@ -2296,7 +2307,7 @@ public class TelegramClient {
         updateMode = updateNormal;
     }
 
-    public void sendKeyboard(ArrayList<KeyboardButton> keyboard) throws IOException {
+    public void sendKeyboard(ArrayList<KeyboardButton> keyboard) throws IOException, InterruptedException {
         makeRequest("https://api.telegram.org/bot" + getToken() + "/sendKeyboard" + "?chat_id=" + chat_id + "&text=" + keyboard + "&parse_mode=" + parse_mode + "&disable_web_page_preview=" + false + "&disable_notification=" + false, "POST"
 
         );
@@ -2304,6 +2315,18 @@ public class TelegramClient {
 
     public Object MarketInfo() {
         return marketInfo;
+    }
+
+    public boolean isOnline() {
+        return isOnline;
+    }
+
+    public ArrayList<News> getMarketNews() throws ParseException {
+        return NewsManager.load();
+    }
+
+    public String getLastMessage() {
+        return lastMessage;
     }
 
 

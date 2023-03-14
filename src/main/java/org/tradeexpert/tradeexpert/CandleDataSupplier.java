@@ -20,9 +20,9 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
 
     protected final int numCandles;
     protected final int secondsPerCandle;
-    protected final String tradePair;
+    protected final TradePair tradePair;
     protected final IntegerProperty endTime;
-    public CandleDataSupplier(int numCandles, int secondsPerCandle, String tradePair, IntegerProperty endTime) {
+    public CandleDataSupplier(int numCandles, int secondsPerCandle, TradePair tradePair, IntegerProperty endTime) {
 
 
         Objects.requireNonNull(tradePair);
@@ -107,7 +107,7 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
 
 
     public abstract CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(
-            String tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
+            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
 
-    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(String tradePair, Instant stopAt) throws TelegramApiException;
+    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
 }
