@@ -1,6 +1,8 @@
 package org.tradeexpert.tradeexpert;
 
+import java.io.IOException;
 import java.util.Objects;
+import java.util.ServiceLoader;
 
 import javafx.scene.control.Alert;
 import javafx.util.Pair;
@@ -10,23 +12,39 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static java.lang.System.out;
+
 
 public class TradePair extends Pair<Currency, Currency> {
     private Currency baseCurrency;
     private Currency counterCurrency;
-    private static final Logger logger = LoggerFactory.getLogger(TradePair.class);
+    static final Logger logger = LoggerFactory.getLogger(TradePair.class);
+
+    static
+    {
+        logger.debug("TradePair initialized");
+
+        ServiceLoader<CurrencyDataProvider> serviceLoader = ServiceLoader.load(CurrencyDataProvider.class);
+        for (Object provider : serviceLoader) {
+            logger.debug("CurrencyDataProvider found: {}", provider);
+        }
+
+
+
+    }
 
     public TradePair(Currency baseCurrency, Currency counterCurrency) {
         super(baseCurrency, counterCurrency);
         this.baseCurrency = baseCurrency;
         this.counterCurrency = counterCurrency;
+        logger.debug("TradePair created: {}", this);
     }
 
     public TradePair(String baseCurrency, String counterCurrency) {
-        super(Currency.of(baseCurrency), Currency.of(counterCurrency));
+        super(CurrencyDataProvider.of(baseCurrency), CurrencyDataProvider.of(counterCurrency));
 
-        this.baseCurrency = Currency.of(baseCurrency);
-        this.counterCurrency = Currency.of(counterCurrency);
+        this.baseCurrency = CurrencyDataProvider.of(baseCurrency);
+        this.counterCurrency = CurrencyDataProvider.of(counterCurrency);
     }
 
     @Contract("_, _ -> new")
@@ -65,33 +83,33 @@ public class TradePair extends Pair<Currency, Currency> {
 
         if (pairType.getKey().equals(FiatCurrency.class) && pairType.getValue().equals(FiatCurrency.class)) {
             // tradePair must be (fiat, something)
-            if (Currency.of(split[0]) == Currency.of(split[1])) {
+            if (CurrencyDataProvider.of(split[0]) == CurrencyDataProvider.of(split[1])) {
                 throw
                         new CurrencyNotFoundException(CurrencyType.valueOf(split[0]), split[1]);
             }
 
             if (pairType.getValue() == null) {
                 // The counter currency is not specified, so try both (fiat first)
-                if (Currency.of(split[1]) != Currency.NULL_FIAT_CURRENCY) {
-                    return new TradePair(Currency.of(split[0]), Currency.of(split[1]));
-                } else if (Currency.of(split[1]) != Currency.NULL_CRYPTO_CURRENCY) {
-                    return new TradePair(Currency.of(split[0]), Currency.of(split[1]));
+                if (CurrencyDataProvider.of(split[1]) != Currency.NULL_FIAT_CURRENCY) {
+                    return new TradePair(CurrencyDataProvider.of(split[0]), CurrencyDataProvider.of(split[1]));
+                } else if (CurrencyDataProvider.of(split[1]) != Currency.NULL_FIAT_CURRENCY) {
+                    return new TradePair(CurrencyDataProvider.of(split[0]), CurrencyDataProvider.of(split[1]));
                 } else {
                     //
                     throw new CurrencyNotFoundException(CurrencyType.valueOf(split[1]), split[0]);
                     //TradePair.of(Currency.NULL_FIAT_CURRENCY, Currency.NULL_CRYPTO_CURRENCY);
                 }
             } else if (pairType.getValue().equals(FiatCurrency.class)) {
-                if (Currency.of(split[1]) == Currency.NULL_FIAT_CURRENCY) {
+                if (CurrencyDataProvider.of(split[1]) == Currency.NULL_FIAT_CURRENCY) {
                     throw new CurrencyNotFoundException(CurrencyType.FIAT, split[1]);
                 } else {
-                    return new TradePair(Currency.of(split[0]), Currency.of(split[1]));
+                    return new TradePair(CurrencyDataProvider.of(split[0]), CurrencyDataProvider.of(split[1]));
                 }
             } else if (pairType.getValue().equals(CryptoCurrency.class)) {
-                if (Currency.of(split[1]) == Currency.NULL_CRYPTO_CURRENCY) {
+                if (CurrencyDataProvider.of(split[1]) == Currency.NULL_CRYPTO_CURRENCY) {
                     throw new CurrencyNotFoundException(CurrencyType.CRYPTO, split[1]);
                 } else {
-                    return new TradePair(Currency.of(split[0]), Currency.of(split[1]));
+                    return new TradePair(CurrencyDataProvider.of(split[0]), CurrencyDataProvider.of(split[1]));
                 }
             } else {
                 logger.error("bad value for second member of pairType - must be one of CryptoCurrency.class, " +
@@ -101,7 +119,7 @@ public class TradePair extends Pair<Currency, Currency> {
             }
         } else {
             // tradePair must be (crypto, something)
-            if (Currency.of(split[0]) == Currency.NULL_CRYPTO_CURRENCY) {
+            if (CurrencyDataProvider.of(split[0]) == Currency.NULL_CRYPTO_CURRENCY) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
                 alert.setHeaderText(null);
@@ -109,7 +127,7 @@ public class TradePair extends Pair<Currency, Currency> {
                         "The base currency of the trade pair must be a crypto currency, but was: " + split[0]);
                 alert.showAndWait();
                 //throw new CurrencyNotFoundException(CurrencyType.CRYPTO, split[0]);
-                return new TradePair(Currency.NULL_CRYPTO_CURRENCY, Currency.ofCrypto(split[1]));
+                return new TradePair(Currency.NULL_CRYPTO_CURRENCY, CurrencyDataProvider.of(split[1]));
             }else
 
             if (pairType.getValue() == null) {
@@ -122,19 +140,19 @@ public class TradePair extends Pair<Currency, Currency> {
                    alert.setContentText(
                            "The counter currency of the trade pair must be a fiat or crypto currency, but was: " + split[1]);
                    alert.showAndWait();
-                   return new TradePair(Currency.ofCrypto(split[0]), Currency.of(split[1]));
+                   return new TradePair(CurrencyDataProvider.of(split[0]), CurrencyDataProvider.of(split[1]));
 
             } else if (pairType.getValue().equals(FiatCurrency.class)) {
-                if (Currency.ofFiat(split[1]) == Currency.NULL_FIAT_CURRENCY) {
+                if (CurrencyDataProvider.of(split[1]) == Currency.NULL_FIAT_CURRENCY) {
                     throw new CurrencyNotFoundException(CurrencyType.FIAT, split[1]);
                 } else {
-                    return new TradePair(Currency.ofCrypto(split[0]), Currency.ofFiat(split[1]));
+                    return new TradePair(CurrencyDataProvider.of(split[0]), CurrencyDataProvider.of(split[1]));
                 }
             } else if (pairType.getValue().equals(CryptoCurrency.class)) {
-                if (Currency.ofCrypto(split[1]) == Currency.NULL_CRYPTO_CURRENCY) {
+                if (CurrencyDataProvider.of(split[1]) == Currency.NULL_CRYPTO_CURRENCY) {
                     throw new CurrencyNotFoundException(CurrencyType.CRYPTO, split[1]);
                 } else {
-                    return new TradePair(Currency.ofCrypto(split[0]), Currency.ofCrypto(split[1]));
+                    return new TradePair(CurrencyDataProvider.of(split[0]), CurrencyDataProvider.of(split[1]));
                 }
             } else {
                 logger.error("bad value for second member of pairType - must be one of CryptoCurrency.class, " +
@@ -163,26 +181,54 @@ public class TradePair extends Pair<Currency, Currency> {
      *
 
      */
+
+    static {
+        try {  logger.debug("CurrencyDataProvider loaded");
+            CurrencyDataProvider.registerCurrencies();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+
+
+    }
     public String toString(@NotNull Character separator) {
+
         if (separator.equals(
                 '_')) {
-            return baseCurrency.getCode() +"_"+ counterCurrency.getCode();
-        }else if (separator.equals(
+            out.println(baseCurrency.getSymbol());
+            out.println("_");
+            out.println(counterCurrency.code);
+            return baseCurrency.getSymbol()+ "_" + counterCurrency.code;
+        } else if (separator.equals(
                 '-'
-        )){
-            return baseCurrency.getCode() +"-"+ counterCurrency.getCode();
-        }else
-            return baseCurrency.getCode() + separator + counterCurrency.getCode();
+        )) {
+            out.println(baseCurrency.getSymbol());
+            out.println("-");
+            out.println(counterCurrency.code);
+            return baseCurrency.getSymbol() + "-" + counterCurrency.code;
+        } else if (separator.equals('/')){
+            out.println(baseCurrency.getSymbol());
+            out.println("/");
+            out.println(counterCurrency.code);
+            return baseCurrency.getSymbol() + counterCurrency.code;}
+        else {
+            out.println(baseCurrency.getSymbol());
 
+            out.println(counterCurrency.code);
+            return baseCurrency.getSymbol()+ separator + counterCurrency.code;
+        }
     }
 
     public void setCurrency(@NotNull String s, String s1) {
         if (!s.equals(baseCurrency.getCode())) {
-            baseCurrency = Currency.of(s1);
+            baseCurrency = CurrencyDataProvider.of(s1);
         } else if (!s.equals(counterCurrency.getCode())) {
-            counterCurrency = Currency.of(s1);
+            counterCurrency = CurrencyDataProvider.of(s1);
         } {
             logger.error("currency code must be unique");
         }
     }
+
+
 }

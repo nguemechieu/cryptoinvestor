@@ -2,73 +2,36 @@ package org.tradeexpert.tradeexpert;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URI;
-
-import java.time.Instant;
-import java.util.Objects;
-
-public abstract class CryptoCurrency extends Currency {
-    private  Algorithm algorithm;
-    private  URI homeUrl;
-    private  URI walletUrl;
-    /**
-     * Time that the genesis block was created.
-     */
-    private  Instant genesisTime;
-
-    public CryptoCurrency() {
+public class CryptoCurrency extends  Currency
+{
 
 
-    }
-
-    public Algorithm getAlgorithm() {
-        return algorithm;
-    }
-
-    public URI getHomeUrl() {
-        return homeUrl;
-    }
-
-    public URI getWalletUrl() {
-        return walletUrl;
-    }
-
-    public Instant getGenesisTime() {
-        return genesisTime;
-    }
-
-    public int getDifficultyRetarget() {
-        return difficultyRetarget;
-    }
-
-    public int getMaxCoinsIssued() {
-        return maxCoinsIssued;
-    }
-
-    /**
-     * After how many blocks is difficulty recalculated.
-     */
-    private int difficultyRetarget;
-    private  int  maxCoinsIssued;
-
-
-
-    protected CryptoCurrency(String fullDisplayName, String shortDisplayName, String code, int fractionalDigits,
-                             String symbol, Algorithm algorithm, String homeUrl, String walletUrl,
-                             long genesisTimeInEpochSeconds, int difficultyRetarget, int maxCoinsIssued) {
+    protected CryptoCurrency(CurrencyType currencyType, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol) {
         super(CurrencyType.CRYPTO, fullDisplayName, shortDisplayName, code, fractionalDigits, symbol);
 
-        Objects.requireNonNull(algorithm, "algorithm must not be null");
-        Objects.requireNonNull(homeUrl, "homeUrl must not be null");
-        Objects.requireNonNull(walletUrl, "walletUrl must not be null");
+        this .code=code;
+        this.fractionalDigits=fractionalDigits;
+        this.symbol=symbol;
+        this.fullDisplayName=fullDisplayName;
+        this.shortDisplayName=shortDisplayName;
+        this.currencyType=currencyType;
 
-        this.algorithm = algorithm;
-        this.homeUrl = URI.create(homeUrl);
-        this.walletUrl = URI.create(walletUrl);
-        this.genesisTime = Instant.ofEpochSecond(genesisTimeInEpochSeconds);
-        this.difficultyRetarget = difficultyRetarget;
-        this.maxCoinsIssued = maxCoinsIssued;
     }
 
-    public abstract int compareTo(@NotNull java.util.Currency o);
+    @Override
+    public String toString() {
+        return "CryptoCurrency{" +
+                "currencyType=" + currencyType +
+                ", fullDisplayName='" + fullDisplayName + '\'' +
+                ", code='" + code + '\'' +
+                ", fractionalDigits=" + fractionalDigits +
+                ", symbol='" + symbol + '\'' +
+                ", shortDisplayName='" + shortDisplayName + '\'' +
+                '}';
+    }
+
+    @Override
+    public int compareTo(java.util.@NotNull Currency o) {
+        return 0;
+    }
 }

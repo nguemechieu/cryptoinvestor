@@ -4,7 +4,6 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
-import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -50,7 +49,7 @@ public class Trade implements Runnable{
     private final ArrayList<String> symbols=new ArrayList<>();
      int NumOfSymbols;
 
-    private static final List<Order> Orders=new ArrayList<>();
+    private static final List<Order> orderArrayList=new ArrayList<>();
     private TradeMode inpTradeMode;
     private boolean UseTime;
     private long MagicNumber;
@@ -113,7 +112,7 @@ public class Trade implements Runnable{
 
     @Contract(pure = true)
     public static @NotNull ArrayList<Order> getOrders() {
-        return new ArrayList<>(Orders);
+        return new ArrayList<>(orderArrayList);
     }
 
     public TradePair getTradePair() {
@@ -184,7 +183,7 @@ public class Trade implements Runnable{
 
     private int OrdersTotal() {
         int count = 0;
-        for (Order i:  Orders) {
+        for (Order i:  orderList) {
             if (i!= null) {
                 count++;
             }

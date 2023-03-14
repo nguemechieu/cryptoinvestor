@@ -14,7 +14,7 @@ public record DefaultMoney(BigDecimal amount, Currency currency) implements Mone
     @Contract("_, _ -> new")
     public static @NotNull Money of(BigDecimal amount, String currency) {
 
-        return new DefaultMoney(amount, Currency.of(currency));
+        return new DefaultMoney(amount, CurrencyDataProvider.of(currency));
 
     }
 
@@ -61,8 +61,7 @@ public record DefaultMoney(BigDecimal amount, Currency currency) implements Mone
     @Contract("_, _, _ -> new")
     public static @NotNull Money of(BigDecimal amount, @NotNull CurrencyType currencyType, String currencyCode) {
         return switch (currencyType) {
-            case FIAT -> new DefaultMoney(amount, Currency.ofFiat(currencyCode));
-            case CRYPTO -> new DefaultMoney(amount, Currency.ofCrypto(currencyCode));
+            case FIAT, CRYPTO -> new DefaultMoney(amount, CurrencyDataProvider.of(currencyCode));
             default -> throw new IllegalArgumentException("unknown currency type: " + currencyType);
         };
     }
@@ -338,7 +337,7 @@ public record DefaultMoney(BigDecimal amount, Currency currency) implements Mone
 
     @Override
     public int compareTo(@NotNull DefaultMoney other) {
-        // TODO is this really the behavior we want?
+
         checkCurrenciesEqual(other);
 
         return amount.compareTo(other.amount);
@@ -368,7 +367,8 @@ public record DefaultMoney(BigDecimal amount, Currency currency) implements Mone
     public @NotNull String toString() {
         return switch (currency.getCurrencyType()) {
             case FIAT -> DefaultMoneyFormatter.DEFAULT_FIAT_FORMATTER.format(this);
-            case CRYPTO, NULL, default -> DefaultMoneyFormatter.DEFAULT_CRYPTO_FORMATTER.format(this);
+            case CRYPTO,
+                    NULL ,default -> DefaultMoneyFormatter.DEFAULT_CRYPTO_FORMATTER.format(this);
         };
     }
 }

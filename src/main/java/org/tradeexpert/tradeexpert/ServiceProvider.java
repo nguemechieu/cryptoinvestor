@@ -2,7 +2,14 @@ package org.tradeexpert.tradeexpert;
 
 import java.util.ServiceLoader;
 
+import static org.tradeexpert.tradeexpert.TradePair.logger;
+
 public abstract class ServiceProvider {
+    public ServiceProvider() {
+        super();
+        logger.info("ServiceProvider created");
+    }
+
     public static ServiceProvider getDefault() {
 
         // load our plugin
@@ -16,7 +23,12 @@ public abstract class ServiceProvider {
         throw new Error("Something is wrong with registering the addon");
     }
 
+    public static ServiceProvider getInstance() {
+        return getDefault();
+    }
+
     public abstract String getMessage();
+
 
 
 }

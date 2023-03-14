@@ -20,7 +20,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.*;
 
@@ -139,10 +138,19 @@ public class TelegramClient {
     private Object marketInfo;
     private static boolean isOnline;
     private String lastMessage;
+    private String chatDescription;
+    private int i;
 
     public TelegramClient(String token) throws TelegramApiException, IOException, InterruptedException, ParseException {
 
-        if (token == null) throw new TelegramApiException("Telegram token can't be  null ");
+        if (token == null) {
+           Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Telegram token can't be null ");
+            alert.showAndWait();
+            throw new TelegramApiException("Telegram token can't be  null ");
+        }
         TelegramClient.token = token;
         run();
 
@@ -235,9 +243,7 @@ public class TelegramClient {
     }
 
     public static void setForward_from_chat(String forward_from_chat) {
-
-
-        TelegramClient.forward_from_chat = forward_from_chat;
+      TelegramClient.forward_from_chat = forward_from_chat;
     }
 
     public static String getForward_from_message_id() {
@@ -788,7 +794,7 @@ public class TelegramClient {
     void run() throws IOException, InterruptedException, ParseException {
         getMe();//initialize the chat client
         getUpdates();// update the chat client
-        newsTrade();
+
 
     }
 
@@ -1812,7 +1818,7 @@ public class TelegramClient {
                             String chatBio = chat.getString("bio");
                         }
                         if (chat.has("description")) {
-                            String chatDescription = chat.getString("description");
+                             chatDescription = chat.getString("description");
                         }
                         if (chat.has("invite_link")) {
                             String chatInviteLink = chat.getString("invite_link");
@@ -2017,7 +2023,7 @@ public class TelegramClient {
     boolean newsTrade() throws IOException, ParseException, InterruptedException//RETURN TRUE IF TRADE IS ALLOWED
     {    ArrayList<News> news = NewsManager.getNewsList();
 
-        offset = gmtoffset();
+        offset = gmtOffset();
         double CheckNews = 0;
         if (MinAfter > 0) {
 
@@ -2037,13 +2043,7 @@ public class TelegramClient {
 
                 sendMessage("News Loading ...");
 
-            }
-            int NomNews = 0;
-
-            WindowRedraw();
-            //---Draw a line on the chart news--------------------------------------------
-
-
+            };
 
 
             for (News news1 : news) {
@@ -2053,9 +2053,9 @@ public class TelegramClient {
                 int power = 0;
                 if (Vhigh && String.valueOf(judulnews).equals(news1.getTitle())) power = 1;
 
-                if (Vhigh && Objects.equals(news1.getImpact(), "high")) power = 1;
-                if (Vmedium && Objects.equals(news1.getImpact(), "medium")) power = 2;
-                if (Vlow && Objects.equals(news1.getImpact(), "low")) power = 3;
+                if (Vhigh && Objects.equals(news1.getImpact(), "High")) power = 1;
+                if (Vmedium && Objects.equals(news1.getImpact(), "Medium")) power = 2;
+                if (Vlow && Objects.equals(news1.getImpact(), "Low")) power = 3;
                 if (power == 0) {
 
                     continue;
@@ -2086,7 +2086,7 @@ public class TelegramClient {
                 String inferiority;
                 if (CheckNews > 0) {
 
-                    if (!StopTarget() && NewsFilter) {
+                    if ( NewsFilter) {
                         inferiority = " we are in the framework of the news\nAttention!! News Time \n!";
 
 
@@ -2123,26 +2123,15 @@ public class TelegramClient {
         return trade;
     }
 
-    private int gmtoffset() {
+    private int gmtOffset() {
         return offset;
     }
 
-    private void WindowRedraw() {
-    }
-
-    private long TimeNewsFunck(int i) throws ParseException {
-        return 0;
-
-    }
-
     @Contract(pure = true)
-    boolean StringFind(@NotNull String title, String judulnews) {
-        return title.contains(judulnews);
+    boolean StringFind(@NotNull String title, String dullness) {
+        return title.contains(dullness);
     }
 
-    boolean StopTarget() {
-        return true;
-    }
 
     public void getTradeNews() throws IOException, ParseException, InterruptedException {
         if (newsTrade()) {
@@ -2150,7 +2139,7 @@ public class TelegramClient {
         }
     }
 
-    public void sendAlert(String alert) throws IOException {
+    public void sendAlert(String alert) {
         makeRequest("https://api.telegram.org/bot" + getToken() + "/sendMessage?chat_id=" + getChatId() + "&text=" + alert +
                 "&parse_mode=" + "MarkDown" + "&disable_web_page_preview=" + false + "&disable_notification=" + false, "POST");
     }
@@ -2161,7 +2150,7 @@ public class TelegramClient {
         makeRequest("https://api.telegram.org/bot" + getToken() + "/getChatMember", "POST");
     }
 
-    void setChatStickerSet() throws IOException {
+    void setChatStickerSet() {
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/getChatStickerSet", "POST");
     }
@@ -2172,7 +2161,7 @@ public class TelegramClient {
     }
 
     //            }
-    void getForumTopicIconStickers() throws IOException {
+    void getForumTopicIconStickers() {
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/getForumTopicIconStickers", "POST");
     }
@@ -2183,7 +2172,7 @@ public class TelegramClient {
 //    unpinAllForumTopicMessages
 //            answerCallbackQuery
 
-    void createForumTopic() throws IOException {
+    void createForumTopic() {
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "/createChat", "POST");
     }
@@ -2327,6 +2316,14 @@ public class TelegramClient {
 
     public String getLastMessage() {
         return lastMessage;
+    }
+
+    public String getChatDescription() {
+        return chatDescription;
+    }
+
+    public void setChatDescription(String chatDescription) {
+        this.chatDescription = chatDescription;
     }
 
 

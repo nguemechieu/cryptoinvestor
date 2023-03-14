@@ -149,14 +149,7 @@ public final class CandleStickChartUtils {
                         (int) Math.ceil(candleData.get(candleMaxWindow.peekFirst()).getHighPrice()))));
     }
 
-    /**
-     * Adds the extrema for the most recent candle data (which must be sized to the number of visible candles
-     * for the current zoom level) which allows for scrolling the chart past the point where all of the most
-     * recent candles are visible.
-     *
-     * @param extrema
-     * @param candleData
-     */
+
     public static void putExtremaForRemainingElements(Map<Integer, Pair<Extrema<Integer>, Extrema<Integer>>> extrema,
                                                       final List<CandleData> candleData) {
         Objects.requireNonNull(extrema, "extrema must not be null");

@@ -88,7 +88,7 @@ import org.slf4j.LoggerFactory;
  * Also in order to implement panning and zooming we needed access to all the chart's internal data (and then some)
  * and so the encapsulation of the chart's data by the Chart class was being completely bypassed.
  *
- * @author Michael Ennen
+ * @author NOEL M NGUEECHIEU
  */
 public class CandleStickChart extends Region {
     private final CandleDataPager candleDataPager;
@@ -1057,11 +1057,11 @@ public class CandleStickChart extends Region {
             symbolBox.getStyleClass().add("symbol-box");
 
             ChoiceBox<String> baseCurrency= new ChoiceBox<>();
-            for (Currency currency : Currency.getFiatCurrencies()) {
+            for (Currency currency : CurrencyDataProvider.getInstance()) {
                 baseCurrency.getItems().add(currency.code);
             }
             ChoiceBox<String> counterCurrency= new ChoiceBox<>();
-            for (Currency currency : Currency.getFiatCurrencies()) {
+            for (Currency currency : CurrencyDataProvider.getInstance()) {
                 counterCurrency.getItems().add(currency.code);
             }
 

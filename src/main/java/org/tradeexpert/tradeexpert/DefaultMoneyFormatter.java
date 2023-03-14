@@ -367,9 +367,9 @@ public final class DefaultMoneyFormatter implements MoneyFormatter<Money> {
             return this;
         }
 
-        public Builder applyLocaleSettings(Locale locale) {
+        public Locale applyLocaleSettings(Locale locale) {
             this.locale = locale;
-            return this;
+            return locale;
         }
 
 

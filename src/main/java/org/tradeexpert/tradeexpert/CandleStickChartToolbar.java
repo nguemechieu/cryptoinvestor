@@ -7,14 +7,12 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableNumberValue;
 import javafx.beans.value.ObservableValue;
-import javafx.collections.FXCollections;
 import javafx.css.PseudoClass;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
@@ -22,14 +20,10 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import org.tradeexpert.tradeexpert.BinanceUs.BinanceUs;
-import org.tradeexpert.tradeexpert.Coinbase.Coinbase;
-import org.tradeexpert.tradeexpert.oanda.Oanda;
 
 import java.awt.*;
 import java.io.File;
@@ -206,56 +200,34 @@ public class CandleStickChartToolbar extends Region {
                 }else if (tool.tool!= null && tool.tool.isOptions()) {
                     tool.setOnAction(event -> optionsPopOver.show(tool));
                 }else if (tool.tool!= null && tool.tool.isPrint()) {
-                    tool.setOnAction(event -> {
-                        out.println("Now Printing ..." + candleStickChart.toString());
-                    });
+                    tool.setOnAction(event -> out.println("Now Printing ..." + candleStickChart.toString()));
 
                 }else if (tool.tool!= null && tool.tool.isAutoTrading()) {
-                    tool.setOnAction(event -> {
-                        candleStickChart.setAutoTrading(true);
-                    });
+                    tool.setOnAction(event -> candleStickChart.setAutoTrading(true));
                 }else if (tool.tool!= null && tool.tool.isArea()) {
-                    tool.setOnAction(event -> {
-                        candleStickChart.setAreaChart();
-                    });
+                    tool.setOnAction(event -> candleStickChart.setAreaChart());
                 }else if (tool.tool!= null && tool.tool.isVolume()) {
-                    tool.setOnAction(event -> {
-                        candleStickChart.setVolumeChart();
-                    });
+                    tool.setOnAction(event -> candleStickChart.setVolumeChart());
                 }else if (tool.tool!= null && tool.tool.isBar()) {
-                    tool.setOnAction(event -> {
-                        candleStickChart.setBarChart();
-                    });
+                    tool.setOnAction(event -> candleStickChart.setBarChart());
                 }
 
                 else if (tool.tool!= null && tool.tool.isLine()) {
-                    tool.setOnAction(event -> {
-                        candleStickChart.setLineChart();
-                    });
+                    tool.setOnAction(event -> candleStickChart.setLineChart());
                 }
                 else if (tool.tool!= null && tool.tool.isPie()) {
-                    tool.setOnAction(event -> {
-                        candleStickChart.setPieChart();
-                    });
+                    tool.setOnAction(event -> candleStickChart.setPieChart());
                 }
                 else if (tool.tool!= null && tool.tool.isScatter()) {
-                    tool.setOnAction(event -> {
-                        candleStickChart.setScatterChart();
-                    });
+                    tool.setOnAction(event -> candleStickChart.setScatterChart());
                 }
                 else if (tool.tool!= null && tool.tool.isHistogram()) {
-                    tool.setOnAction(event -> {
-                        candleStickChart.setHistogramChart();
-                    });
+                    tool.setOnAction(event -> candleStickChart.setHistogramChart());
                 }else if (tool.tool!= null && tool.tool.isCandlestick()) {
-                    tool.setOnAction(event -> {
-                        candleStickChart.setCandlestickChart();
-                    });
+                    tool.setOnAction(event -> candleStickChart.setCandlestickChart());
                 }
                 else if (tool.tool!= null && tool.tool.isNews()) {
-                    tool.setOnAction(event -> {
-                        candleStickChart.drawNews();
-                    });
+                    tool.setOnAction(event -> candleStickChart.drawNews());
                 }else if (tool.tool!= null && tool.tool.isCurrency()) {
                     tool.setOnAction(event -> candleStickChart.setCurrencyChart());
                 }

@@ -25,10 +25,14 @@ import org.tradeexpert.tradeexpert.Coinbase.Coinbase;
 import org.tradeexpert.tradeexpert.oanda.OANDA_ACCESS_TOKEN;
 import org.tradeexpert.tradeexpert.oanda.Oanda;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
+
+import static java.lang.System.out;
+
 public class TradeExpertScene extends AnchorPane {
 
     private static final String BINANCE_ACCESS_TOKEN = "";
@@ -51,15 +55,26 @@ public class TradeExpertScene extends AnchorPane {
         ordersBox.setPrefSize(1300, 650);
 
 
+
         Oanda oanda = new Oanda("77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99", OANDA_ACCESS_TOKEN.ACCOUNT_ID.toString());
         BinanceUs binance = new BinanceUs(BINANCE_ACCESS_TOKEN, BINANCE_ACCESS_SECRET, BINANCE_ACCESS_PASSWORD);
-        TradePair tradePair=TradePair.of(Currency.of("BCH"),Currency.of("USD"));
+        TradePair tradePair=TradePair.of("BCH","USD");
+
+        out.println("Binance tradePair "+tradePair.toString('-'));
+
+        TradePair tradePair1=TradePair.of("BTC","USD");
+
+        out.println("Coinbase us tradePair "+tradePair1.toString('-'));
+
+        TradePair tradePair2=TradePair.of("AUD","USD");
+
+        out.println("Oanda us tradePair "+tradePair2.toString('_'));
+        CandleStickChartContainer binanceCandleStickChartContainer = new CandleStickChartContainer(binance, tradePair, true);
+
+
         Coinbase coinbase = new Coinbase(tradePair);
-        CandleStickChartContainer coinbaseCandleStickChartContainer = new CandleStickChartContainer(coinbase, tradePair, true);
-        TradePair tradePair1=TradePair.of(Currency.of("AUD"),Currency.ofFiat("USD"));
-        CandleStickChartContainer oandaCandleStickChartContainer = new CandleStickChartContainer(oanda, tradePair1, true);
-        TradePair tradePair2=TradePair.of("XLM","BTC");
-        CandleStickChartContainer binanceCandleStickChartContainer = new CandleStickChartContainer(binance, tradePair2, true);
+        CandleStickChartContainer coinbaseCandleStickChartContainer = new CandleStickChartContainer(coinbase, tradePair1, true);
+        CandleStickChartContainer oandaCandleStickChartContainer = new CandleStickChartContainer(oanda, tradePair2, true);
         DraggableTab oandaTab = new DraggableTab("Oanda.Com ");
         oandaTab.setContent(new VBox(oandaCandleStickChartContainer));
         DraggableTab binanceTab = new DraggableTab("Binance Us ");
@@ -127,8 +142,8 @@ public class TradeExpertScene extends AnchorPane {
         return 0;
     }
 
-    private @NotNull VBox getPortFolio() {
-        VBox portFolio = new VBox();
+    private @NotNull HBox getPortFolio() {
+        HBox portFolio = new HBox();
 
         portFolio.setPadding(new Insets(10));
         portFolio.setSpacing(10);
@@ -144,8 +159,8 @@ public class TradeExpertScene extends AnchorPane {
         gridPortFolio.setPadding(new Insets(10));
         gridPortFolio.setStyle("-fx-background-color: rgb(45, 25, 144, 1);");
         gridPortFolio.setDepthTest(DepthTest.ENABLE);
-        gridPortFolio.setTranslateX(150);
-        gridPortFolio.setPrefSize(1200, 550);
+        gridPortFolio.setTranslateX(0);
+
         gridPortFolio.setAlignment(Pos.CENTER);
         gridPortFolio.add(new Label("Account ID "), 0, 0);
         gridPortFolio.add(new Label(OANDA_ACCESS_TOKEN.ACCOUNT_ID.toString()), 1, 0);
@@ -219,26 +234,18 @@ public class TradeExpertScene extends AnchorPane {
 
         Callback<TreeTableColumn.CellDataFeatures<News, String>, ObservableValue<String>> columnNewsTitleValue = param -> new ReadOnlyStringWrapper(param.getValue().getValue().getTitle());
         columnNewsTitle.setCellValueFactory(columnNewsTitleValue);
-
-
         Callback<TreeTableColumn.CellDataFeatures<News, String>, ObservableValue<String>> columnNewsCountryValue = param -> new ReadOnlyStringWrapper(param.getValue().getValue().getCountry());
         columnNewsCountry.setCellValueFactory(columnNewsCountryValue);
-
         Callback<TreeTableColumn.CellDataFeatures<News, String>, ObservableValue<String>> columnNewsImpactValue = param -> new ReadOnlyStringWrapper(param.getValue().getValue().getImpact());
         columnNewsImpact.setCellValueFactory(columnNewsImpactValue);
-
         Callback<TreeTableColumn.CellDataFeatures<News, String>, ObservableValue<String>> columnNewsForecastValue = param -> new ReadOnlyStringWrapper(param.getValue().getValue().getForecast());
         columnNewsForecast.setCellValueFactory(columnNewsForecastValue);
-
         Callback<TreeTableColumn.CellDataFeatures<News, String>, ObservableValue<String>> columnNewsPreviousValue = param -> new ReadOnlyStringWrapper(param.getValue().getValue().getPrevious());
         columnNewsPrevious.setCellValueFactory(columnNewsPreviousValue);
-
         root.setExpanded(true);
         treeTableNews.setRoot(root);
         treeTableNews.setPrefSize(1000,650);
-
         treeTableNews.getColumns().addAll(columnNewsDate, columnNewsTitle, columnNewsCountry, columnNewsImpact, columnNewsForecast, columnNewsPrevious);
-
         return treeTableNews;
 
 

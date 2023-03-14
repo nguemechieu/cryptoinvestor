@@ -59,13 +59,13 @@ public final class FastMoney implements Money, Comparable<FastMoney> {
 
     public static @NotNull Money ofFiat(long amount, final String currencyCode) {
         Objects.requireNonNull(currencyCode, "currencyCode must not be null");
-        return ofFiat(amount, currencyCode, Currency.ofFiat(currencyCode).getFractionalDigits());
+        return ofFiat(amount, currencyCode, CurrencyDataProvider.ofFiat(currencyCode).getFractionalDigits());
     }
 
     @Contract("_, _, _ -> new")
     public static @NotNull Money ofFiat(long amount, final String currencyCode, int precision) {
         Objects.requireNonNull(currencyCode, "currencyCode must not be null");
-        Currency currency = Currency.ofFiat(currencyCode);
+        Currency currency = CurrencyDataProvider.ofFiat(currencyCode);
         amount *= Math.pow(10, precision);
         return new FastMoney(amount, currency, precision);
     }
@@ -80,12 +80,12 @@ public final class FastMoney implements Money, Comparable<FastMoney> {
 
     @Contract("_, _ -> new")
     public static @NotNull Money ofCrypto(long amount, final String currencyCode) {
-        return ofCrypto(amount, currencyCode, Currency.ofCrypto(currencyCode).getFractionalDigits());
+        return ofCrypto(amount, currencyCode, CurrencyDataProvider.of(currencyCode).getFractionalDigits());
     }
 
     @Contract("_, _, _ -> new")
     public static @NotNull Money ofCrypto(long amount, final String currencyCode, int precision) {
-        Currency currency = Currency.ofCrypto(currencyCode);
+        Currency currency = CurrencyDataProvider.of(currencyCode);
         amount *= Math.pow(10, precision);
         return new FastMoney(amount, currency, precision);
     }
@@ -106,9 +106,9 @@ public final class FastMoney implements Money, Comparable<FastMoney> {
         final FastMoney direct;
         // attempt direct
         if (currencyType == CurrencyType.FIAT) {
-            direct = fromDoubleNoFallback(value, precision, Currency.ofFiat(currencyCode));
+            direct = fromDoubleNoFallback(value, precision, CurrencyDataProvider.ofFiat(currencyCode));
         } else {
-            direct = fromDoubleNoFallback(value, precision, Currency.ofCrypto(currencyCode));
+            direct = fromDoubleNoFallback(value, precision, CurrencyDataProvider.of(currencyCode));
         }
 
         if (direct != null) {
@@ -116,9 +116,9 @@ public final class FastMoney implements Money, Comparable<FastMoney> {
         }
 
         if (currencyType == CurrencyType.FIAT) {
-            return DefaultMoney.of(value, Currency.ofFiat(currencyCode));
+            return DefaultMoney.of(value, CurrencyDataProvider.ofFiat(currencyCode));
         } else {
-            return DefaultMoney.of(value, Currency.ofCrypto(currencyCode));
+            return DefaultMoney.of(value, CurrencyDataProvider.of(currencyCode));
         }
     }
 
