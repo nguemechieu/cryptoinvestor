@@ -221,9 +221,7 @@ public class CandleStickChartToolbar extends Region {
                 }
                 else if (tool.tool!= null && tool.tool.isHistogram()) {
                     tool.setOnAction(event -> candleStickChart.setHistogramChart());
-                }
-                else if (tool.tool!= null && tool.tool.isNews()) {
-                    tool.setOnAction(event -> candleStickChart.drawNews());
+
                 }else if (tool.tool!= null && tool.tool.isCurrency()) {
                     tool.setOnAction(event -> candleStickChart.setCurrencyChart());
                 }

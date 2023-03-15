@@ -83,7 +83,8 @@ public class Oanda extends Exchange {
 
         requestBuilder.header("Access-Control-Allow-Origin", "*");
         requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
-
+        //Content-Encoding: gzip
+        requestBuilder.header("Content-Encoding", "gzip");
 
 
 
@@ -163,7 +164,7 @@ public class Oanda extends Exchange {
             // We will know if we get rate limited if we get a 429 response code.
             for (int i = 0; !futureResult.isDone(); i++) {
                 String uriStr = "https://api-fxtrade.oanda.com/";
-                uriStr += "v3/accounts/" + accountID + "/trades?beforeID=6397&instrument="+ tradePair.toString('_');
+                uriStr += "v3/accounts/" + accountID + "/trades?beforeID=63997&instrument="+ tradePair.toString('_');
 
 
                 if (i != 0) {
@@ -261,7 +262,7 @@ public class Oanda extends Exchange {
            return HttpClient.newHttpClient().sendAsync(
                         HttpRequest.newBuilder()
                                 .uri(URI.create(String.format(
-                                        "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair.toString('_') + "/candles?price=BA&from=2016-10-17T15%3A00%3A00.000000000Z&granularity=" + granularity
+                                        "https://api-fxtrade.oanda.com/v3/accounts/"+accountID+"instrument/" + tradePair.toString('_') + "/candles?price=BA&from=2016-10-17T15%3A00%3A00.000000000Z&granularity=" + granularity
 
 
 
@@ -463,8 +464,8 @@ public class Oanda extends Exchange {
         public Future<List<CandleData>> get() {
             String uriStr ;/// "https://api-fxtrade.oanda.com/v3/accounts/" + accountID +
                     //"/trades/instruments" + tradePair.toString('_');
-            uriStr="https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/trades?beforeID=6397&instrument="+ tradePair.toString('_');
-            requestBuilder.header("Link", "<https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/trades?beforeID=6397&instrument="+ tradePair.toString('_') +">; rel=\"next\"");
+            uriStr="https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/trades?beforeID=6397&instruments="+ tradePair.toString('_');
+            requestBuilder.header("Link", "<https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/trades?beforeID=6397&instrument="+ tradePair.toString('_')+"&rel=\"next\"");
 
             if (endTime.get() == -1) {
                 endTime.set((int) (Instant.now().toEpochMilli() / 1000L));

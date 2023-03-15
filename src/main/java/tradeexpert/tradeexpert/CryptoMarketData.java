@@ -2,7 +2,17 @@ package tradeexpert.tradeexpert;
 
 public class CryptoMarketData {
 
-     String id;
+    private  String athChangePercentage;
+    private  String lastUpdated;
+    private  String athDate;
+    private  String atl;
+    private String atlChangePercentage;
+    private String atlDate;
+    private String currency;
+    private String times;
+    private String percentage;
+
+    String id;
     String symbol;
     String name;
     String image;
@@ -21,6 +31,38 @@ public class CryptoMarketData {
     String total_supply;
     String max_supply;
     String ath;
+
+    public CryptoMarketData(String id, String symbol, String name, String image, String currentPrice, String marketCap, String marketCapRank, String fullyDilutedValuation, String totalVolume, String high24h, String low24h, String priceChange24h, String priceChangePercentage24h, String marketCapChange24h, String marketCapChangePercentage24h, String circulatingSupply, String totalSupply, String maxSupply, String ath, String athChangePercentage, String athDate, String atl, String atlChangePercentage, String atlDate, String currency, String times, String percentage, String lastUpdated) {
+        this.id = id;
+        this.symbol = symbol;
+        this.name = name;
+        this.image = image;
+        this.current_price = currentPrice;
+        this.market_cap = marketCap;
+        this.market_cap_rank = marketCapRank;
+        this.fully_diluted_valuation = fullyDilutedValuation;
+        this.total_volume = totalVolume;
+        this.high_24h = high24h;
+        this.low_24h = low24h;
+        this.price_change_24h = priceChange24h;
+        this.price_change_percentage_24h = priceChangePercentage24h;
+        this.market_cap_change_24h = marketCapChange24h;
+        this.market_cap_change_percentage_24h = marketCapChangePercentage24h;
+        this.circulating_supply = circulatingSupply;
+        this.total_supply = totalSupply;
+        this.max_supply = maxSupply;
+        this.ath = ath;
+        this.athChangePercentage = athChangePercentage;
+        this.athDate = athDate;
+        this.atl = atl;
+        this.atlChangePercentage = atlChangePercentage;
+        this.atlDate = atlDate;
+        this.currency = currency;
+        this.times = times;
+        this.percentage = percentage;
+        this.lastUpdated = lastUpdated;
+
+    }
 
     public String getId() {
         return id;
@@ -224,7 +266,109 @@ public class CryptoMarketData {
 
     String ath_change_percentage;
     String ath_date;
-    String atl;
+
+    public String getAthChangePercentage() {
+        return athChangePercentage;
+    }
+
+    @Override
+    public String toString() {
+        return "CryptoMarketData{" +
+                "athChangePercentage='" + athChangePercentage + '\'' +
+                ", lastUpdated='" + lastUpdated + '\'' +
+                ", athDate='" + athDate + '\'' +
+                ", atl='" + atl + '\'' +
+                ", atlChangePercentage='" + atlChangePercentage + '\'' +
+                ", atlDate='" + atlDate + '\'' +
+                ", currency='" + currency + '\'' +
+                ", times='" + times + '\'' +
+                ", percentage='" + percentage + '\'' +
+                ", id='" + id + '\'' +
+                ", symbol='" + symbol + '\'' +
+                ", name='" + name + '\'' +
+                ", image='" + image + '\'' +
+                ", current_price='" + current_price + '\'' +
+                ", market_cap='" + market_cap + '\'' +
+                ", market_cap_rank='" + market_cap_rank + '\'' +
+                ", fully_diluted_valuation='" + fully_diluted_valuation + '\'' +
+                ", total_volume='" + total_volume + '\'' +
+                ", high_24h='" + high_24h + '\'' +
+                ", low_24h='" + low_24h + '\'' +
+                ", price_change_24h='" + price_change_24h + '\'' +
+                ", price_change_percentage_24h='" + price_change_percentage_24h + '\'' +
+                ", market_cap_change_24h='" + market_cap_change_24h + '\'' +
+                ", market_cap_change_percentage_24h='" + market_cap_change_percentage_24h + '\'' +
+                ", circulating_supply='" + circulating_supply + '\'' +
+                ", total_supply='" + total_supply + '\'' +
+                ", max_supply='" + max_supply + '\'' +
+                ", ath='" + ath + '\'' +
+                ", ath_change_percentage='" + ath_change_percentage + '\'' +
+                ", ath_date='" + ath_date + '\'' +
+                ", atl_change_percentage='" + atl_change_percentage + '\'' +
+                ", atl_date='" + atl_date + '\'' +
+                ", roi=" + roi +
+                '}';
+    }
+
+    public void setAthChangePercentage(String athChangePercentage) {
+        this.athChangePercentage = athChangePercentage;
+    }
+
+    public String getLastUpdated() {
+        return lastUpdated;
+    }
+
+    public void setLastUpdated(String lastUpdated) {
+        this.lastUpdated = lastUpdated;
+    }
+
+    public String getAthDate() {
+        return athDate;
+    }
+
+    public void setAthDate(String athDate) {
+        this.athDate = athDate;
+    }
+
+    public String getAtlChangePercentage() {
+        return atlChangePercentage;
+    }
+
+    public void setAtlChangePercentage(String atlChangePercentage) {
+        this.atlChangePercentage = atlChangePercentage;
+    }
+
+    public String getAtlDate() {
+        return atlDate;
+    }
+
+    public void setAtlDate(String atlDate) {
+        this.atlDate = atlDate;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public String getTimes() {
+        return times;
+    }
+
+    public void setTimes(String times) {
+        this.times = times;
+    }
+
+    public String getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(String percentage) {
+        this.percentage = percentage;
+    }
 
     public CryptoMarketData(String id, String symbol, String name, String image, String current_price, String market_cap, String market_cap_rank, String fully_diluted_valuation, String total_volume, String high_24h, String low_24h, String price_change_24h, String price_change_percentage_24h, String market_cap_change_24h, String market_cap_change_percentage_24h, String circulating_supply, String total_supply, String max_supply, String ath, String ath_change_percentage, String ath_date, String atl, String atl_change_percentage, String atl_date, Roi roi) {
         this.id = id;

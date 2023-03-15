@@ -20,14 +20,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import static java.lang.System.out;
-import static tradeexpert.tradeexpert.Currency.NULL_CRYPTO_CURRENCY;
 import static tradeexpert.tradeexpert.Currency.NULL_FIAT_CURRENCY;
 
 public class CurrencyDataProvider {
 
     private static final ConcurrentHashMap<SymmetricPair<String, CurrencyType>, Currency> CURRENCIES = new ConcurrentHashMap<>();
+
+    public static ConcurrentHashMap<CryptoMarketData, CryptoMarketData> getMarketDataConcurrentHashMap() {
+        return MARKET_DATA_CONCURRENT_HASH_MAP;
+    }
+
+    private static ConcurrentHashMap<CryptoMarketData,CryptoMarketData> MARKET_DATA_CONCURRENT_HASH_MAP = new ConcurrentHashMap<>();
     private static final Logger logger = Logger.getLogger(CurrencyDataProvider.class.getSimpleName());
-    private static String id;
     private static Roi roi;
 
     @Contract(" -> new")
@@ -98,7 +102,7 @@ public class CurrencyDataProvider {
         JsonNode jsonNode = mapper.readTree(response.body());
         for (JsonNode node : jsonNode) {
 
-            id = node.get("id").asText();
+            String id = node.get("id").asText();
             String symbol = node.get("symbol").asText();
             String name = node.get("name").asText();
             String image = node.get("image").asText();
@@ -128,9 +132,29 @@ public class CurrencyDataProvider {
             String last_updated = node.get("last_updated").asText();    times = "times";
             currency = "";
             percentage = "";
-
+MARKET_DATA_CONCURRENT_HASH_MAP.put(new CryptoMarketData(id, symbol, name, image, current_price,
+        market_cap, market_cap_rank, fully_diluted_valuation, total_volume, high_24h, low_24h, price_change_24h,
+        price_change_percentage_24h, market_cap_change_24h, market_cap_change_percentage_24h,
+        circulating_supply, total_supply, max_supply, ath, ath_change_percentage, ath_date, atl, atl_change_percentage, atl_date,
+        currency, times, percentage, last_updated),new CryptoMarketData(id, symbol, name, image, current_price,
+        market_cap, market_cap_rank, fully_diluted_valuation, total_volume, high_24h, low_24h, price_change_24h,
+        price_change_percentage_24h, market_cap_change_24h, market_cap_change_percentage_24h,
+        circulating_supply, total_supply, max_supply, ath, ath_change_percentage, ath_date, atl, atl_change_percentage, atl_date,
+        currency, times, percentage, last_updated));
             roi = new Roi(times, currency, percentage);
-
+            logger.info("Registered %s %s %s");
+            logger.info("id: %s, symbol:");
+            logger.info(String.format(Locale.ENGLISH, "%s", id));
+            logger.info(String.format(Locale.ENGLISH, "%s", symbol));
+logger.info("name: %s, image: %s, current_price: %s");
+logger.info("market_cap: %s, market_cap_rank: %s, fully_diluted_valuation: %s, total_volume: %s");
+logger.info("high_24h: %s, low_24h: %s, price_change_24h: %s, price_change_percentage_24h: %s, market_cap_change_24h: %s, market_cap_change_percentage_24h: %s, circulating_supply: %s, total_supply: %s, max_supply: %s, ath:");
+logger.info(String.format(Locale.ENGLISH, "%s", high_24h));
+logger.info(String.format(Locale.ENGLISH, "%s", low_24h));
+logger.info(String.format(Locale.ENGLISH, "%s", price_change_24h));
+logger.info(String.format(Locale.ENGLISH, "%s", price_change_percentage_24h));
+logger.info(String.format(Locale.ENGLISH, "%s", market_cap_change_24h));
+logger.info("CRYPTO MARKET DATA "+MARKET_DATA_CONCURRENT_HASH_MAP);
 
 
 

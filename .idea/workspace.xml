@@ -5,11 +5,15 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d1c81200-6c74-4a9a-a0c9-29990434128d" name="Changes" comment="good">
-      <change afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CryptoMarketData.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Roi.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Coinbase/Coinbase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Coinbase/Coinbase.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChart.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChart.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartToolbar.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartToolbar.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ChartColors.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ChartColors.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CryptoMarketData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CryptoMarketData.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CurrencyDataProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CurrencyDataProvider.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpertScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpertScene.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradePair.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradePair.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/oanda/Oanda.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/oanda/Oanda.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -156,7 +160,14 @@
       <option name="project" value="LOCAL" />
       <updated>1678855103514</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="good">
+      <created>1678859675486</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1678859675486</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

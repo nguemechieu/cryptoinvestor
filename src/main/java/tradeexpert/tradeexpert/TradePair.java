@@ -195,12 +195,12 @@ public class TradePair extends Pair<Currency, Currency> {
             out.println(baseCurrency.code);
             out.println("-");
             out.println(counterCurrency.code);
-            return baseCurrency.getSymbol() + "-" + counterCurrency.code;
+            return baseCurrency.code + "-" +counterCurrency.code;
         } else if (separator.equals('/')){
             out.println(baseCurrency.code);
             out.println("/");
             out.println(counterCurrency.code);
-            return baseCurrency.code + counterCurrency.code;}
+            return   baseCurrency.code+counterCurrency.code;}
         else {
             out.println(baseCurrency.code);
 
@@ -214,7 +214,7 @@ public class TradePair extends Pair<Currency, Currency> {
                                 counterCurrency.code
                 );
             }
-            return baseCurrency.code+ separator + counterCurrency.code;
+            return counterCurrency.code+ separator + baseCurrency.code;
         }
     }
 
