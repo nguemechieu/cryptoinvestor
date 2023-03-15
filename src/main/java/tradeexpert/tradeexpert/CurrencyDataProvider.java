@@ -20,12 +20,15 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import static java.lang.System.out;
+import static tradeexpert.tradeexpert.Currency.NULL_CRYPTO_CURRENCY;
 import static tradeexpert.tradeexpert.Currency.NULL_FIAT_CURRENCY;
 
 public class CurrencyDataProvider {
 
     private static final ConcurrentHashMap<SymmetricPair<String, CurrencyType>, Currency> CURRENCIES = new ConcurrentHashMap<>();
     private static final Logger logger = Logger.getLogger(CurrencyDataProvider.class.getSimpleName());
+    private static String id;
+    private static Roi roi;
 
     @Contract(" -> new")
     public static @NotNull List<Currency> getInstance() {
@@ -51,80 +54,117 @@ public class CurrencyDataProvider {
         HttpRequest.Builder request = HttpRequest.newBuilder();
         request.setHeader("Accept", "application/json");
         request.setHeader("Content-Type", "application/json");
-        request.uri(URI.create("https://api.exchange.coinbase.com/currencies")).GET().build();
+        request.uri(URI.create("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false")).GET().build();
         request.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0)");
-        request.uri(URI.create("https://api.exchange.coinbase.com/currencies"));
+        request.uri(URI.create("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false"));
 
 
         HttpClient client = HttpClient.newHttpClient();
         HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
+//        "id": "ethereum",
+//                "symbol": "eth",
+//                "name": "Ethereum",
+//                "image": "https://assets.coingecko.com/coins/images/279/large/ethereum.png?1595348880",
+//                "current_price": 1712.53,
+//                "market_cap": 206313355645,
+//                "market_cap_rank": 2,
+//                "fully_diluted_valuation": 206311043920,
+//                "total_volume": 20894593775,
+//                "high_24h": 1778.85,
+//                "low_24h": 1662.79,
+//                "price_change_24h": 33.16,
+//                "price_change_percentage_24h": 1.97466,
+//                "market_cap_change_24h": 3905596129,
+//                "market_cap_change_percentage_24h": 1.92957,
+//                "circulating_supply": 120457776.583888,
+//                "total_supply": 120456426.863651,
+//                "max_supply": null,
+//                "ath": 4878.26,
+//                "ath_change_percentage": -64.92421,
+//                "ath_date": "2021-11-10T14:24:19.604Z",
+//                "atl": 0.432979,
+//                "atl_change_percentage": 395089.81203,
+//                "atl_date": "2015-10-20T00:00:00.000Z",
+//                "roi": {
+//            "times": 90.99975323831556,
+//                    "currency": "btc",
+//                    "percentage": 9099.975323831555
+//        },
+//        "last_updated": "2023-03-15T04:42:18.949Z"
 
-        String id = "";
-        String name = "";
-        String status = "";
-        String symbol = "";
-        String message = "";
-        int max_precision = 0;
-        String type = "";
-        out.println(response.body());
+        ArrayList<CryptoMarketData> marketData = new ArrayList<>();
+
         ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(response.body());
+        for (JsonNode node : jsonNode) {
 
-        JsonNode json = mapper.readTree(response.body());
+            id = node.get("id").asText();
+            String symbol = node.get("symbol").asText();
+            String name = node.get("name").asText();
+            String image = node.get("image").asText();
+            String current_price = node.get("current_price").asText();
+            String market_cap = node.get("market_cap").asText();
+            String market_cap_rank = node.get("market_cap_rank").asText();
+            String fully_diluted_valuation = node.get("fully_diluted_valuation").asText();
+            String total_volume = node.get("total_volume").asText();
+            String high_24h = node.get("high_24h").asText();
+            String low_24h = node.get("low_24h").asText();
+            String price_change_24h = node.get("price_change_24h").asText();
+            String price_change_percentage_24h = node.get("price_change_percentage_24h").asText();
+            String market_cap_change_24h = node.get("market_cap_change_24h").asText();
+            String market_cap_change_percentage_24h = node.get("market_cap_change_percentage_24h").asText();
+            String circulating_supply = node.get("circulating_supply").asText();
+            String total_supply = node.get("total_supply").asText();
+            String max_supply = node.get("max_supply").asText();
+            String ath = node.get("ath").asText();
+            String ath_change_percentage = node.get("ath_change_percentage").asText();
+            String ath_date = node.get("ath_date").asText();
+            String atl = node.get("atl").asText();
+            String atl_change_percentage = node.get("atl_change_percentage").asText();
+            String atl_date = node.get("atl_date").asText();
+            String currency;
+            String times;
+            String percentage;
+            String last_updated = node.get("last_updated").asText();    times = "times";
+            currency = "";
+            percentage = "";
 
-        for (JsonNode i : json) {
-            String crypto_address_link = null;
-
-            if (i.has("name")) {
-                name = i.get("name").asText();
-            }
-            if (i.has("status")) {
-                status = i.get("status").asText();
-            }
-            if (i.has("message")) {
-                message = i.get("message").asText();
-
-            }
-            if (i.has("id")) {
-                symbol = i.get("id").asText();
-            }
-            if (
-                    i.has("max_precision")
-            ) {
-                max_precision = i.get("max_precision").asInt();
-            }
-
-            if (i.has("details")) {
-                crypto_address_link = i.get("details").get("crypto_address_link").asText();
-                type = i.get("details").get("type").asText();
-                out.println("crypto_address_link " + crypto_address_link);
-                out.println("type " + type);
-                out.println("name " + name);
-
-            }
+            roi = new Roi(times, currency, percentage);
 
 
-            out.println("currency id" + id);
 
-            out.println("name " + name);
-            out.println("status " + status);
-            out.println("message " + message);
-            out.println("symbol " + symbol);
-            out.println("max_precision " + max_precision);
-            out.println("type " + type);
-            CurrencyType type0 = CurrencyType.NULL;
-            String finalName = name;
-            int finalMax_precision = max_precision;
-            String finalCrypto_address_link = crypto_address_link;
-            if (type.equals("crypto")) {
-                out.println("crypto_address_link " + crypto_address_link);
-                out.println("finalCrypto_address_link " + finalCrypto_address_link);
-                out.println("finalName " + finalName);
-                out.println("finalMax_precision " + finalMax_precision);
-                out.println("finalSymbol " + symbol);
-                type0 = CurrencyType.CRYPTO;
-            }
 
-            coinsToRegister.add(new Currency(type0, name, symbol, id, max_precision, symbol) {
+//             if (node.elements()!=null&& node.has("roi") ) {
+//
+//                 JsonNode node2 =node.get("roi");
+//
+//                 for (JsonNode node3 : node2) {
+
+
+//                     if (!Objects.equals(node3.elements().next().asText(), "null")) {
+//                         times = node3.get("times").asText("times");
+//                         currency = node3.get("currency").asText();
+//                         percentage = node3.get("percentage").asText();
+//                     } else {
+
+
+
+        marketData.add(new CryptoMarketData(id.toUpperCase(), symbol.toUpperCase(), name.toUpperCase(), image, current_price, market_cap,
+                market_cap_rank, fully_diluted_valuation, total_volume, high_24h, low_24h, price_change_24h,
+                price_change_percentage_24h, market_cap_change_24h, market_cap_change_percentage_24h,
+                circulating_supply, total_supply, max_supply, ath, ath_change_percentage, ath_date, atl, atl_change_percentage, atl_date,
+                roi));
+    }
+
+
+
+
+
+
+        for (CryptoMarketData data : marketData) {
+
+
+            coinsToRegister.add(new Currency(CurrencyType.CRYPTO, data.name,data.id ,data.symbol, data.roi.percentage.length(), data.symbol) {
                 @Override
                 public int compareTo(@NotNull java.util.Currency o) {
                     if (!o.getCurrencyCode().equals(this.getCode())) {
@@ -138,9 +178,9 @@ public class CurrencyDataProvider {
                     return 0;
                 }
             });
-
-
         }
+
+
         for (Currency c : coinsToRegister) {
             CURRENCIES.put(new SymmetricPair<>(c.getSymbol(), c.getCurrencyType()), c);
             if (c.getCurrencyType() == CurrencyType.CRYPTO) {
@@ -220,6 +260,14 @@ public class CurrencyDataProvider {
         }
 
 
+    }
+
+    public static Roi getRoi() {
+        return roi;
+    }
+
+    public static void setRoi(Roi roi) {
+        CurrencyDataProvider.roi = roi;
     }
 }
  

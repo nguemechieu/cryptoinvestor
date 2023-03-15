@@ -33,7 +33,6 @@ import java.util.concurrent.Future;
 
 import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
-import static tradeexpert.tradeexpert.NewsManager.news;
 
 
 public class Coinbase extends Exchange {
@@ -151,7 +150,7 @@ public class Coinbase extends Exchange {
                             ,
                             HttpResponse.BodyHandlers.ofString());
 
-                    Log.info("response headers: " + response.headers(), news.toString());
+                    Log.info("response headers: " , response.headers().toString());
                     if (response.headers().firstValue("CB-AFTER").isEmpty()) {
                         futureResult.completeExceptionally(new RuntimeException(
                                 "Coinbase trades response did not contain header \"CB-AFTER\": " + response));

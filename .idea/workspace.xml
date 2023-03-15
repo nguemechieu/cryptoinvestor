@@ -5,17 +5,32 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d1c81200-6c74-4a9a-a0c9-29990434128d" name="Changes" comment="good">
-      <change afterPath="$PROJECT_DIR$/src/main/resources/Config.ini" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/mvnw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/config.json" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/config.properties" beforeDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CryptoMarketData.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Roi.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Coinbase/Coinbase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Coinbase/Coinbase.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CurrencyDataProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CurrencyDataProvider.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+        <option value="Record" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="PUSH_TAGS">
+      <GitPushTagMode>
+        <option name="argument" value="--tags" />
+        <option name="title" value="All" />
+      </GitPushTagMode>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
@@ -29,7 +44,7 @@
     </option>
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="ProjectErrors" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectId" id="2N1aYz24W5UAHIghCUhCPDdrXPL" />
   <component name="ProjectViewState">
@@ -43,6 +58,11 @@
     "run.code.analysis.last.selected.profile": "pProject Default"
   }
 }]]></component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="tradeexpert.tradeexpert" />
+    </key>
+  </component>
   <component name="RunAnythingCache">
     <option name="myCommands">
       <command value="mvn test" />
@@ -129,7 +149,14 @@
       <option name="project" value="LOCAL" />
       <updated>1678839984005</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="good">
+      <created>1678855103514</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1678855103514</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
