@@ -10,11 +10,15 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import tradeexpert.tradeexpert.Chat;
 
+import javax.net.SocketFactory;
+import javax.websocket.Session;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.Socket;
 import java.net.URI;
 import java.net.URL;
 import java.net.http.HttpClient;
@@ -28,11 +32,12 @@ import static java.lang.System.out;
 
 
 //  makeRequest("https://api.telegram.org/bot" + token + "/setWebhook");
-public class TelegramClient {
+public class TelegramClient extends ChatEndpoint {
 
 
     public static final ArrayList<Chat> ArrayListChat = new ArrayList<>();
     private static final KeyboardButton[] keyboard = new KeyboardButton[]{new KeyboardButton("1", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("2", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("3", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("4", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("5", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("6", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("7", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("8", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("9", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("0", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE)};
+    private static  Session session;
     public static int offset = 0;
     public static String message = "";
     static boolean disable_content_type_detection = false;
@@ -111,6 +116,7 @@ public class TelegramClient {
     private static String photo;
     private static String caption;
     private static String reply_to_message_id;
+
     public int MinAfter, LastUpd, Upd;
     protected String host = "https://api.telegram.org";
     protected static Path path;
@@ -141,8 +147,14 @@ public class TelegramClient {
     private String lastMessage;
     private String chatDescription;
     private int i;
+    private final Socket socket= SocketFactory.getDefault().createSocket("192.168.127.12", 443);
 
-    public TelegramClient(String token) throws TelegramApiException, IOException, InterruptedException, ParseException {
+
+    private static String chat_photo_file_name = "";
+
+    public TelegramClient(String token) throws TelegramApiException, IOException, ParseException, InterruptedException {
+        super(session);
+
 
         if (token == null) {
            Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -153,9 +165,9 @@ public class TelegramClient {
             throw new TelegramApiException("Telegram token can't be  null ");
         }
         TelegramClient.token = token;
-        run();
 
     }
+
 
     public static int getLength() {
         return length;
@@ -2044,7 +2056,7 @@ public class TelegramClient {
 
                 sendMessage("News Loading ...");
 
-            };
+            }
 
 
             for (News news1 : news) {
@@ -2325,6 +2337,41 @@ public class TelegramClient {
 
     public void setChatDescription(String chatDescription) {
         this.chatDescription = chatDescription;
+    }
+
+    public void connect() {
+        isOnline = true;
+        try {
+            URL url = new URL("https://api.telegram.org/bot" + getToken() + "/getMe");
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Accept", "application/json");
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setRequestProperty("Authorization", "Bearer " + getToken());
+
+            con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+            while ((inputLine = in.readLine())!= null) {
+                response.append(inputLine);
+            }
+            in.close();
+            String responseString = response.toString();
+            JSONObject jsonObject = new JSONObject(responseString);
+            marketInfo = jsonObject.getJSONObject("result");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void setApiKey(String telegramApiKey) {
+        setToken(telegramApiKey);
+    }
+
+    public String getBotName() {
+        return getLastName();
     }
 
 

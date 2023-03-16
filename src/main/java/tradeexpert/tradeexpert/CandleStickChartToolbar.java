@@ -24,6 +24,8 @@ import javafx.scene.text.Font;
 import javafx.util.Duration;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.*;
 import java.io.File;
@@ -39,6 +41,10 @@ import java.util.Set;
 import static java.lang.System.out;
 import static tradeexpert.tradeexpert.FXUtils.computeTextDimensions;
 public class CandleStickChartToolbar extends Region {
+
+
+    private static final Logger LOG = LoggerFactory.getLogger(CandleStickChartToolbar.class);
+
     private final HBox toolbar;
     private final PopOver optionsPopOver;
     private final Separator functionOptionsSeparator;
@@ -47,7 +53,7 @@ public class CandleStickChartToolbar extends Region {
 
 
     public CandleStickChartToolbar(ObservableNumberValue containerWidth, ObservableNumberValue containerHeight,
-                            Set<Integer> granularities) {
+                            Set<Integer> granularities) throws URISyntaxException, IOException {
         Objects.requireNonNull(containerWidth);
         Objects.requireNonNull(containerHeight);
         Objects.requireNonNull(granularities);
@@ -154,6 +160,8 @@ public class CandleStickChartToolbar extends Region {
 
         gotFirstSize.addListener(gotFirstSizeChangeListener);
         getChildren().setAll(toolbar);
+        sizeListener.resize();
+        LOG.info("CandleStickChartToolbar created");
     }
 
     void setActiveToolbarButton(IntegerProperty secondsPerCandle) {
@@ -176,7 +184,8 @@ public class CandleStickChartToolbar extends Region {
                         try {
                             candleStickChart.changeZoom(
                                     tool.tool.getZoomDirection());
-                        } catch (TelegramApiException | ParseException | IOException | InterruptedException e) {
+                        } catch (TelegramApiException | ParseException | IOException | InterruptedException |
+                                 URISyntaxException e) {
                             throw new RuntimeException(e);
                         }
                     });
@@ -201,13 +210,19 @@ public class CandleStickChartToolbar extends Region {
                     tool.setOnAction(event -> out.println("Now Printing ..." + candleStickChart.toString()));
 
                 }else if (tool.tool!= null && tool.tool.isAutoTrading()) {
-                    tool.setOnAction(event -> candleStickChart.setAutoTrading(true));
+                    tool.setOnAction(event ->{
+                            tool.setActive(true);
+                            tool.setText("Mode: Automatic");
+
+                            candleStickChart.isAutoTrading(event);});
                 }else if (tool.tool!= null && tool.tool.isArea()) {
                     tool.setOnAction(event -> candleStickChart.setAreaChart());
                 }else if (tool.tool!= null && tool.tool.isVolume()) {
                     tool.setOnAction(event -> candleStickChart.setVolumeChart());
                 }else if (tool.tool!= null && tool.tool.isBar()) {
                     tool.setOnAction(event -> candleStickChart.setBarChart());
+                }else if (tool.tool!= null && tool.tool.isNews()) {
+                    tool.setOnAction(event -> candleStickChart.setNewsChart());
                 }
 
                 else if (tool.tool!= null && tool.tool.isLine()) {
@@ -369,16 +384,16 @@ public class CandleStickChartToolbar extends Region {
             }
         };
 
-        ToolbarButton(String textLabel, int duration) {
+        ToolbarButton(String textLabel, int duration) throws URISyntaxException, IOException {
             this(textLabel, null, null, duration);
         }
 
-        ToolbarButton(Tool tool) {
+        ToolbarButton(Tool tool) throws URISyntaxException, IOException {
             this(null, tool, tool.img, -1);
         }
 
 
-        private ToolbarButton(String textLabel, Tool tool, String img, int duration) {
+        private ToolbarButton(String textLabel, Tool tool, String img, int duration) throws URISyntaxException, IOException {
             if (textLabel == null && img == null) {
                 throw new IllegalArgumentException("textLabel and img were both null");
             }
@@ -387,7 +402,9 @@ public class CandleStickChartToolbar extends Region {
             this.duration = duration;
             setText(textLabel == null ? "" : textLabel);
             if (img != null) {
-                graphicLabel = new ImageView(new Image(Objects.requireNonNull(ToolbarButton.class.getResourceAsStream(img))));
+                graphicLabel =
+                        new ImageView(new Image(Objects.requireNonNull(ToolbarButton.class.getResourceAsStream(img))));
+                graphicLabel.setFitHeight(16);
                 setGraphic(graphicLabel);
             } else {
                 graphicLabel = null;

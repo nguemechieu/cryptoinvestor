@@ -78,8 +78,7 @@ public class PopOver extends PopupControl {
 
         getStyleClass().add(DEFAULT_STYLE_CLASS);
 
-        getRoot().getStylesheets().add(
-                requireNonNull(PopOver.class.getResource("/css/popover.css")).toExternalForm()); //$NON-NLS-1$
+        //getRoot().getStylesheets().add(requireNonNull(PopOver.class.getResource("/css/popover.css")).toExternalForm()); //$NON-NLS-1$
 
         setAnchorLocation(AnchorLocation.WINDOW_TOP_LEFT);
         setOnHiding(evt -> setDetached(false));

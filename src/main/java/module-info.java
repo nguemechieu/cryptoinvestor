@@ -19,12 +19,17 @@ module tradeexpert.tradeexpert{
     requires com.fasterxml.jackson.datatype.jsr310;
     requires Java.WebSocket;
     requires java.net.http;
-    requires slf4j.api;
+
     requires javafx.web;
     requires jdk.jsobject;
     requires jakarta.persistence;
     requires org.hibernate.orm.core;
     requires com.fasterxml.jackson.dataformat.csv;
+    requires com.google.gson;
+
+    requires logback.core;
+    requires slf4j.api;
+    requires org.apache.tomcat.embed.websocket;
 
     opens tradeexpert.tradeexpert to javafx.fxml;
     exports tradeexpert.tradeexpert;

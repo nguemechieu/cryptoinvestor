@@ -5,15 +5,38 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d1c81200-6c74-4a9a-a0c9-29990434128d" name="Changes" comment="good">
+      <change afterPath="$PROJECT_DIR$/java/util/annotations.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ChatEndpoint.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/DecodeException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Message.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/MessageDecoder.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/MessageEncoder.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/BinanceUs/BinanceUs.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/BinanceUs/BinanceUs.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChart.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChart.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartContainer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartContainer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartOptions.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartOptions.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartToolbar.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartToolbar.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ChartColors.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ChartColors.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CryptoMarketData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CryptoMarketData.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Coinbase/Coinbase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Coinbase/Coinbase.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CurrencyDataProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CurrencyDataProvider.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/DelayedSizeChangeListener.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/DelayedSizeChangeListener.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Exchange.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Exchange.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ExchangeWebSocketClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ExchangeWebSocketClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Fonts.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Fonts.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/PopOver.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/PopOver.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TELEGRAM_API_INFO.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TELEGRAM_API_INFO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TelegramClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TelegramClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Trade.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Trade.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpert.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpert.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpertScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpertScene.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradePair.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradePair.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/oanda/Oanda.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/oanda/Oanda.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/Invest.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/app.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/app.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/img/TradeExpert.ico" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/img/icon.ico" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/org/tradeexpert/tradeexpert/hello-view.fxml" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,8 +46,9 @@
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
       <list>
-        <option value="Class" />
         <option value="Record" />
+        <option value="AnnotationType" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -55,15 +79,19 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "run.code.analysis.last.selected.profile": "pProject Default"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/nguem/source/tradeexpert&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
+      <recent name="tradeexpert.tradeexpert" />
+    </key>
+    <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="tradeexpert.tradeexpert" />
     </key>
   </component>
@@ -167,11 +195,42 @@
       <option name="project" value="LOCAL" />
       <updated>1678859675486</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="good">
+      <created>1678874679647</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1678874679648</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="good" />
     <option name="LAST_COMMIT_MESSAGE" value="good" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>jar://$PROJECT_DIR$/../../../../Program Files/Java/jdk-19/lib/src.zip!/java.base/java/util/Base64.java</url>
+          <line>132</line>
+          <properties class="java.util.Base64" method="getMimeEncoder">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ChatEndpoint.java</url>
+          <line>63</line>
+          <properties class="tradeexpert.tradeexpert.ChatEndpoint" method="onError">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

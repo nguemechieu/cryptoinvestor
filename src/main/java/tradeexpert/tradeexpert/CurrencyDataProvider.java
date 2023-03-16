@@ -3,6 +3,7 @@ package tradeexpert.tradeexpert;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import javafx.scene.control.Alert;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,21 +18,25 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.slf4j.Logger;
 
 import static java.lang.System.out;
 import static tradeexpert.tradeexpert.Currency.NULL_FIAT_CURRENCY;
 
 public class CurrencyDataProvider {
 
+private static final Logger logger = LoggerFactory.getLogger(CurrencyDataProvider.class);
     private static final ConcurrentHashMap<SymmetricPair<String, CurrencyType>, Currency> CURRENCIES = new ConcurrentHashMap<>();
 
-    public static ConcurrentHashMap<CryptoMarketData, CryptoMarketData> getMarketDataConcurrentHashMap() {
+    public static ConcurrentHashMap<CryptoMarketData, CryptoMarketData> getMarketDataConcurrentHashMap() throws IOException, ParseException, InterruptedException {
+
         return MARKET_DATA_CONCURRENT_HASH_MAP;
     }
 
-    private static ConcurrentHashMap<CryptoMarketData,CryptoMarketData> MARKET_DATA_CONCURRENT_HASH_MAP = new ConcurrentHashMap<>();
-    private static final Logger logger = Logger.getLogger(CurrencyDataProvider.class.getSimpleName());
+    private static final ConcurrentHashMap<CryptoMarketData,CryptoMarketData> MARKET_DATA_CONCURRENT_HASH_MAP = new ConcurrentHashMap<>();
+
     private static Roi roi;
 
     @Contract(" -> new")
@@ -41,9 +46,7 @@ public class CurrencyDataProvider {
         if (currencies.isEmpty()) {
             try {
                 registerCurrencies();
-            } catch (IOException | InterruptedException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
+            } catch (IOException | InterruptedException | ParseException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -99,6 +102,17 @@ public class CurrencyDataProvider {
         ArrayList<CryptoMarketData> marketData = new ArrayList<>();
 
         ObjectMapper mapper = new ObjectMapper();
+
+        if (response.statusCode() !=200) {
+            logger.error("Error while getting currencies");
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Error while getting currencies\n"+ response.body());
+            alert.showAndWait();
+
+            return;
+        }
         JsonNode jsonNode = mapper.readTree(response.body());
         for (JsonNode node : jsonNode) {
 
@@ -202,6 +216,7 @@ logger.info("CRYPTO MARKET DATA "+MARKET_DATA_CONCURRENT_HASH_MAP);
                     return 0;
                 }
             });
+            MARKET_DATA_CONCURRENT_HASH_MAP.put(data,data);
         }
 
 

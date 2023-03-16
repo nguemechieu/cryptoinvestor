@@ -13,7 +13,16 @@
 -fx-border-radius:5px !important;
 -fx-background-color: BLACK;
 }
-
+.Text{
+-fx-font-family: sans-serif;
+-fx-text-stroke-width: 1px;
+-fx-touch-action: none;
+-fx-user-select: none;
+-fx-text-fill-color:WHITE}
+.Toolbar{
+-fx-border-radius:5px!important;
+-fx-background-color: BLACK;
+}
 .MenuBar{
 
 -fx-border-radius:3px !important;

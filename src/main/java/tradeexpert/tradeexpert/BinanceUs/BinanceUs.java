@@ -39,6 +39,7 @@ public class BinanceUs extends Exchange {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final String tocken = "";
     private static String apiKey;
     public static final String API_URL =  "wss://stream.binance.us:9443";
     public static final String API_VERSION = "v1";
@@ -48,11 +49,11 @@ public class BinanceUs extends Exchange {
     public BinanceUs(
             String apiKey,
             String apiSecret,
-            String apiPass
-    ) throws Exception {
+            String apiPass,
+            String telegramToken) throws Exception, TelegramApiException {
         super(
-                API_URL
-        );
+                API_URL,
+                telegramToken);
 
 
         if (apiKey == null || apiSecret == null || apiPass == null) {

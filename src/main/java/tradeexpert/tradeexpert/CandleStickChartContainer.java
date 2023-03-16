@@ -25,6 +25,7 @@ import static javafx.scene.layout.AnchorPane.*;
 
 
 public class CandleStickChartContainer extends Region {
+
     boolean liveSyncing;
     CandleStickChartToolbar toolbar;
     VBox candleChartContainer;
@@ -34,6 +35,7 @@ public class CandleStickChartContainer extends Region {
     public CandleStickChartContainer(Exchange exchange, TradePair tradePair, boolean liveSyncing) throws URISyntaxException, IOException {
         Objects.requireNonNull(exchange, "exchange must not be null");
         Objects.requireNonNull(tradePair, "tradePair must not be null");
+
 
         this.tradePair = tradePair;
         this.liveSyncing = liveSyncing;
@@ -62,7 +64,8 @@ public class CandleStickChartContainer extends Region {
             if (!oldDurationValue.equals(newDurationValue)) {
                 try {
                     createNewChart(exchange,newDurationValue.intValue(), liveSyncing);
-                } catch (ParseException | TelegramApiException | IOException | InterruptedException e) {
+                } catch (ParseException | TelegramApiException | IOException | InterruptedException |
+                         URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
                 try {
@@ -78,10 +81,11 @@ public class CandleStickChartContainer extends Region {
 
     }
 
-    private void createNewChart(Exchange exchange,int secondsPerCandle, boolean liveSyncing) throws ParseException, TelegramApiException, IOException, InterruptedException {
+    private void createNewChart(Exchange exchange,int secondsPerCandle, boolean liveSyncing) throws ParseException, TelegramApiException, IOException, InterruptedException, URISyntaxException {
         if (secondsPerCandle <= 0) {
             throw new IllegalArgumentException("secondsPerCandle must be positive but was: " + secondsPerCandle);
         }
+
 
         candleStickChart = new CandleStickChart(exchange, exchange.getCandleDataSupplier(secondsPerCandle, tradePair),
                 tradePair, liveSyncing, secondsPerCandle, widthProperty(), heightProperty());
@@ -126,4 +130,6 @@ public class CandleStickChartContainer extends Region {
     protected double computeMinHeight(double width) {
         return 500;
     }
+
+
 }

@@ -2,6 +2,7 @@ package tradeexpert.tradeexpert;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
 import tradeexpert.tradeexpert.CandleData;
 import tradeexpert.tradeexpert.Money;
 import tradeexpert.tradeexpert.Order;
@@ -14,11 +15,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-
-
+import com.google.gson.Gson;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 public class Trade implements Runnable{
 
     public static CandleData candle;
+   static Logger logger = LoggerFactory.getLogger(Trade.class);
     private TradePair tradePair;
     private Money price;
     private Money amount;
@@ -117,6 +120,11 @@ public class Trade implements Runnable{
     @Contract(pure = true)
     public static @NotNull ArrayList<Order> getOrders() {
         return new ArrayList<>(orderArrayList);
+    }
+
+    public static Trade fromMessage(String message) {
+        logger.info(message);
+        return new Gson().fromJson(message, Trade.class);
     }
 
     public TradePair getTradePair() {

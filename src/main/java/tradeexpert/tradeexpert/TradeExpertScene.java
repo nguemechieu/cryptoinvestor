@@ -38,7 +38,7 @@ public class TradeExpertScene extends AnchorPane {
     private static final String BINANCE_ACCESS_SECRET = "";
     private static final String BINANCE_ACCESS_PASSWORD = "";
  private static final TabPane  tabPane = new TabPane();
-    public TradeExpertScene() throws Exception {
+    public TradeExpertScene() throws Exception, TelegramApiException {
 
         VBox ordersBox = new VBox(listOrders());
         VBox navigator = new VBox(listNavigator());
@@ -55,7 +55,7 @@ public class TradeExpertScene extends AnchorPane {
 
         TradePair tradePair1=TradePair.of("ETH","USD");
 
-        Oanda oanda = new Oanda("77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99", "001-001-2783446-002");
+        Oanda oanda = new Oanda("77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99", "001-001-2783446-002",TELEGRAM_API_INFO.TELEGRAM_API_KEY.toString());
 
         TradePair tradePair=TradePair.of("LTC","USD");
 
@@ -65,16 +65,20 @@ public class TradeExpertScene extends AnchorPane {
 
         out.println("Coinbase us tradePair "+tradePair1.toString('-'));
 
-        TradePair tradePair2=TradePair.of("CAD","USD");
+        TradePair tradePair2=TradePair.of("USD","CAD");
 
         out.println("Oanda us tradePair "+tradePair2.toString('_'));
-        BinanceUs binance = new BinanceUs(BINANCE_ACCESS_TOKEN, BINANCE_ACCESS_SECRET, BINANCE_ACCESS_PASSWORD);
-        CandleStickChartContainer binanceCandleStickChartContainer = new CandleStickChartContainer(binance, tradePair, true);
+        BinanceUs binance = new BinanceUs(BINANCE_ACCESS_TOKEN, BINANCE_ACCESS_SECRET, BINANCE_ACCESS_PASSWORD,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo" );
+
+        CandleStickChartContainer binanceCandleStickChartContainer = new CandleStickChartContainer(binance, tradePair,true);
 
 
-        Coinbase coinbase = new Coinbase();
-        CandleStickChartContainer coinbaseCandleStickChartContainer = new CandleStickChartContainer(coinbase, tradePair1, true);
+        Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+
+        CandleStickChartContainer coinbaseCandleStickChartContainer = new CandleStickChartContainer(coinbase, tradePair1,true);
+        oanda.telegram.setApiKey("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
         CandleStickChartContainer oandaCandleStickChartContainer = new CandleStickChartContainer(oanda, tradePair2, true);
+
         DraggableTab oandaTab = new DraggableTab("Oanda.Com ");
         oandaTab.setContent(new VBox(oandaCandleStickChartContainer));
         DraggableTab binanceTab = new DraggableTab("Binance Us ");

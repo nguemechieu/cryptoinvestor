@@ -20,7 +20,7 @@ import java.util.logging.Logger;
 
 import static tradeexpert.tradeexpert.TradePair.logger;
 
-public abstract class ExchangeWebSocketClient implements WebSocket {
+public abstract class ExchangeWebSocketClient implements javax.websocket.WebSocketContainer {
     protected final BooleanProperty connectionEstablished;
     protected final Map<TradePair, LiveTradesConsumer> liveTradeConsumers = new ConcurrentHashMap<TradePair, LiveTradesConsumer>();
 
@@ -153,11 +153,11 @@ public abstract class ExchangeWebSocketClient implements WebSocket {
     }
 
 
+    public abstract CompletableFuture<WebSocket> sendText(CharSequence data, boolean last);
 
+    public abstract CompletableFuture<WebSocket> sendBinary(ByteBuffer data, boolean last);
 
-
-
-
+    public abstract CompletableFuture<WebSocket> sendPing(ByteBuffer message);
 
     public abstract CompletableFuture<WebSocket> sendPong(ByteBuffer message);
 
@@ -177,5 +177,13 @@ public abstract class ExchangeWebSocketClient implements WebSocket {
     }
 
 
+    public abstract CompletableFuture<WebSocket> sendClose(int statusCode, String reason);
 
+    public abstract String getSubprotocol();
+
+    public abstract boolean isOutputClosed();
+
+    public abstract boolean isInputClosed();
+
+    public abstract void abort();
 }

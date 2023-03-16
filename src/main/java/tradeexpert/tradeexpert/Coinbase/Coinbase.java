@@ -23,6 +23,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -33,6 +34,7 @@ import java.util.concurrent.Future;
 
 import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
+
 
 
 public class Coinbase extends Exchange {
@@ -46,6 +48,7 @@ public class Coinbase extends Exchange {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static final String ur0 = "wss://ws-direct.exchange.coinbase.com";
+    private static final String tocken = "";
 
 
     protected String PASSPHRASE = "w73hzit0cgl";
@@ -56,8 +59,8 @@ public class Coinbase extends Exchange {
 
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
-    public Coinbase() {
-        super(ur0);
+    public Coinbase(String telegramToken) throws IOException, ParseException, InterruptedException, TelegramApiException {
+        super(ur0, telegramToken);
 
 
 

@@ -23,6 +23,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -37,6 +38,8 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 
 public class Oanda extends Exchange {
+
+
     private static String accountID;
     protected String API_KEY;
 
@@ -49,8 +52,8 @@ public class Oanda extends Exchange {
 
 
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-    public Oanda(String api_key, String accountID) {
-        super("wss://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/pricing/stream");
+    public Oanda(String api_key, String accountID,String token) throws IOException, ParseException, InterruptedException, TelegramApiException {
+        super("wss://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/pricing/stream", token);
         this.API_KEY = api_key;
         Oanda.accountID = accountID;
        accounts.setAccountID(accountID);

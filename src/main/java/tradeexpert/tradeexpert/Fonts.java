@@ -19,11 +19,12 @@ package tradeexpert.tradeexpert;
 import javafx.scene.text.Font;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-
-import static tradeexpert.tradeexpert.CandleStickChart.logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class Fonts {
+    private static final Logger logger = LoggerFactory.getLogger(Fonts.class);
     private static final String ROBOTO_LIGHT_NAME;
     private static final String ROBOTO_MEDIUM_NAME;
 

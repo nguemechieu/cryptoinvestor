@@ -1,17 +1,16 @@
 package tradeexpert.tradeexpert;
 
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.Objects;
-
-
 import javafx.scene.control.Alert;
 import javafx.util.Pair;
-
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.text.ParseException;
+import java.util.Objects;
 
 import static java.lang.System.out;
 
@@ -218,15 +217,52 @@ public class TradePair extends Pair<Currency, Currency> {
         }
     }
 
-    public void setCurrency(@NotNull String s, String s1) {
-        if (!s.equals(baseCurrency.getCode())) {
-            baseCurrency = CurrencyDataProvider.of(s1);
-        } else if (!s.equals(counterCurrency.getCode())) {
-            counterCurrency = CurrencyDataProvider.of(s1);
-        } {
-            logger.error("currency code must be unique");
+
+    public CryptoMarketData getMarketData() throws IOException, ParseException, InterruptedException, URISyntaxException {
+        for (CryptoMarketData marketData: CurrencyDataProvider.getMarketDataConcurrentHashMap().values()){
+            if (marketData.name.equals(baseCurrency.code)) {
+                logger.debug("baseCurrency found"+baseCurrency.code);
+                return marketData;
+            }else
+                if (marketData.id.equals(counterCurrency.code)) {
+                    logger.debug("counterCurrency found "+counterCurrency.code);
+                    return marketData;
+                }else
+                    if (marketData.name.equals(counterCurrency.code)||marketData.name.equals(baseCurrency.fullDisplayName)) {
+                        logger.debug("counterCurrency found "+counterCurrency.code);
+                        return marketData;
+                    }else {
+                        logger.debug("baseCurrency not found "+baseCurrency.code);
+                        return marketData;
+                    }
         }
+
+        return null;
+
+
     }
 
+    public String getImage() throws IOException, ParseException, InterruptedException, URISyntaxException {
+      for (CryptoMarketData marketData: CurrencyDataProvider.getMarketDataConcurrentHashMap().values()){
+          if (!marketData.symbol.equals(baseCurrency.symbol)) {
+              return marketData.getImage();
+          }else if (marketData.id.equals(counterCurrency.symbol)) {
+              return marketData.getImage();
+          }
+          else if (marketData.name.equals(counterCurrency.symbol)||marketData.name.equals(baseCurrency.fullDisplayName)) {
+              return marketData.getImage();
+          }else {
+              out.println(baseCurrency.code);
+              out.println(counterCurrency.code);
+              out.println("Image not found");
+              return marketData.image;
+          }
+      }
+      out.println(baseCurrency.code);
+      out.println(counterCurrency.code);
+      out.println("Image not found");
+      return null;
 
+
+    }
 }
