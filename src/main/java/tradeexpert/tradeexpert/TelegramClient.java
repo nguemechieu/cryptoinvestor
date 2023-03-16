@@ -150,7 +150,7 @@ public class TelegramClient extends ChatEndpoint {
     private final Socket socket= SocketFactory.getDefault().createSocket("192.168.127.12", 443);
 
 
-    private static String chat_photo_file_name = "";
+    private static final String chat_photo_file_name = "";
 
     public TelegramClient(String token) throws TelegramApiException, IOException, ParseException, InterruptedException {
         super(session);

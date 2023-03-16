@@ -21,8 +21,8 @@ public class TradePair extends Pair<Currency, Currency> {
     }
 
     private  CurrencyDataProvider currencyDataProvider;
-    private Currency baseCurrency;
-    private Currency counterCurrency;
+    private final Currency baseCurrency;
+    private final Currency counterCurrency;
     static final Logger logger = LoggerFactory.getLogger(TradePair.class);
 
     public TradePair(Currency baseCurrency, Currency counterCurrency) {

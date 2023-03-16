@@ -39,6 +39,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import javafx.util.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -134,8 +135,8 @@ public class CandleStickChart extends Region {
     double close_;
     double open_;
     double volume_;
-    Date openTime_;
-    Date closeTime_;
+    int openTime_;
+    int closeTime_;
 
 
     private static final DecimalFormat MARKER_FORMAT = new DecimalFormat("#.00");
@@ -274,7 +275,7 @@ public class CandleStickChart extends Region {
                 chartWidth = (Math.floor(containerWidth.getValue().doubleValue() / candleWidth) * candleWidth) - 60 +
                         (float) (candleWidth / 2);
                 chartHeight = containerHeight.getValue().doubleValue();
-                canvas = new Canvas(chartWidth - 100, chartHeight - 100);
+                canvas = new Canvas(chartWidth - 100, yAxis.getHeight()+chartHeight);
                 Text infoLabel = new Text(
                         tradePair.getBaseCurrency().code + "/ " + tradePair.getCounterCurrency().code + "\n" +
                                 tradePair.getBaseCurrency().getSymbol() + " - " + tradePair.getCounterCurrency().getSymbol());
@@ -282,7 +283,7 @@ public class CandleStickChart extends Region {
                 infoLabel.setTextAlignment(TextAlignment.CENTER);
                 infoLabel.setFill(Color.WHITE);
                 infoLabel.setWrappingWidth(canvas.getWidth());
-loadingIndicatorContainer.getChildren().add(infoLabel);
+                loadingIndicatorContainer.getChildren().add(infoLabel);
                 StackPane chartStackPane = new StackPane(canvas,loadingIndicatorContainer);
 
                 yAxis.setTranslateX(canvas.getWidth());
@@ -297,8 +298,8 @@ loadingIndicatorContainer.getChildren().add(infoLabel);
                 CompletableFuture.supplyAsync(candleDataPager.getCandleDataSupplier()).thenAccept(
                         candleDataPager.getCandleDataPreProcessor());
                 gotFirstSize.removeListener(this);
-                extraAxis.setTranslateX(-chartWidth+80);
-                extraAxisExtension.setTranslateX(-chartWidth+80);
+                extraAxis.setTranslateX(-chartWidth+chartWidth-canvas.getWidth());
+                extraAxisExtension.setTranslateX(-chartWidth+chartWidth-canvas.getWidth());
             }
 
         };
@@ -335,9 +336,12 @@ loadingIndicatorContainer.getChildren().add(infoLabel);
                 throw new RuntimeException(e);
             }
         });
+        containerWidth.addListener((observable, oldValue, newValue) -> layoutChart());
+        containerHeight.addListener((observable, oldValue, newValue) -> layoutChart());
+        logger.info("Chart initialized");
     }
 
-    private Node loadingIndicator() {
+    private @NotNull HBox  loadingIndicator() {
         Circle circle = new Circle();
         circle.setRadius(10);
         circle.setFill(Color.WHITE);
@@ -350,10 +354,10 @@ loadingIndicatorContainer.getChildren().add(infoLabel);
             circle.setOpacity(0.5);
             circle.setFill(Color.rgb(0, 255,1 ));
             circle.setVisible(false);
-            return circle;
+            return new HBox(circle);
         }
 
-        return circle;
+        return new HBox(circle);
     }
 
     private void initializeEventHandlers() {
@@ -464,8 +468,7 @@ loadingIndicatorContainer.getChildren().add(infoLabel);
         logger.info("xAxis lower bound: " + (int) xAxis.getLowerBound());
         final double idealBufferSpaceMultiplier = 0.35;
         if (!currZoomLevel.getExtremaForCandleRangeMap().containsKey((int) xAxis.getLowerBound())) {
-            // TODO(mike): Does this *always* represent a coding error on our end or can this happen during
-            // normal chart functioning, and could we handle it more gracefully?
+                  // normal chart functioning, and could we handle it more gracefully?
             logger.error("The extrema map did not contain extrema for x-value: " + (int) xAxis.getLowerBound());
             logger.error("extrema map: " + new TreeMap<>(currZoomLevel.getExtremaForCandleRangeMap()));
         }
@@ -771,56 +774,71 @@ loadingIndicatorContainer.getChildren().add(infoLabel);
                     graphicsContext.stroke();
                 }
             }
-
-
             lastClose = candleDatum.getClosePrice();
             candleIndex++;
 
-
             high_ = Math.max(high_, candleDatum.getHighPrice());
-            low_ = Math.min(low_, candleDatum.getLowPrice());
-            close_ = candleDatum.getClosePrice();
-            open_ = candleDatum.getOpenPrice();
-            volume_ = candleDatum.getVolume();
-            openTime_ =
-                    Date.from(Instant.ofEpochMilli(candleDatum.getOpenTime()));
 
-            closeTime_ = Date.from(Instant.ofEpochMilli(candleDatum.getCloseTime()));
+            if (candleDatum.getHighPrice()>high_){
+                high_ = candleDatum.getHighPrice();
 
-
-            Circle statusLabel = new Circle(5);
-            statusLabel.setFill(Color.RED);
-            if (exchange.telegram.isOnline()) {
-                statusLabel.setFill(Color.GREEN);
             }
-
-
-            String low_24h = tradePair.getMarketData().low_24h.isEmpty() ? "N/A" : tradePair.getMarketData().low_24h;
-
-            String high_24h = tradePair.getMarketData().high_24h.isEmpty() ? "N/A" : tradePair.getMarketData().high_24h;
-            priceInfo = new Text(tradePair.getBaseCurrency().currencyType + "-->" + tradePair.getBaseCurrency().fullDisplayName + " / " + tradePair.getCounterCurrency().fullDisplayName +
-                    "      O: " + open_ + " H: " + high_ +
-                    "  L: " + low_ +
-                    "  C: " + close_ + " Last Close: " + lastClose +
-                    "  Volume: " + volume_ + "\n  O Time: " + openTime_ +
-                    "  C Time: " + closeTime_ + "  24High: " + high_24h + "  24Low: " + low_24h + "      Telegram Bot : " + exchange.telegram.getBotName() + "  " +
-                    (exchange.telegram.isOnline() ? " Online " : " Offline") + "   Trade Mode: " + isAutoTrading(event));
-
-            drawMarketNews(exchange.telegram);
-
-            priceInfo.setFill(Color.WHITE);
-            priceInfo.setTextAlignment(TextAlignment.CENTER);
-            priceInfo.setFont(Font.font(FXUtils.getMonospacedFont(), 12));
-            priceInfo.setTranslateY(10);
-            priceInfo.setTranslateX(100);
-
+            else if (candleDatum.getLowPrice()<low_){
+                low_ = candleDatum.getLowPrice();
+            }
+            else if (candleDatum.getClosePrice()>close_){
+                close_ = candleDatum.getClosePrice();
+            }
+            else if (candleDatum.getOpenPrice()<open_){
+                open_ = candleDatum.getOpenPrice();
+            }
+            else if (candleDatum.getVolume()>volume_){
+                volume_ = candleDatum.getVolume();
+            }
+            openTime_ = (int)Math.max(open_, candleDatum.getOpenTime());
+            if (candleDatum.getOpenTime()>openTime_){
+                openTime_ = candleDatum.getOpenTime();
+            }
+            closeTime_ = (int)Math.max(close_, candleDatum.getCloseTime());
+            if (candleDatum.getCloseTime()>closeTime_){
+                closeTime_ = candleDatum.getCloseTime();
+            }
 
 
         }
 
 
+        Circle statusLabel = new Circle(5);
+        statusLabel.setCenterX(canvas.getWidth() -20);
+        statusLabel.setCenterY(20);
+        statusLabel.setFill(Color.RED);
+        if (exchange.telegram.isOnline()) {
+            statusLabel.setFill(Color.GREEN);
+        }
+        getChildren().add(statusLabel);
 
-        getChildren().addAll(priceInfo);
+
+        String low_24h = tradePair.getMarketData().low_24h.isEmpty() ? "N/A" : tradePair.getMarketData().low_24h;
+
+        String high_24h = tradePair.getMarketData().high_24h.isEmpty() ? "N/A" : tradePair.getMarketData().high_24h;
+        priceInfo = new Text(tradePair.getBaseCurrency().currencyType + "-->" + tradePair.getBaseCurrency().fullDisplayName + " / " + tradePair.getCounterCurrency().fullDisplayName +
+                "      O: " + open_ + " H: " + high_ +
+                "  L: " + low_ +
+                "  C: " + close_ + " Last Close: " + lastClose +
+                "  Volume: " + volume_ + "\n  O Time: " + Date.from(Instant.ofEpochMilli(openTime_)) +
+                "  C Time: " + Date.from(Instant.ofEpochMilli(closeTime_)) + "  24High: " + high_24h + "  24Low: " + low_24h + "      Telegram Bot : " + exchange.telegram.getBotName() + "  " +
+                (exchange.telegram.isOnline() ? " Online " : " Offline") + "   Trade Mode: " + isAutoTrading(event));
+
+        drawMarketNews(exchange.telegram);
+
+        priceInfo.setFill(Color.WHITE);
+        priceInfo.setTextAlignment(TextAlignment.CENTER);
+        priceInfo.setFont(Font.font(FXUtils.getMonospacedFont(), 12));
+        priceInfo.setTranslateY(10);
+        priceInfo.setTranslateX(100);
+
+
+        getChildren().add(priceInfo);
         // Draw arrows to the extrema for the currently visible candles (helps to easily see the highs and lows of
         // the current range without needing to visually trace to the axis).
         graphicsContext.setFont(canvasNumberFont);
@@ -1141,6 +1159,9 @@ loadingIndicatorContainer.getChildren().add(infoLabel);
     }
 
     public void setNewsChart() {
+
+        VBox symbolBox = new VBox();
+        symbolBox.getStyleClass().add("symbol-box");
     }
 
     private class SizeChangeListener extends DelayedSizeChangeListener {
