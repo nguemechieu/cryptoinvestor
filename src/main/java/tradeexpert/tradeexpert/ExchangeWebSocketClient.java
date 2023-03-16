@@ -9,6 +9,7 @@ import  org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
@@ -113,7 +114,7 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
         return webSocketInitializedLatch;
     }
 
-    public void streamLiveTrades(TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
+    public void streamLiveTrades(TradePair tradePair, LiveTradesConsumer liveTradesConsumer) throws IOException, InterruptedException {
         liveTradeConsumers.put(tradePair, liveTradesConsumer);
         if (connectionEstablished.get()) {
             liveTradesConsumer.onConnectionEstablished();
@@ -128,7 +129,11 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
                     e.printStackTrace();
                 }
                 if (connectionEstablished.get()) {
-                    liveTradesConsumer.onConnectionEstablished();
+                    try {
+                        liveTradesConsumer.onConnectionEstablished();
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
                 else {
                     liveTradesConsumer.onConnectionFailed();

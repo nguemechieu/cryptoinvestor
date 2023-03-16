@@ -2,6 +2,7 @@ package tradeexpert.tradeexpert;
 
 public class CryptoMarketData {
 
+    public Double last_close;
     private  String athChangePercentage;
     private  String lastUpdated;
     private  String athDate;

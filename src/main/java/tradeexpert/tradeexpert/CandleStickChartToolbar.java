@@ -148,8 +148,7 @@ public class CandleStickChartToolbar extends Region {
         BooleanProperty gotFirstSize = new SimpleBooleanProperty(false);
         final SizeChangeListener sizeListener = new SizeChangeListener(gotFirstSize, containerWidth,
                 containerHeight);
-        containerWidth.addListener(sizeListener);
-        containerHeight.addListener(sizeListener);
+
         ChangeListener<? super Boolean> gotFirstSizeChangeListener = new ChangeListener<>() {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
@@ -181,13 +180,8 @@ public class CandleStickChartToolbar extends Region {
                     tool.setOnAction(event -> secondsPerCandle.setValue(tool.duration));
                 } else if (tool.tool != null && tool.tool.isZoomFunction()) {
                     tool.setOnAction(event -> {
-                        try {
-                            candleStickChart.changeZoom(
-                                    tool.tool.getZoomDirection());
-                        } catch (TelegramApiException | ParseException | IOException | InterruptedException |
-                                 URISyntaxException e) {
-                            throw new RuntimeException(e);
-                        }
+                        candleStickChart.changeZoom(
+                                tool.tool.getZoomDirection());
                     });
 
 

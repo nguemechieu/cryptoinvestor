@@ -15,6 +15,7 @@ public class InProgressCandle {
     private boolean placeHolder;
 
     private int closeTime;
+    private int closePriceSoFar;
 
     public int getCloseTime() {
         return closeTime;
@@ -136,5 +137,25 @@ public class InProgressCandle {
     public int hashCode() {
         return Objects.hash(openTime, openPrice, highPriceSoFar, lowPriceSoFar, currentTill, lastPrice, volumeSoFar,
                 visible, placeHolder);
+    }
+
+    public void setOpenPriceSoFar(int i) {
+        this.openPrice = i;
+    }
+
+    public void setClosePriceSoFar(int i) {
+            this.closePriceSoFar = i;
+    }
+
+    public int getClosePriceSoFar() {
+        return closePriceSoFar;
+    }
+
+    public void setOpenTimeSoFar(int i) {
+        this.openTime = i;
+    }
+
+    public void setCloseTimeSoFar(int i) {
+        this.closeTime = i;
     }
 }

@@ -838,7 +838,7 @@ public class TelegramClient extends ChatEndpoint {
         return ("&force_reply=" + false + "&input_field_placeholder=" + 0 + "&selective=" + false);
     }
 
-    public void sendMessage(String text) throws IOException, InterruptedException {
+    public void sendMessage(Object text) throws IOException, InterruptedException {
 // String data = "key=" + API_KEY + "&chat_id=" + chatId + "&text=" + text + "&parse_mode=Markdown";
         boolean one_time_keyboard = false;
         String input_field_placeholder = "";
@@ -849,12 +849,12 @@ public class TelegramClient extends ChatEndpoint {
         sendChatAction(ENUM_CHAT_ACTION.typing);
         String url = "https://api.telegram.org";
 
-        HttpResponse<String> response = null;
+        HttpResponse<String> response ;
 
         try {
 
 
-            String path = "/bot" + getToken() + "/sendMessage?chat_id=" + getChatId() + "&text=" + text;//params;
+            String path = "/bot" + getToken() + "/sendMessage?chat_id=" + getChatId() + "&text=" + text+params;
             String url2 = url + path;
 
             HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url2).openConnection();
@@ -873,7 +873,7 @@ public class TelegramClient extends ChatEndpoint {
 
             response = HttpClient.newHttpClient().send(HttpRequest.newBuilder()
                   .uri(URI.create(url2))
-                  .POST(HttpRequest.BodyPublishers.ofString(params))
+                  .POST(HttpRequest.BodyPublishers.noBody())
                   .build(), HttpResponse.BodyHandlers.ofString());
 
 
@@ -893,7 +893,7 @@ public class TelegramClient extends ChatEndpoint {
 
     }
 
-    @Contract(mutates = "this")
+
     private @NotNull String ReplyKeyboardMarkup() {
 
 
