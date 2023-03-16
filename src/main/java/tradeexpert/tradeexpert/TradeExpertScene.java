@@ -53,9 +53,9 @@ public class TradeExpertScene extends AnchorPane {
         ordersBox.setTranslateY(650);
         ordersBox.setPrefSize(1300, 650);
 
-        TradePair tradePair1=TradePair.of("ETH","USD");
+        TradePair tradePair1=TradePair.of("UNI","USD");
 
-        Oanda oanda = new Oanda("77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99", "001-001-2783446-002",TELEGRAM_API_INFO.TELEGRAM_API_KEY.toString());
+        Oanda oanda = new Oanda("77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99", "001-001-2783446-002","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
 
         TradePair tradePair=TradePair.of("LTC","USD");
 
@@ -65,7 +65,7 @@ public class TradeExpertScene extends AnchorPane {
 
         out.println("Coinbase us tradePair "+tradePair1.toString('-'));
 
-        TradePair tradePair2=TradePair.of("USD","CAD");
+        TradePair tradePair2=TradePair.of("US","CAD");
 
         out.println("Oanda us tradePair "+tradePair2.toString('_'));
         BinanceUs binance = new BinanceUs(BINANCE_ACCESS_TOKEN, BINANCE_ACCESS_SECRET, BINANCE_ACCESS_PASSWORD,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo" );

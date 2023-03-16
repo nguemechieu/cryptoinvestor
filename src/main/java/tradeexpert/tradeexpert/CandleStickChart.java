@@ -6,6 +6,8 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableNumberValue;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -14,7 +16,7 @@ import javafx.geometry.VPos;
 import javafx.scene.Cursor;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.chart.Axis;
+import javafx.scene.chart.*;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.image.Image;
@@ -26,12 +28,16 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Pair;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -124,7 +130,7 @@ public class CandleStickChart extends Region {
 
     private static final DecimalFormat MARKER_FORMAT = new DecimalFormat("#.00");
     private static final Logger logger = LoggerFactory.getLogger(CandleStickChart.class);
-    private ArrayList<CandleData> candleData = new ArrayList<>();
+    private final ArrayList<CandleData> candleData = new ArrayList<>();
     private ActionEvent events;
 
     /**
@@ -145,7 +151,6 @@ public class CandleStickChart extends Region {
     CandleStickChart(Exchange exchange, CandleDataSupplier candleDataSupplier, TradePair tradePair,
                      boolean liveSyncing, int secondsPerCandle, ObservableNumberValue containerWidth,
                      ObservableNumberValue containerHeight) {
-        this.candleData = candleData;
         Objects.requireNonNull(exchange);
         Objects.requireNonNull(candleDataSupplier);
         Objects.requireNonNull(tradePair);
@@ -295,7 +300,7 @@ for (CandleData i : candleData) {
                 int openTime_= 8;////CandleStickChart.this.candleData.get(0).getOpenTime();
                 int closeTime_= 9;//CandleStickChart.this.candleData.get(0).getCloseTime();
 
-                double high_ = CandleStickChart.this.candleData.get(0).getHighPrice();
+                double high_ =0;// CandleStickChart.this.candleData.get(0).getHighPrice();
 
                 for (CandleData candleDatum : CandleStickChart.this.candleData) {
                     double high_0 = candleDatum.getHighPrice();
@@ -321,6 +326,17 @@ for (CandleData i : candleData) {
                     if (candleDatum.getCloseTime() > closeTime_) {
                         closeTime_ = candleDatum.getCloseTime();
                     }
+                    candleData.add(
+                            new CandleData(
+                                    candleDatum.getCloseTime(),
+                                    candleDatum.getClosePrice(),
+                                    candleDatum.getOpenTime(),
+                                    candleDatum.getOpenPrice(),
+                                    candleDatum.getCloseTime(),
+
+                                    candleDatum.getVolume()
+                            )
+                    );
 
 
                 }
@@ -353,24 +369,27 @@ for (CandleData i : candleData) {
 
                 Text priceInfo ;
                 try {
-                    priceInfo = new Text(tradePair.getBaseCurrency().currencyType + "-->" + tradePair.getBaseCurrency().fullDisplayName + " / " + tradePair.getCounterCurrency().fullDisplayName +
-                            "      O: " + open_ + " H: " + high_ +
+                    priceInfo = new Text(tradePair.getBaseCurrency().currencyType + "-->" + tradePair.getBaseCurrency().fullDisplayName + " / " + tradePair.getCounterCurrency().fullDisplayName + "      O: " + open_ + " H: " + high_ +
                             "  L: " + low_ +
                             "  C: " + close_ + " Last Close: " + tradePair.getMarketData().last_close +
-                            "  Volume: " + volume_ + "\n  O Time: " + Date.from(Instant.ofEpochMilli(openTime_)) +
-                            "  C Time: " + Date.from(Instant.ofEpochMilli(closeTime_)) + "  24High: " + high_24h + "  24Low: " + low_24h + "      Telegram Bot : " + exchange.telegram.getBotName() + "  " +
-                            (exchange.telegram.isOnline() ? " Online " : " Offline") + "   Trade Mode: " + isAutoTrading(events));
+                            "  Volume: " + volume_ + "  O Time: " + Date.from(Instant.ofEpochMilli(openTime_)) +
+                            "  C Time: " + Date.from(Instant.ofEpochMilli(closeTime_)) + " \n                               24High: " + high_24h + "  24Low: " + low_24h + "      Telegram Bot : " + exchange.telegram.getBotName() + "  " +
+                            (exchange.telegram.isOnline() ? " Online " : " Offline   ") + exchange.telegram.NetworkError()+ "   Trade Mode: " + isAutoTrading(events));
                 } catch (IOException | ParseException | InterruptedException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
 
-                drawMarketNews(exchange.telegram);
+                //drawMarketNews(exchange.telegram);
 
-                priceInfo.setFill(Color.WHITE);
+                priceInfo.setFill(Color.YELLOW);
                 priceInfo.setTextAlignment(TextAlignment.CENTER);
                 priceInfo.setFont(Font.font(FXUtils.getMonospacedFont(), 12));
-                priceInfo.setTranslateY(chartWidth/3);
-                priceInfo.setTranslateX(-chartWidth+20);
+                priceInfo.setWrappingWidth(canvas.getWidth() - 20);
+                priceInfo.setTranslateY(5);
+                if (exchange.telegram.isOnline()) {
+                    priceInfo.setFill(Color.WHITE);
+                }
+
                 try {
                     graphicsContext.drawImage(new Image(tradePair.getMarketData().getImage()), 0, 0);
                 } catch (IOException | ParseException | InterruptedException | URISyntaxException e) {
@@ -1090,38 +1109,329 @@ for (CandleData i : candleData) {
     }
 
     public void setAreaChart() {
+        //Draw the area chart
+        ObservableList<CandleData> observableList = null;
+        for (CandleData candleData : data.values()) {
+            observableList = FXCollections.observableArrayList(
+                    new CandleData(candleData.getOpenPrice(), candleData.getClosePrice(), candleData.getHighPrice(), candleData.getLowPrice(),
+                            candleData.getOpenTime(), candleData.closeTime));
+        }
+
+        AreaChart areaChart = new AreaChart(xAxis,yAxis,observableList);
+        areaChart.setPrefSize(chartWidth, chartHeight);
+        areaChart.setCenterShape(false);
+        getChildren().add(areaChart);
     }
 
     public void setVolumeChart() {
+
+
+        Axis<Number> xAxis1=
+                new Axis<>() {
+                    @Contract(pure = true)
+                    @Override
+                    protected @Nullable Object autoRange(double length) {
+                        return null;
+                    }
+
+                    @Override
+                    protected void setRange(Object range, boolean animate) {
+
+                    }
+
+                    @Override
+                    protected Object getRange() {
+                        return null;
+                    }
+
+                    @Override
+                    public double getZeroPosition() {
+                        return 0;
+                    }
+
+                    @Override
+                    public double getDisplayPosition(Number value) {
+                        return 0;
+                    }
+
+                    @Override
+                    public Number getValueForDisplay(double displayPosition) {
+                        return null;
+                    }
+
+                    @Override
+                    public boolean isValueOnAxis(Number value) {
+                        return false;
+                    }
+
+                    @Override
+                    public double toNumericValue(Number value) {
+                        return 0;
+                    }
+
+                    @Override
+                    public Number toRealValue(double value) {
+                        return null;
+                    }
+
+                    @Override
+                    protected List<Number> calculateTickValues(double length, Object range) {
+                        return null;
+                    }
+
+                    @Override
+                    protected String getTickMarkLabel(Number value) {
+                        return null;
+                    }
+
+
+                };
+
+        Axis<Number> yAxis =new Axis<Number>() {
+            @Override
+            protected Object autoRange(double length) {
+                    return null;
+            }
+
+            @Override
+            protected void setRange(Object range, boolean animate) {
+
+            }
+
+            @Override
+            protected Object getRange() {
+                return null;
+            }
+
+            @Override
+            public double getZeroPosition() {
+                return 0;
+            }
+
+            @Override
+            public double getDisplayPosition(Number value) {
+                return 0;
+            }
+
+            @Override
+            public Number getValueForDisplay(double displayPosition) {
+                return null;
+            }
+
+            @Override
+            public boolean isValueOnAxis(Number value) {
+                return false;
+            }
+
+            @Override
+            public double toNumericValue(Number value) {
+                return 0;
+            }
+
+            @Override
+            public Number toRealValue(double value) {
+                return null;
+            }
+
+            @Override
+            protected List<Number> calculateTickValues(double length, Object range) {
+                return null;
+            }
+
+            @Override
+            protected String getTickMarkLabel(Number value) {
+                return null;
+            }
+        };
+        ObservableList<XYChart.Series<Number, Number>> observableList1=
+                FXCollections.observableArrayList();
+
+        BarChart<Number,Number> volumeChart = new BarChart<>(xAxis1,yAxis,observableList1);
+        volumeChart.setPrefSize(chartWidth, chartHeight);
+        volumeChart.setCenterShape(false);
+        getChildren().add(volumeChart);
     }
 
-    public void setBarChart() {
-    }
+    public void drawLineChart() {
+        //Draw the bar chart
 
-    public void setNewsChart() {
-    }
+        ObservableList<XYChart.Series<Number, Number>> data1 = FXCollections.observableArrayList();
+        for (CandleData candleData : data.values()) {
 
-    public void setLineChart() {
-    }
 
+            ObservableList<XYChart.Data<Number,Number>> da2=
+                    FXCollections.observableArrayList(
+                            new XYChart.Data<>(candleData.getOpenPrice(), candleData.getClosePrice()),
+                            new XYChart.Data<>(candleData.getClosePrice(), candleData.getOpenPrice()));
+
+            data1.add(new XYChart.Series<>(Date.from(Instant.ofEpochSecond(candleData.getOpenTime())).toString(), da2));
+           }
+        final LineChart<Number,Number> lineChart = new LineChart<>(xAxis,yAxis,data1);
+
+        lineChart.setTitle("Stock Monitoring, 2010");
+        lineChart.setLegendVisible(false);
+        lineChart.setLegendSide(Side.BOTTOM);
+        getChildren().add(lineChart);
+        //defining a series
+
+
+    }
     public void setPieChart() {
+        //Draw the pie chart
+        ObservableList<PieChart.Data> observableList = null;
+        for (CandleData candleData : data.values()) {
+            observableList = FXCollections.observableArrayList(
+                    new PieChart.Data("High", candleData.getHighPrice()),
+                    new PieChart.Data("Medium", candleData.getAveragePrice()),
+                    new PieChart.Data("Low", candleData.getLowPrice())
+            );
+        }
+        PieChart pieChart = new PieChart(observableList);
+        pieChart.setPrefSize(chartWidth, chartHeight);
+        pieChart.setCenterShape(false);
+
+        graphicsContext.setFill(Color.WHITE);
+        graphicsContext.fillRect(0, 0, chartWidth, chartHeight);
+        graphicsContext.setStroke(Color.YELLOW);
+        graphicsContext.setLineWidth(2);
+        getChildren().add(pieChart);
     }
 
     public void setScatterChart() {
+        //Draw the scatter chart
+        ObservableList<XYChart.Series> observableList= FXCollections.observableArrayList();
+        for (CandleData candleData : data.values()) {
+            ObservableList<XYChart.Data> data0=
+                    FXCollections.observableArrayList(
+                            new XYChart.Data(candleData.getOpenPrice(), candleData.getClosePrice()));
+            observableList.add(new XYChart.Series(Date.from(Instant.ofEpochSecond(candleData.getOpenTime())).toString(), data0));
+        }
+
+        ScatterChart scatterChart = new ScatterChart(xAxis,yAxis,observableList);
+        scatterChart.setPrefSize(chartWidth, chartHeight);
+        scatterChart.setCenterShape(false);
+        getChildren().add(scatterChart);
     }
 
     public void setHistogramChart() {
+        //Draw the histogram chart
+        graphicsContext.setFill(Color.WHITE);
+        graphicsContext.fillRect(0, 0, chartWidth, chartHeight);
+        graphicsContext.setStroke(Color.BLACK);
+        graphicsContext.setLineWidth(2);
+        graphicsContext.strokeRect(0, 0, chartWidth, chartHeight);
+        graphicsContext.setLineWidth(1);
+        graphicsContext.strokeLine(0, 0, chartWidth, 0);
+        graphicsContext.strokeLine(0, chartHeight, 0, chartHeight);
+        graphicsContext.strokeLine(chartWidth, 0, chartWidth, chartHeight);
+        graphicsContext.strokeLine(0, 0, 0, chartHeight);
+        graphicsContext.strokeLine(chartWidth, chartHeight, chartWidth, chartHeight);
+        graphicsContext.strokeLine(0, chartHeight, chartWidth, 0);
     }
 
     public void setCurrencyChart() {
+        //Draw the currency chart
+        graphicsContext.setFill(Color.WHITE);
+        graphicsContext.fillRect(0, 0, chartWidth, chartHeight);
+        graphicsContext.setStroke(Color.BLACK);
+        graphicsContext.setLineWidth(2);
+        graphicsContext.strokeRect(0, 0, chartWidth, chartHeight);
+        graphicsContext.setLineWidth(1);
+        graphicsContext.strokeLine(0, 0, chartWidth, 0);
+        graphicsContext.strokeLine(0, chartHeight, 0, chartHeight);
+        graphicsContext.strokeLine(chartWidth, 0, chartWidth, chartHeight);
+        graphicsContext.strokeLine(0, chartHeight, chartWidth, 0);
+        graphicsContext.strokeLine(chartWidth, chartHeight, chartWidth, chartHeight);
+        graphicsContext.strokeLine(0, chartHeight, chartWidth, 0);
     }
 
-    public void setEvent(ActionEvent event) {
-    }
+
 
     public void setEvents(ActionEvent events) {
         this.events = events;
     }
+
+    public void setLineChart() {
+        drawLineChart();
+
+    }
+
+    public void setBarChart() {
+        drawBarChart();
+    }
+
+    private void drawBarChart() {
+        ObservableList<XYChart.Series<Number, Number>> seriesList = FXCollections.observableArrayList();
+        for (CandleData candleData : data.values()) {
+            ObservableList<XYChart.Data<Number, Number>> observableList=
+                    FXCollections.observableArrayList(
+                            new XYChart.Data<>(candleData.getOpenPrice(), candleData.getClosePrice()),
+                            new XYChart.Data<>(candleData.getOpenPrice(), candleData.getClosePrice())
+                    );
+            seriesList.add(new XYChart.Series<>(Date.from(Instant.ofEpochSecond(candleData.getOpenTime())).toString(),observableList));
+            seriesList.add(new XYChart.Series<>(Date.from(Instant.ofEpochSecond(candleData.getOpenTime())).toString(),observableList));
+        }
+        Axis<Number> xAxis=new NumberAxis();
+        BarChart<Number, Number> barChart = new BarChart<>(xAxis,yAxis,seriesList);
+        barChart.setTitle("Stock Monitoring, 2010");
+        barChart.setLegendVisible(false);
+        barChart.setLegendSide(Side.BOTTOM);
+        getChildren().add(barChart);
+    }
+
+    public void setNewsChart() throws ParseException {
+        drawNewsChart();
+    }
+
+    private void drawNewsChart() throws ParseException {
+        //News chart
+        graphicsContext.setFill(Color.WHITE);
+        graphicsContext.fillRect(0, 0, chartWidth, chartHeight);
+        graphicsContext.setStroke(Color.BLACK);
+        graphicsContext.setLineWidth(2);
+        graphicsContext.strokeRect(0, 0, chartWidth, chartHeight);
+        graphicsContext.setLineWidth(1);
+        graphicsContext.strokeLine(0, 0, chartWidth, 0);
+        graphicsContext.strokeLine(0, chartHeight, 0, chartHeight);
+        graphicsContext.strokeLine(chartWidth, 0, chartWidth, chartHeight);
+        graphicsContext.strokeLine(0, chartHeight, chartWidth, chartHeight);
+        graphicsContext.strokeLine(chartWidth, chartHeight, chartWidth, 0);
+        graphicsContext.strokeLine(0, chartHeight, chartWidth, chartHeight);
+
+        ArrayList<News> news = exchange.telegram.getMarketNews();
+        for (News n : news) {
+            Text text = new Text(n.getTitle());
+            text.setFont(Font.font(19));
+            text.setFill(Color.BLACK);
+            text.setTextAlignment(TextAlignment.CENTER);
+            text.setX(chartWidth / 2);
+            text.setY(chartHeight / 2);
+            switch (n.getImpact()) {
+                case "High" -> {
+                    text.setFill(Color.RED);
+                    graphicsContext.setStroke(Color.RED);
+                    graphicsContext.setLineWidth(2);
+                }
+                case "Medium" -> {
+                    text.setFill(Color.YELLOW);
+                    graphicsContext.setStroke(Color.YELLOW);
+                    graphicsContext.setLineWidth(2);
+                }
+                case "Low" -> {
+                    text.setFill(Color.GREEN);
+                    graphicsContext.setStroke(Color.GREEN);
+                    graphicsContext.setLineWidth(2);
+                    graphicsContext.setLineJoin(StrokeLineJoin.ROUND);
+                    graphicsContext.setLineCap(StrokeLineCap.ROUND);
+                    graphicsContext.strokeLine(chartWidth / 2, chartHeight / 2, 0, chartHeight / 2);
+                }
+            }
+            graphicsContext.setLineJoin(StrokeLineJoin.ROUND);
+            chartStackPane.getChildren().add(text);
+
+        }
+    }
+
 
     private class SizeChangeListener extends DelayedSizeChangeListener {
         SizeChangeListener(BooleanProperty gotFirstSize, ObservableValue<Number> containerWidth,

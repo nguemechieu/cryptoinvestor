@@ -8,16 +8,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d1c81200-6c74-4a9a-a0c9-29990434128d" name="Changes" comment="good screen">
-      <change afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/UpdateCandlesMessage.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChart.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChart.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartToolbar.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartToolbar.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CryptoMarketData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CryptoMarketData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ExchangeWebSocketClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ExchangeWebSocketClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/InProgressCandle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/InProgressCandle.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/LiveTradesConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/LiveTradesConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TELEGRAM_API_INFO.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TelegramClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TelegramClient.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ZoomLevel.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ZoomLevel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpert.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpert.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpertScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpertScene.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -204,7 +201,14 @@
       <option name="project" value="LOCAL" />
       <updated>1678946680865</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="good screen">
+      <created>1678964786943</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1678964786943</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

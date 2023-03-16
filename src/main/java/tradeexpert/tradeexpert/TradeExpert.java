@@ -6,7 +6,6 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URI;
 import java.util.Objects;
 
 public class TradeExpert extends Application {

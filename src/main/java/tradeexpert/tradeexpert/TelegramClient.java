@@ -151,6 +151,7 @@ public class TelegramClient extends ChatEndpoint {
 
 
     private static final String chat_photo_file_name = "";
+    private static String networkError;
 
     public TelegramClient(String token) throws TelegramApiException, IOException, ParseException, InterruptedException {
         super(session);
@@ -357,8 +358,12 @@ public class TelegramClient extends ChatEndpoint {
                 alert.setHeaderText(response.statusCode() + "");
                 alert.setContentText(response.headers().firstValue("Content-Type").get() );
                 alert.showAndWait();
+                networkError = response.headers().firstValue("Content-Type").get();
+
             }
-        } catch (Exception e) {
+
+
+        } catch (Exception e) {networkError = e.getMessage();
             out.println(e.getMessage());
         }
         assert response != null;
@@ -2372,6 +2377,10 @@ public class TelegramClient extends ChatEndpoint {
 
     public String getBotName() {
         return getLastName();
+    }
+
+    public String NetworkError() {
+        return networkError;
     }
 
 

@@ -216,7 +216,13 @@ public class CandleStickChartToolbar extends Region {
                 }else if (tool.tool!= null && tool.tool.isBar()) {
                     tool.setOnAction(event -> candleStickChart.setBarChart());
                 }else if (tool.tool!= null && tool.tool.isNews()) {
-                    tool.setOnAction(event -> candleStickChart.setNewsChart());
+                    tool.setOnAction(event -> {
+                        try {
+                            candleStickChart.setNewsChart();
+                        } catch (ParseException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
                 }
 
                 else if (tool.tool!= null && tool.tool.isLine()) {
