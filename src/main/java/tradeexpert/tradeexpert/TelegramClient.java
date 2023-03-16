@@ -1,6 +1,7 @@
 package tradeexpert.tradeexpert;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.google.gson.Gson;
 import javafx.animation.Animation;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
@@ -13,10 +14,7 @@ import org.json.JSONObject;
 
 import javax.net.SocketFactory;
 import javax.websocket.Session;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URI;
@@ -29,10 +27,12 @@ import java.text.ParseException;
 import java.util.*;
 
 import static java.lang.System.out;
-
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 //  makeRequest("https://api.telegram.org/bot" + token + "/setWebhook");
 public class TelegramClient extends ChatEndpoint {
+    private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
 
 
     public static final ArrayList<Chat> ArrayListChat = new ArrayList<>();
@@ -810,8 +810,18 @@ public class TelegramClient extends ChatEndpoint {
     }
 
     void run() throws IOException, InterruptedException, ParseException {
-        getMe();//initialize the chat client
-        getUpdates();// update the chat client
+
+
+      if (isOnline()){
+          getUpdates();// update the chat client
+        if (getUpdates().length() > 0) {
+
+            //Trade news on
+            newsTrade();
+        }
+
+      }
+
 
 
     }
@@ -843,73 +853,98 @@ public class TelegramClient extends ChatEndpoint {
         return ("&force_reply=" + false + "&input_field_placeholder=" + 0 + "&selective=" + false);
     }
 
-    public void sendMessage(Object text) throws IOException, InterruptedException {
-// String data = "key=" + API_KEY + "&chat_id=" + chatId + "&text=" + text + "&parse_mode=Markdown";
-        boolean one_time_keyboard = false;
+    public void sendMessage(String text) throws IOException, InterruptedException {
+
+        String path =   getToken()+ "/sendMessage";//&chat_id=" + chatId + "&text=" + text + "&parse_mode=Markdown";
+
+
+        boolean one_time_keyboard = true;
         String input_field_placeholder = "";
-        boolean selective = false;//"&chat_id=" + chatId + "&text=" + text + "&parse_mode=Markdown";
-        String params =//"as_HTML="+true + "silently="+true;
-                "&parse_mode=Markdown" + "&disable_notification=" + disable_notification + "&protect_content=" + protect_content + "&allow_sending_without_reply=" + allow_sending_without_reply + "&channel_id=" + getChannel_Id() + "&reply_markup=" + ReplyKeyboardMarkup() + "&force_reply=" + ForceReply() + "&reply_to_message_id=" + getReplyToMessageId() + "&one_time_keyboard=" + one_time_keyboard + "&input_field_placeholder=" + input_field_placeholder + "&selective=" + selective;
+        boolean selective = true;//"&chat_id=" + chatId + "&text=" + text + "&parse_mode=Markdown";
+       String params ="as_HTML="+true + "silently="+true;
+              //"&parse_mode=Markdown" + "&disable_notification=" + disable_notification + "&protect_content=" + protect_content + "&allow_sending_without_reply=" + allow_sending_without_reply + "&channel_id=" + getChannel_Id() + "&reply_markup=" + ReplyKeyboardMarkup() + "&force_reply=" + ForceReply() + "&reply_to_message_id=" + getReplyToMessageId() + "&one_time_keyboard=" + one_time_keyboard + "&input_field_placeholder=" + input_field_placeholder + "&selective=" + selective;
 
-        sendChatAction(ENUM_CHAT_ACTION.typing);
-        String url = "https://api.telegram.org";
-
+       sendChatAction(ENUM_CHAT_ACTION.typing);
+        String url = "https://api.telegram.org/bot";
+//setHost("https://api.telegram.org");
         HttpResponse<String> response ;
 
-        try {
-
-
-            String path = "/bot" + getToken() + "/sendMessage?chat_id=" + getChatId() + "&text=" + text+params;
-            String url2 = url + path;
-
-            HttpURLConnection httpURLConnection = (HttpURLConnection) new URL(url2).openConnection();
-            httpURLConnection.setRequestMethod("POST");
-            httpURLConnection.setRequestProperty("Content-Type",
-                    "application/x-www-form-urlencoded");
-            httpURLConnection.setRequestProperty("Accept",
-                    "application/json");
-
-            httpURLConnection.setDoOutput(true);
-            httpURLConnection.setDoInput(true);
-            httpURLConnection.setUseCaches(false);
-            httpURLConnection.connect();
-            out.println(url2);
-            out.println(params);
-
-            response = HttpClient.newHttpClient().send(HttpRequest.newBuilder()
-                  .uri(URI.create(url2))
-                  .POST(HttpRequest.BodyPublishers.noBody())
-                  .build(), HttpResponse.BodyHandlers.ofString());
+//        private static final String INSTANCE_ID = "YOUR_INSTANCE_ID_HERE";
+//        private static final String CLIENT_ID = "YOUR_CLIENT_ID_HERE";
+//        private static final String CLIENT_SECRET = "YOUR_CLIENT_SECRET_HERE";
+//        private static final String TG_GATEWAY_URL = "https://api.whatsmate.net/v3/telegram/group/text/message/" + INSTANCE_ID;
 
 
 
-            if (response.statusCode() != 200) {
-                isOnline = false;
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText(response.statusCode() + "");
-                alert.setContentText(response.headers().firstValue("Content-Type").get() );
-                alert.showAndWait();
+            String group_name = "Muscle Men Club";  //  TODO: Specify the group name here.
+            String group_admin = "19159876123";     //  TODO: Specify the number of the group admin here.
+            String message = "Your six-pack is on the way!";
+
+          //  TelegramGroupTextSender.sendGroupMessage(group_name, group_admin, message);
+
+
+        /**
+         * Sends out a group message via WhatsMate Telegram Gateway.
+         */
+      //  public static void sendGroupMessage(String group_name, String group_admin, String message) throws Exception {
+            // TODO: Should have used a 3rd party library to make a JSON string from an object
+            String jsonPayload = new StringBuilder()
+                    .append("{").append("\"chat_id\": \"").append(getChatId()).append("\",")
+                    .append("\"text\":\"")
+                    .append(text)
+                    .append("\",")
+                    .append("\"parse_mode\":\"").append("Markdown")
+                    .append("\"")
+                    .append("}")
+                    .toString();
+
+            URL urls = new URL(url +path);
+
+
+            HttpURLConnection conn = (HttpURLConnection) urls.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("POST");
+           // conn.setRequestProperty("X-WM-CLIENT-ID", 12332);
+            conn.setRequestProperty("Authorization", getToken());
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            OutputStream os = conn.getOutputStream();
+            os.write(jsonPayload.getBytes());
+            os.flush();
+            os.close();
+
+            int statusCode = conn.getResponseCode();
+           logger.info("Telegram "+statusCode + " " + conn.getResponseMessage());
+
+            System.out.println("Status Code: " + statusCode);
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    (statusCode == 200) ? conn.getInputStream() : conn.getErrorStream()
+            ));
+            String output;
+            while ((output = br.readLine()) != null) {
+                logger.info(output);
             }
-        } catch (Exception e) {
-            out.println(e.getMessage());
-        }
+            conn.disconnect();
 
 
     }
 
-
-    private @NotNull String ReplyKeyboardMarkup() {
-
-
-        reply_markup = Arrays.toString(keyboard) +    //Array of KeyboardButton	Array of button rows, each represented by an Array of KeyboardButton objects
-                "&resize_keyboard=" + false +//Boolean	Optional. Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons). Defaults to false, in which case the custom keyboard is always of the same height as the app's standard keyboard.
-                "&one_time_keyboard=" + false +//	Boolean	Optional. Requests clients to hide the keyboard as soon as it's been used. The keyboard will still be available, but clients will automatically display the usual letter-keyboard in the chat - the user can press a special button in the input field to see the custom keyboard again. Defaults to false.
-                "&input_field_placeholder=" + "" +    //String	Optional. The placeholder to be shown in the input field when the keyboard is active; 1-64 characters
-                "&selective=" + false;////Boolean	Optional. Use this parameter if you want to show the keyboard to specific users only. Targets: 1) users that are @mentioned in the text of the Message object; 2) if the bot's message is a reply (has reply_to_message_id), sender of the original message.
-        //       Example: A user requests to change the bots' language, bot replies to the request with a keyboard to select the new language. Other users in the group don't see the keyboard.
-        return "&reply_markup=" + reply_markup;
+    private void setHost(String s) {
+        host = s;
     }
+//
+//
+//    private @NotNull String ReplyKeyboardMarkup() {
+//
+//
+//        reply_markup = Arrays.toString(keyboard) +    //Array of KeyboardButton	Array of button rows, each represented by an Array of KeyboardButton objects
+//                "&resize_keyboard=" + false +//Boolean	Optional. Requests clients to resize the keyboard vertically for optimal fit (e.g., make the keyboard smaller if there are just two rows of buttons). Defaults to false, in which case the custom keyboard is always of the same height as the app's standard keyboard.
+//                "&one_time_keyboard=" + false +//	Boolean	Optional. Requests clients to hide the keyboard as soon as it's been used. The keyboard will still be available, but clients will automatically display the usual letter-keyboard in the chat - the user can press a special button in the input field to see the custom keyboard again. Defaults to false.
+//                "&input_field_placeholder=" + "" +    //String	Optional. The placeholder to be shown in the input field when the keyboard is active; 1-64 characters
+//                "&selective=" + false;////Boolean	Optional. Use this parameter if you want to show the keyboard to specific users only. Targets: 1) users that are @mentioned in the text of the Message object; 2) if the bot's message is a reply (has reply_to_message_id), sender of the original message.
+//        //       Example: A user requests to change the bots' language, bot replies to the request with a keyboard to select the new language. Other users in the group don't see the keyboard.
+//        return "&reply_markup=" + reply_markup;
+//    }
 
     private String getReplyToMessageId() {
         return reply_to_message_id;
@@ -977,18 +1012,77 @@ public class TelegramClient extends ChatEndpoint {
             Screenshot.capture(file);
 
 
-            makeRequest("https://api.telegram.org/bot" + token + "/sendPhoto" + "?chat_id=" + getChatId() +
-                            // "&message_thread_id" +getMessage_thread_id() +
-                            "&photo=" + file.toURI()
-                    //  "&caption=" + getCaption()+
-                    //"&parse_mode=" + getParse_mode() +
-                    // "&caption_entities=" + getCaption_entities()
-                    // "&disable_notification=" + getDisable_notification() +
-                    //"&protect_content=" + protect_content +
-                    //    "&reply_to_message_id=" + getReply_to_message_id()+
-                    //"&allow_sending_without_reply=" + allow_sending_without_reply
-                    //    + "&reply_markup=" + reply_markup
-                    , "POST");
+            //makeRequest("https://api.telegram.org/bot" + token + "/sendPhoto","POST");
+//
+//                            + "?chat_id=" + getChatId() +
+//                            // "&message_thread_id" +getMessage_thread_id() +
+//                            "&photo=" + file.toURI(),
+//                      "&caption=" + getCaption()+
+//                    "&parse_mode=" + getParse_mode() +
+//                     "&caption_entities=" + getCaption_entities()+
+//                     "&disable_notification=" + getDisable_notification() +
+//                    "&protect_content=" + protect_content +
+//                        "&reply_to_message_id=" + getReply_to_message_id()+
+//                    "&allow_sending_without_reply=" + allow_sending_without_reply
+//                        + "&reply_markup=" + reply_markup
+//                    , "POST");
+
+
+
+String url = "https://api.telegram.org/bot" + token + "/sendPhoto";
+            StringBuilder payLoading = new StringBuilder();
+payLoading.append("chat_id=").append(getChatId()).append("\n").append("photo=").append(file.toURI()).append("\n").append("caption=").append(getCaption()).append("\n").append("parse_mode=").append(getParse_mode()).append("\n").append("caption_entities=").append(getCaption_entities()).append("\n").append("disable_notification=").append(getDisable_notification()).append("\n").append("protect_content=").append(protect_content).append("\n").append("reply_to_message_id=").append(getReply_to_message_id()).append("\n").append("allow_sending_without_reply=").append(allow_sending_without_reply).append("\n").append("reply_markup=").append(reply_markup).append("\n");
+
+            String jsonPayload = new StringBuilder()
+                    .append("{").append("\"chat_id\": \"").append(getChatId()).append("\",")
+                    .append("\"photo\":\"")
+                    .append(photo)
+                    .append("\",")
+                    .append("\"parse_mode\":\"").append("Markdown")
+                    .append("\"")
+                    .append("}")
+                    .toString();
+
+            URL urls = new URL(url +path);
+
+
+            HttpURLConnection conn = (HttpURLConnection) urls.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("POST");
+            // conn.setRequestProperty("X-WM-CLIENT-ID", 12332);
+            conn.setRequestProperty("Authorization", getToken());
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setRequestProperty("Content-Length", String.valueOf(jsonPayload.getBytes().length));
+            conn.setRequestProperty("Content-Type", "application/urlencoded");
+
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+
+            OutputStream os = conn.getOutputStream();
+            os.write(jsonPayload.getBytes());
+            os.flush();
+            os.close();
+
+            int statusCode = conn.getResponseCode();
+            logger.info("Telegram "+statusCode + " " + conn.getResponseMessage());
+
+            System.out.println("Status Code: " + statusCode);
+            BufferedReader br = new BufferedReader(new InputStreamReader(
+                    (statusCode == 200) ? conn.getInputStream() : conn.getErrorStream()
+            ));
+            String output;
+            while ((output = br.readLine()) != null) {
+                logger.info(output);
+            }
+            conn.disconnect();
+
+
+
+
+
+
+
+
 
 //
 //            chat_id	Integer or String	Yes	Unique identifier for the target chat or username of the target channel (in the format @channelusername)
@@ -1425,7 +1519,7 @@ public class TelegramClient extends ChatEndpoint {
         makeRequest("https://api.telegram.org/bot" + getToken() + "/leaveChat", "POST");
     }
 
-    public void getUpdates() throws IOException, InterruptedException {
+    public String getUpdates() throws IOException, InterruptedException {
 
         String url = "https://api.telegram.org/bot" + getToken() + "/getUpdates" + "?&offset=" + offset +//\tInteger\tOptional\tIdentifier of the first update to be returned. Must be greater by one than the highest among the identifiers of previously received updates. By default, updates starting with the earliest unconfirmed update are returned. An update is considered confirmed as soon as getUpdates is called with an offset higher than its update_id. The negative offset can be specified to retrieve updates starting from -offset update from the end of the updates queue. All previous updates will forgotten.\n" +
                 "&limit=" + 1 +//\tInteger\tOptional\tLimits the number of updates to be retrieved. Values between 1-100 are accepted. Defaults to 100.\n" +
@@ -1486,7 +1580,7 @@ public class TelegramClient extends ChatEndpoint {
                             if (message.has("parse_mode")) {
                                 parse_mode = message.getString("parse_mode");
                             }
-                            lastMessage=text;
+                            lastMessage = text;
                         }
                         if (message.has("date")) {
                             date = String.valueOf(message.getLong("date"));
@@ -1836,7 +1930,7 @@ public class TelegramClient extends ChatEndpoint {
                             String chatBio = chat.getString("bio");
                         }
                         if (chat.has("description")) {
-                             chatDescription = chat.getString("description");
+                            chatDescription = chat.getString("description");
                         }
                         if (chat.has("invite_link")) {
                             String chatInviteLink = chat.getString("invite_link");
@@ -1983,11 +2077,13 @@ public class TelegramClient extends ChatEndpoint {
                         }
                     }
                 }
-                out.println("Updated successfully");
-                return;
-            }
-            out.println("Something went wrong while updating the bot");
+                logger.info("Updated successfully");
+                return url;
+            }else
+            {logger.info("Something went wrong while updating the bot" + jsonResponse);}
         }
+        return update_id;
+
     }
 
     //

@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -114,10 +115,11 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
         return webSocketInitializedLatch;
     }
 
-    public void streamLiveTrades(TradePair tradePair, LiveTradesConsumer liveTradesConsumer) throws IOException, InterruptedException {
+    public void streamLiveTrades(TradePair tradePair, LiveTradesConsumer liveTradesConsumer) throws IOException, InterruptedException, ParseException {
         liveTradeConsumers.put(tradePair, liveTradesConsumer);
         if (connectionEstablished.get()) {
             liveTradesConsumer.onConnectionEstablished();
+
         }
         else {
             liveTradesConsumer.onConnectionFailed();
@@ -131,7 +133,7 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
                 if (connectionEstablished.get()) {
                     try {
                         liveTradesConsumer.onConnectionEstablished();
-                    } catch (IOException | InterruptedException e) {
+                    } catch (IOException | InterruptedException | ParseException e) {
                         throw new RuntimeException(e);
                     }
                 }

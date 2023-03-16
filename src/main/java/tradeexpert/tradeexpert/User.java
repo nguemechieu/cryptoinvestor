@@ -8,7 +8,6 @@ package tradeexpert.tradeexpert;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import org.hibernate.annotations.Table;
 
 import java.io.Serializable;
@@ -212,8 +211,8 @@ public class User implements Serializable {
         return middlename;
     }
 
-    public void setMiddlename(String middlename) {
-        this.middlename = middlename;
+    public void setMiddlename(String middleName) {
+        this.middlename = middleName;
     }
 
     public String getAddress() {

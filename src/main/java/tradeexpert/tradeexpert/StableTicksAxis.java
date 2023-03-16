@@ -169,9 +169,7 @@ public class StableTicksAxis extends ValueAxis<Number> {
         int floorPow = powersOf10[logFloor];
         switch (mode) {
             case UNNECESSARY:
-                if (x != floorPow) {
-                    throw new ArithmeticException("mode was UNNECESSARY, but rounding was necessary");
-                }
+                if (x != floorPow) throw new ArithmeticException("mode was UNNECESSARY, but rounding was necessary");
                 // fall through
             case FLOOR:
             case DOWN:
@@ -189,10 +187,10 @@ public class StableTicksAxis extends ValueAxis<Number> {
         }
     }
 
-    static int lessThanBranchFree(int x, int y) {
+    static int lessThanBranchFree(int x1, int y1) {
         // The double negation is optimized away by normal Java, but is necessary for GWT
         // to make sure bit twiddling works as expected.
-        return (x - y) >>> (Integer.SIZE - 1);
+        return (x1 - y1) >>> (Integer.SIZE - 1);
     }
 
     /**
@@ -238,7 +236,7 @@ public class StableTicksAxis extends ValueAxis<Number> {
     }
 
     @Override
-    protected Range autoRange(double minValue, double maxValue, double length, double labelSize) {
+    public Range autoRange(double minValue, double maxValue, double length, double labelSize) {
         // NOTE(dweil): if the range is very small, display it like a flat line, the scaling doesn't work very well at
         // these values. 1e-300 was chosen arbitrarily.
         if (Math.abs(minValue - maxValue) < 1e-300) {

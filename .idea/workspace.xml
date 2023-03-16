@@ -8,13 +8,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d1c81200-6c74-4a9a-a0c9-29990434128d" name="Changes" comment="good screen">
+      <change afterPath="$PROJECT_DIR$/src/main/resources/Log.Log" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChart.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChart.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartToolbar.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/CandleStickChartToolbar.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TELEGRAM_API_INFO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/DecodeException.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/DefaultMoney.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/DefaultMoney.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Exchange.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Exchange.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ExchangeWebSocketClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/ExchangeWebSocketClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/LiveTradesConsumer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/LiveTradesConsumer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/StableTicksAxis.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/StableTicksAxis.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TRADE_PLATFORM.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Tag.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Tag.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TelegramClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TelegramClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Trade.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/Trade.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExchanges.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpert.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpert.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpertScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/TradeExpertScene.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/tradeexpert/tradeexpert/User.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -208,7 +218,14 @@
       <option name="project" value="LOCAL" />
       <updated>1678964786943</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="good screen">
+      <created>1678972672663</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1678972672663</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

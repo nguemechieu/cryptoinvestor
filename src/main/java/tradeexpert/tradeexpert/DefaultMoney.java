@@ -368,7 +368,7 @@ public record DefaultMoney(BigDecimal amount, Currency currency) implements Mone
         return switch (currency.getCurrencyType()) {
             case FIAT -> DefaultMoneyFormatter.DEFAULT_FIAT_FORMATTER.format(this);
             case CRYPTO,
-                    NULL ,default -> DefaultMoneyFormatter.DEFAULT_CRYPTO_FORMATTER.format(this);
+                    NULL -> DefaultMoneyFormatter.DEFAULT_CRYPTO_FORMATTER.format(this);
         };
     }
 }

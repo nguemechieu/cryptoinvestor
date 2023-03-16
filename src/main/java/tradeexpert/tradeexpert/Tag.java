@@ -1,4 +1,4 @@
-package org.tradeexpert.tradeexpert;
+package tradeexpert.tradeexpert;
 
 public class Tag {
     public String name;

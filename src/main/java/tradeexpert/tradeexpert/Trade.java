@@ -60,7 +60,7 @@ public class Trade implements Runnable{
     private TradeMode inpTradeMode;
     private boolean UseTime;
     private long MagicNumber;
-    private boolean telegram;
+
     private Exchange exchange;
     private double ProfitValue;
 
@@ -74,6 +74,7 @@ public class Trade implements Runnable{
         this.localTradeId = localTradeId;
         this.timestamp = timestamp;
         this.fee = fee;
+        logger.info("Trade created");
     }
 
     public Trade(TradePair tradePair, Money price, Money amount, Side transactionType,

@@ -28,12 +28,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
-import javafx.scene.text.Font;
-import javafx.scene.text.FontSmoothingType;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
+import javafx.scene.text.*;
 import javafx.util.Pair;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -225,6 +221,15 @@ public class CandleStickChart extends Region {
                             10, SECONDS);
                 } catch (InterruptedException ex) {
                     logger.error("Interrupted while waiting for websocket client to be initialized: ", ex);
+                    try {
+                        exchange.telegram.sendMessage(
+
+                                        "Error while waiting for websocket client to be initialized: " + ex.getMessage());
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                    Thread.currentThread().interrupt();
                 }
 
                 if (!websocketInitialized) {
@@ -235,7 +240,7 @@ public class CandleStickChart extends Region {
 
                         try {
                             exchange.getWebsocketClient().streamLiveTrades(tradePair, updateInProgressCandleTask);
-                        } catch (IOException | InterruptedException e) {
+                        } catch (IOException | InterruptedException | ParseException e) {
                             throw new RuntimeException(e);
                         }
 
@@ -272,13 +277,15 @@ public class CandleStickChart extends Region {
                         tradePair.getBaseCurrency().code + "/ " + tradePair.getCounterCurrency().code + "\n" +
 
                                 tradePair.getBaseCurrency().getSymbol() + " - " + tradePair.getCounterCurrency().getSymbol());
-                infoLabel.setFont(Font.font(200));
+                infoLabel.setFont(Font.font(20));
 
 
                 infoLabel.setFont(canvasNumberFont);
                 infoLabel.setTextAlignment(TextAlignment.CENTER);
                 infoLabel.setFill(Color.WHITE);
-                infoLabel.setWrappingWidth(canvas.getWidth());
+
+
+
                 loadingIndicatorContainer.getChildren().add(infoLabel);
                  chartStackPane = new StackPane(canvas, loadingIndicatorContainer);
                 chartStackPane.setTranslateX(64); // Only necessary when wrapped in StackPane...why?
@@ -384,10 +391,21 @@ for (CandleData i : candleData) {
                 priceInfo.setFill(Color.YELLOW);
                 priceInfo.setTextAlignment(TextAlignment.CENTER);
                 priceInfo.setFont(Font.font(FXUtils.getMonospacedFont(), 12));
-                priceInfo.setWrappingWidth(canvas.getWidth() - 20);
-                priceInfo.setTranslateY(5);
+
+                priceInfo.setTranslateY(
+                        (canvas.getHeight() - priceInfo.getLayoutBounds().getHeight()) / 2 + priceInfo.getLayoutBounds().getHeight() / 2
+                );
+                priceInfo.setTranslateX(-canvas.getWidth() / 2 + priceInfo.getLayoutBounds().getWidth() / 2);
+
                 if (exchange.telegram.isOnline()) {
-                    priceInfo.setFill(Color.WHITE);
+                    priceInfo.setBoundsType(TextBoundsType.VISUAL);
+                    priceInfo.setFill(Color.GREEN);
+                    priceInfo.setTextAlignment(TextAlignment.CENTER);
+                    priceInfo.setFont(Font.font(FXUtils.getMonospacedFont(), 20));
+                    priceInfo.setWrappingWidth(canvas.getWidth() - 20);
+                    priceInfo.setTranslateY(5);
+                    priceInfo.setText(exchange.telegram.NetworkError());
+
                 }
 
                 try {
@@ -518,9 +536,7 @@ for (CandleData i : candleData) {
         logger.info("xAxis lower bound: " + (int) xAxis.getLowerBound());
         final double idealBufferSpaceMultiplier = 0.35;
         if (!currZoomLevel.getExtremaForCandleRangeMap().containsKey((int) xAxis.getLowerBound())) {
-            // TODO(mike): Does this *always* represent a coding error on our end or can this happen during
-            // normal chart functioning, and could we handle it more gracefully?
-            logger.error("The extrema map did not contain extrema for x-value: " + (int) xAxis.getLowerBound());
+                 logger.error("The extrema map did not contain extrema for x-value: " + (int) xAxis.getLowerBound());
             logger.error("extrema map: " + new TreeMap<>(currZoomLevel.getExtremaForCandleRangeMap()));
         }
 
@@ -611,8 +627,7 @@ for (CandleData i : candleData) {
      * bounds.
      */
     private void drawChartContents(boolean clearCanvas) {
-        // TODO should this expression start with (xAxis.getUpperBound() - secondsPerCandle)?
-        // This value allows for us to go past the highest x-value by skipping the drawing of some candles.
+              // This value allows for us to go past the highest x-value by skipping the drawing of some candles.
         int numCandlesToSkip = Math.max(((int) xAxis.getUpperBound() - data.lastEntry().getValue().getOpenTime()) /
                 secondsPerCandle, 0);
 
@@ -958,7 +973,7 @@ for (CandleData i : candleData) {
                 currZoomLevel = newZoomLevel;
             }
         } else {
-            // TODO(mike): In this case we only need to compute the extrema for any new live syncing data that has
+            // In this case we only need to compute the extrema for any new live syncing data that has
             //  happened since the last time we were at this zoom level.
             currZoomLevel = zoomLevelMap.get(nextZoomLevelId);
             List<CandleData> candleData = new ArrayList<>(data.values());
@@ -975,7 +990,7 @@ for (CandleData i : candleData) {
         drawChartContents(true);
     }
 
-    private void drawMarketNews(TelegramClient telegram) {
+    private void drawMarketNews(@NotNull TelegramClient telegram) {
         ArrayList<News>news = null;
         if (telegram.isOnline()) {
             try {
@@ -996,22 +1011,25 @@ for (CandleData i : candleData) {
         for (News newsItem : news) {
             Text text = new Text(newsItem.getTitle());
             text.setFill(Color.WHITE);
-            text.setFont(Font.font(FXUtils.getMonospacedFont(), 12));
+            text.setFont(Font.font(FXUtils.getMonospacedFont(), 100));
             text.setTranslateY(10);
             text.setTranslateX(100);
             getChildren().add(text);
             switch (newsItem.getImpact()) {
                 case "High" -> {
                     text.setFill(Color.RED);
-                    text.setFont(Font.font(FXUtils.getMonospacedFont(), 12));
-                    text.setTranslateY(10);
-                    text.setTranslateX(100);
+                    text.setFont(Font.font(FXUtils.getMonospacedFont(), 102));
+
+                    text.setScaleX(1);
+                    text.setScaleY(1);
                     //Draw vertical line
                     Line line = new Line();
-                    line.setStartX(0);
+                    line.setStartX(
+                            xAxis.getUpperBound() - (int) (canvas.getWidth() / candleWidth) * secondsPerCandle
+                    );
                     line.setStartY(0);
                     line.setEndX(candleWidth);
-                    line.setEndY(0);
+                    line.setEndY(yAxis.getHeight());
                     line.setStroke(Color.RED);
                     graphicsContext.setStroke(Color.RED);
                     graphicsContext.strokeLine(
@@ -1022,47 +1040,60 @@ for (CandleData i : candleData) {
                     );
 
 
-                    getChildren().add(line);
+                    getChildren().addAll(canvas,line);
                 }
                 case "Medium" -> {
                     text.setFill(Color.YELLOW);
-                    text.setFont(Font.font(FXUtils.getMonospacedFont(), 12));
-                    text.setTranslateY(10);
-                    text.setTranslateX(100);
+                    text.setFont(Font.font(FXUtils.getMonospacedFont(), 102));
+
+                    text.setScaleX(1);
+                    text.setScaleY(1);
                     //Draw vertical line
                     Line line = new Line();
-                    line.setStartX(0);
+                    line.setStartX(
+                            xAxis.getUpperBound() - (int) (canvas.getWidth() / candleWidth) * secondsPerCandle
+                    );
                     line.setStartY(0);
                     line.setEndX(candleWidth);
-                    line.setEndY(0);
+                    line.setEndY(yAxis.getHeight());
                     line.setStroke(Color.YELLOW);
                     graphicsContext.setStroke(Color.YELLOW);
                     graphicsContext.strokeLine(
                             line.getStartX(),
                             line.getStartY(),
                             line.getEndX(),
-                            line.getEndY());
-                    getChildren().add(line);
+                            line.getEndY()
+                    );
+
+
+                    getChildren().addAll(canvas,line);
                 }
                 case "Low" -> {
                     text.setFill(Color.GREEN);
-                    text.setFont(Font.font(FXUtils.getMonospacedFont(), 12));
-                    text.setTranslateY(10);
-                    text.setTranslateX(100);
+                    text.setFill(Color.RED);
+                    text.setFont(Font.font(FXUtils.getMonospacedFont(), 102));
+
+                    text.setScaleX(1);
+                    text.setScaleY(1);
                     //Draw vertical line
                     Line line = new Line();
-                    line.setStartX(0);
+                    line.setStartX(
+                            xAxis.getUpperBound() - (int) (canvas.getWidth() / candleWidth) * secondsPerCandle
+                    );
                     line.setStartY(0);
                     line.setEndX(candleWidth);
-                    line.setEndY(0);
-                    line.setStroke(Color.GREEN);
-                    graphicsContext.setStroke(Color.GREEN);
+                    line.setEndY(yAxis.getHeight());
+                    line.setStroke(Color.RED);
+                    graphicsContext.setStroke(Color.RED);
                     graphicsContext.strokeLine(
                             line.getStartX(),
                             line.getStartY(),
                             line.getEndX(),
-                            line.getEndY());
-                    getChildren().add(line);
+                            line.getEndY()
+                    );
+
+
+                    getChildren().addAll(canvas,line);
                 }
             }
 
@@ -1117,7 +1148,7 @@ for (CandleData i : candleData) {
                             candleData.getOpenTime(), candleData.closeTime));
         }
 
-        AreaChart areaChart = new AreaChart(xAxis,yAxis,observableList);
+        AreaChart<Number,Number> areaChart = new AreaChart(xAxis,yAxis,observableList);
         areaChart.setPrefSize(chartWidth, chartHeight);
         areaChart.setCenterShape(false);
         getChildren().add(areaChart);
@@ -1246,10 +1277,8 @@ for (CandleData i : candleData) {
         ObservableList<XYChart.Series<Number, Number>> observableList1=
                 FXCollections.observableArrayList();
 
-        BarChart<Number,Number> volumeChart = new BarChart<>(xAxis1,yAxis,observableList1);
-        volumeChart.setPrefSize(chartWidth, chartHeight);
-        volumeChart.setCenterShape(false);
-        getChildren().add(volumeChart);
+        Axis<Object> yAxis1;
+
     }
 
     public void drawLineChart() {
@@ -1380,23 +1409,15 @@ for (CandleData i : candleData) {
     }
 
     public void setNewsChart() throws ParseException {
-        drawNewsChart();
+        drawNewsChart(exchange);
     }
 
-    private void drawNewsChart() throws ParseException {
+    private void drawNewsChart(Exchange exchange) throws ParseException {
         //News chart
-        graphicsContext.setFill(Color.WHITE);
-        graphicsContext.fillRect(0, 0, chartWidth, chartHeight);
-        graphicsContext.setStroke(Color.BLACK);
-        graphicsContext.setLineWidth(2);
-        graphicsContext.strokeRect(0, 0, chartWidth, chartHeight);
-        graphicsContext.setLineWidth(1);
-        graphicsContext.strokeLine(0, 0, chartWidth, 0);
-        graphicsContext.strokeLine(0, chartHeight, 0, chartHeight);
-        graphicsContext.strokeLine(chartWidth, 0, chartWidth, chartHeight);
-        graphicsContext.strokeLine(0, chartHeight, chartWidth, chartHeight);
-        graphicsContext.strokeLine(chartWidth, chartHeight, chartWidth, 0);
-        graphicsContext.strokeLine(0, chartHeight, chartWidth, chartHeight);
+        for (Axis.TickMark<Number> tickMark : xAxis.getTickMarks()) {
+            graphicsContext.setStroke(Color.rgb(189, 189, 189, 0.6));
+            graphicsContext.setLineWidth(1.5);
+            graphicsContext.strokeLine(tickMark.getPosition(), 0, tickMark.getPosition(), canvas.getHeight());
 
         ArrayList<News> news = exchange.telegram.getMarketNews();
         for (News n : news) {
@@ -1404,31 +1425,45 @@ for (CandleData i : candleData) {
             text.setFont(Font.font(19));
             text.setFill(Color.BLACK);
             text.setTextAlignment(TextAlignment.CENTER);
-            text.setX(chartWidth / 2);
-            text.setY(chartHeight / 2);
+
             switch (n.getImpact()) {
                 case "High" -> {
                     text.setFill(Color.RED);
                     graphicsContext.setStroke(Color.RED);
                     graphicsContext.setLineWidth(2);
+                    graphicsContext.setStroke(Color.rgb(189, 189, 189, 0.6));
+                    graphicsContext.setLineWidth(1.5);
+                    graphicsContext.strokeLine(n.getDate().getTime(), 0, tickMark.getPosition(), canvas.getHeight());
+
+
                 }
                 case "Medium" -> {
                     text.setFill(Color.YELLOW);
+
                     graphicsContext.setStroke(Color.YELLOW);
                     graphicsContext.setLineWidth(2);
+                    graphicsContext.setStroke(Color.rgb(189, 189, 189, 0.6));
+                    graphicsContext.setLineWidth(1.5);
+                    graphicsContext.strokeLine(n.getDate().getTime(), 0, tickMark.getPosition(), canvas.getHeight());
+
+
                 }
                 case "Low" -> {
                     text.setFill(Color.GREEN);
+                    text.setFill(Color.GREEN);
                     graphicsContext.setStroke(Color.GREEN);
                     graphicsContext.setLineWidth(2);
-                    graphicsContext.setLineJoin(StrokeLineJoin.ROUND);
-                    graphicsContext.setLineCap(StrokeLineCap.ROUND);
-                    graphicsContext.strokeLine(chartWidth / 2, chartHeight / 2, 0, chartHeight / 2);
+                    graphicsContext.setStroke(Color.rgb(189, 189, 189, 0.6));
+                    graphicsContext.setLineWidth(1.5);
+                    graphicsContext.strokeLine(n.getDate().getTime(), 0, tickMark.getPosition(), canvas.getHeight());
+
+
+
                 }
             }
             graphicsContext.setLineJoin(StrokeLineJoin.ROUND);
             chartStackPane.getChildren().add(text);
-
+        }
         }
     }
 
@@ -1504,7 +1539,7 @@ for (CandleData i : candleData) {
         }
 
         @Override
-        public void onConnectionEstablished() throws IOException, InterruptedException {
+        public void onConnectionEstablished() throws IOException, InterruptedException, ParseException {
             ready = true;
             Platform.runLater(this);
             liveTradesQueue.clear();
@@ -1532,7 +1567,7 @@ for (CandleData i : candleData) {
                     exchange.getWebsocketClient().getURI().getHost(),tradePair.getBaseCurrency().code+" "+tradePair.getCounterCurrency().code,
                     "","BUY",0.01,0.01)));
 
-
+exchange.telegram.run();
 
 
         }
@@ -1556,6 +1591,13 @@ for (CandleData i : candleData) {
         @Override
         public void run() {
             if (inProgressCandle == null) {
+                try {
+                    exchange.telegram.sendMessage(
+                            "in progress candle is null, please wait for the first candle to be updated");
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
                 throw new RuntimeException("inProgressCandle was null in live syncing mode.");
             }
             if (!ready) {
@@ -1565,6 +1607,7 @@ for (CandleData i : candleData) {
                 } catch (IOException | InterruptedException e) {
                     throw new RuntimeException(e);
                 }
+
                 return;
             }
 
@@ -1639,6 +1682,11 @@ for (CandleData i : candleData) {
         public void accept(List<CandleData> candleData) {
             if (Platform.isFxApplicationThread()) {
                 logger.error("candle data paging must not happen on FX thread!");
+                try {
+                    exchange.telegram.sendMessage("candle data paging must not happen on FX thread!");
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 throw new IllegalStateException("candle data paging must not happen on FX thread!");
             }
 
@@ -1649,12 +1697,24 @@ for (CandleData i : candleData) {
 
             if (candleData.get(0).getOpenTime() >= candleData.get(1).getOpenTime()) {
                 logger.error("Paged candle data must be in ascending order by x-value");
+                try {
+                    exchange.telegram.sendMessage("Paged candle data must be in ascending order by x-value");
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
                 throw new IllegalArgumentException("Paged candle data must be in ascending order by x-value");
             }
 
             if (data.isEmpty()) {
                 if (liveSyncing) {
                     if (inProgressCandle == null) {
+                        try {
+                            exchange.telegram.sendMessage(
+                                    "Candle data paging must not happen while live-syncing is in progress!"
+                            );
+                        } catch (IOException | InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
                         throw new RuntimeException("inProgressCandle was null in live syncing mode.");
                     }
                     // We obtained the first page of candle data which does *not* include the current in-progress
@@ -1722,6 +1782,16 @@ for (CandleData i : candleData) {
                                     } else {
                                         logger.error("error fetching recent trades until: " +
                                                 inProgressCandleData.getCurrentTill(), exception);
+                                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                                        alert.setTitle("Error");
+                                        alert.setHeaderText("Error fetching recent trades until");
+                                        alert.setContentText(exception.getMessage());
+                                        alert.show();
+                                        try {
+                                            exchange.telegram.sendMessage("Error fetching recent trades until: " +exception.getMessage());
+                                        } catch (IOException | InterruptedException e) {
+                                            throw new RuntimeException(e);
+                                        }
                                     }
                                 });
                             } else {
