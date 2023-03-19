@@ -1,5 +1,9 @@
+import cryptoinvestor.cryptoinvestor.ServiceProvider;
+import cryptoinvestor.cryptoinvestor.Trade;
 
-module tradeexpert.tradeexpert{
+module cryptoinestor.cryptoinvestor {
+    uses ServiceProvider;
+    uses Trade;
 
     requires javafx.controls;
     requires javafx.fxml;
@@ -31,8 +35,8 @@ module tradeexpert.tradeexpert{
     requires slf4j.api;
     requires org.apache.tomcat.embed.websocket;
 
-    opens tradeexpert.tradeexpert to javafx.fxml;
-    exports tradeexpert.tradeexpert;
+    opens cryptoinvestor.cryptoinvestor to javafx.fxml;
+    exports cryptoinvestor.cryptoinvestor;
 
 }
 
