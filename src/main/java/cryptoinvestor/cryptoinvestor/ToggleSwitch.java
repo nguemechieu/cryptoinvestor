@@ -148,6 +148,6 @@ public class ToggleSwitch extends Labeled {
 
     @Override
     public String getUserAgentStylesheet() {
-        return Objects.requireNonNull(ToggleSwitch.class.getResource("/css/toggleswitch.css")).toExternalForm();
+        return Objects.requireNonNull(ToggleSwitch.class.getResource("/cryptoinvestor/css/toggleswitch.css")).toExternalForm();
     }
 }

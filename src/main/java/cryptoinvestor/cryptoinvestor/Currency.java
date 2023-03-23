@@ -11,9 +11,10 @@ import java.util.Objects;
 
 public abstract class Currency {
     public static final CryptoCurrency NULL_CRYPTO_CURRENCY = new NullCryptoCurrency(CurrencyType.CRYPTO, "XXX", "XXX",
-            "XXX", 0, "XXX", null);
-    public static final FiatCurrency NULL_FIAT_CURRENCY = new NullFiatCurrency();
+            "XXX", 5, "XXX", "XXX");
     static Logger logger = LoggerFactory.getLogger(Currency.class);
+    public static final FiatCurrency NULL_FIAT_CURRENCY = new NullFiatCurrency();
+
     protected String code;
     protected int fractionalDigits;
     protected String symbol;

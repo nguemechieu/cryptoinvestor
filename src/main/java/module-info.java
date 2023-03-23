@@ -1,6 +1,5 @@
 module cryptoinvestor.cryptoinvestor {
     requires javafx.controls;
-    requires javafx.fxml;
     requires jakarta.persistence;
     requires org.hibernate.orm.core;
     requires org.slf4j;
@@ -18,8 +17,6 @@ module cryptoinvestor.cryptoinvestor {
     requires com.google.gson;
     requires com.fasterxml.jackson.datatype.jsr310;
     requires com.fasterxml.jackson.dataformat.csv;
-
-
     opens cryptoinvestor.cryptoinvestor to javafx.fxml;
     exports cryptoinvestor.cryptoinvestor;
 }
