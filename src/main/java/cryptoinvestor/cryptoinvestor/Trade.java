@@ -10,15 +10,20 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Trade implements Runnable {
-    private static TRADE_ORDER_TYPE order_type;
-    private static double remaining;
-    private static double size;
+
+
+    Side side;
+    Order order;
+    ArrayList<Order> orders = new ArrayList<>();
+    ConcurrentHashMap<String, Order> orderMap = new ConcurrentHashMap<>();
+    ENUM_ORDER_TYPE order_type;
+ double remaining;
+     double size;
     double currentUnits;
     double initialMargin;
     double initialUnits;
@@ -37,20 +42,20 @@ public class Trade implements Runnable {
 
     long  openTime;
     private  String instrument;
-    private Long id;
+    private static Long id;
     long closeTime;
      double volume;
     private String accountID;
 
     //   {"trades":[{"id":"142950","instrument":"EUR_USD","price":"1.07669","openTime":"2023-03-21T16:56:10.786314295Z","initialUnits":"-1700","initialMarginRequired":"36.6098","state":"OPEN","currentUnits":"-1700","realizedPL":"0.0000","financing":"0.1828","dividendAdjustment":"0.0000","clientExtensions":{"id":"140660466","tag":"0"},"unrealizedPL":"-23.6130","marginUsed":"37.0770"},{"id":"124829","instrument":"USD_CAD","price":"1.38016","openTime":"2023-03-15T14:46:04.088679752Z","initialUnits":"4000","initialMarginRequired":"80.0000","state":"OPEN","currentUnits":"4000","realizedPL":"0.0000","financing":"-0.7802","dividendAdjustment":"0.0000","clientExtensions":{"id":"140494560","tag":"0"},"unrealizedPL":"-48.2803","marginUsed":"80.0000"}],"lastTransactionID":"142955"}
 
-  public Trade(TRADE_ORDER_TYPE orderType, Long id, @NotNull String instrument, double price, Long openTime, int initialUnits, double initialMargin
+  public Trade(ENUM_ORDER_TYPE orderType, Long id, @NotNull TradePair instrument,  Side side, double price, Long openTime, int initialUnits, double initialMargin
                , String state, double currentUnits, double realizedPL, double financing, double dividendAdjustment,
                String clientExtensions, double unrealizedPL, double marginUsed) {
       order_type = orderType;
-      this.id = id;
-      this.instrument = instrument;
-      this.price = price;
+      Trade.id = id;
+      this.instrument = instrument.getBaseCurrency() + "_" + instrument.getCounterCurrency();
+      Trade.price = price;
       this.openTime = openTime;
       this.initialUnits = initialUnits;
       this.initialMargin = initialMargin;
@@ -62,15 +67,29 @@ public class Trade implements Runnable {
       this.clientExtensions = clientExtensions;
       this.unrealizedPL = unrealizedPL;
       this.marginUsed = marginUsed;
-      this.timestamp = Instant.now();
-      this.tradePair = new TradePair(instrument.substring(0, 3), instrument.substring(3, 6));
+      this.timestamp = Instant.ofEpochSecond(openTime);
+      this.side = side;//.equals(TRADE_ORDER_TYPE.BUY)? TRADE_ORDER_TYPE.BUY : TRADE_ORDER_TYPE.SELL ;
+
+
+      this.order=new Order(
+              id, instrument,timestamp,
+              orderType,
+              side,
+              currentUnits,
+              realizedPL,
+              financing,
+              dividendAdjustment,
+
+              unrealizedPL,
+              marginUsed
+      );
+     tradePair = instrument;
       trades.add(this);
 
 
   }
 
     List<Trade> trades=new ArrayList<>();
-    ConcurrentHashMap<Long, Order> orderMap = new ConcurrentHashMap<>();
     ConcurrentHashMap<Long, Trade> tradeMap = new ConcurrentHashMap<>();
 
 
@@ -151,8 +170,8 @@ public class Trade implements Runnable {
             for (Order order : getOrders()) {
 
                 a1.getChildren().add(new TreeItem<>(new Order(
-                        order.getTradePair(),
-                    String.valueOf(order.price),
+                        id, order.getTradePair(),
+                    order.getTimestamp(),
                    order.order_type,
                     order.getSide(),
                     order.remaining,
@@ -167,16 +186,16 @@ public class Trade implements Runnable {
 
     }
 
-    public static double getRemaining() {
+    public  double getRemaining() {
         return remaining;
     }
 
-    public static void setRemaining(double remaining) {
-        Trade.remaining = remaining;
+    public void setRemaining(double remaining) {
+        this.remaining = remaining;
     }
 
-    public static void setSize(double size) {
-        Trade.size = size;
+    public void setSize(double size) {
+        this.size = size;
     }
 
     public TradePair getTradePair() {

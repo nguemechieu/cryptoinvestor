@@ -15,6 +15,11 @@
           <option value="CB-AFTER" />
           <option value="Accept-Datetime-Format" />
           <option value="CB-ACCESS-ACCOUNT-ID" />
+          <option value="CB-ACCESS-KEY" />
+          <option value="CB-ACCESS-PASSPHRASE" />
+          <option value="CB-ACCESS-SIGNATURE" />
+          <option value="CB-ACCESS-VERSION" />
+          <option value="CB-ACCESS-TIMESTAMP" />
         </set>
       </option>
     </inspection_tool>

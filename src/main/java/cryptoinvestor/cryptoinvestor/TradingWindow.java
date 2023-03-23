@@ -11,13 +11,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.text.ParseException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
 
 public class TradingWindow extends AnchorPane {
     private static final Logger logger = LoggerFactory.getLogger(TradingWindow.class);
 
-    public TradingWindow() throws TelegramApiException, IOException, ParseException, URISyntaxException, InterruptedException {
+    public TradingWindow() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException {
         super();
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);

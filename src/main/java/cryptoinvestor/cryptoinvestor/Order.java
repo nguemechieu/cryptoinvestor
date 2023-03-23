@@ -4,21 +4,22 @@ import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 
 public class Order extends RecursiveTreeObject<Order> {
      ArrayList<Order> orders=new ArrayList<>();
     private  TradePair tradePair;
-    String timestamp;
-    TRADE_ORDER_TYPE order_type;
+    Instant timestamp;
+    ENUM_ORDER_TYPE order_type;
     double remaining;
     double fee;
    double lotSize;
     double price;
    double stopLoss;
  String symbol;
-   TRADE_ORDER_TYPE type;
+   ENUM_ORDER_TYPE type;
 
     private static int lastError;
     private int orderID;
@@ -47,11 +48,12 @@ public class Order extends RecursiveTreeObject<Order> {
         this.side = side;
     }
 
+
     public void setFilled(String filled) {
         this.filled = filled;
     }
 
-    public Order(@NotNull TradePair tradePair, String timestamp, TRADE_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price
+    public Order(Long id, @NotNull TradePair tradePair, Instant timestamp, ENUM_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price
 
     , double stopLoss, double takeProfit
     ) {
@@ -77,7 +79,7 @@ public class Order extends RecursiveTreeObject<Order> {
 
     }
 
-    public Object getOpenTime() {
+    public Instant getOpenTime() {
         return timestamp;
     }
 
@@ -94,9 +96,7 @@ public class Order extends RecursiveTreeObject<Order> {
         return "Error " + err;
     }
 
-    public  long getMagicNumber() {
-        return timestamp.length();
-    }
+
 
     public  int getTicket() {
         return ticket;
@@ -126,11 +126,11 @@ public class Order extends RecursiveTreeObject<Order> {
         this.symbol = symbol;
     }
 
-    public  TRADE_ORDER_TYPE getType() {
+    public ENUM_ORDER_TYPE getType() {
         return type;
     }
 
-    public void setType(TRADE_ORDER_TYPE type) {
+    public void setType(ENUM_ORDER_TYPE type) {
         this.type = type;
     }
 
@@ -156,11 +156,11 @@ public class Order extends RecursiveTreeObject<Order> {
         this.takeProfit = takeProfit;
     }
 
-    public String getTimestamp() {
+    public Instant getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(String timestamp) {
+    public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -170,22 +170,6 @@ public class Order extends RecursiveTreeObject<Order> {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public TRADE_ORDER_TYPE getOrder_type() {
-        return order_type;
-    }
-
-    public void setOrder_type(TRADE_ORDER_TYPE order_type) {
-        this.order_type = order_type;
-    }
-
-    public double getLotSize() {
-        return lotSize;
-    }
-
-    public void setLotSize(double lotSize) {
-        this.lotSize = lotSize;
     }
 
     public double getPrice() {
@@ -289,7 +273,7 @@ public class Order extends RecursiveTreeObject<Order> {
         this.tradePair = tradePair;
     }
 
-    public String getTime() {
+    public Instant getTime() {
         return timestamp;
     }
 

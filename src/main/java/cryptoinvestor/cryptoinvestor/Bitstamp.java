@@ -12,7 +12,7 @@ public class Bitstamp extends Exchange {
     public Bitstamp(TradePair tradePair, String bitstamp_key, String bitstamp_secret, String coinbaseSecret) throws TelegramApiException, IOException {
 
         super(tradePair, bitstamp_key, bitstamp_secret, coinbaseSecret);
-        this.tradePair = tradePair;
+        Exchange.tradePair = tradePair;
     }
 
     @Override
@@ -53,6 +53,32 @@ public class Bitstamp extends Exchange {
 
     @Override
     public void onError(Exception ex) {
+
+    }
+
+    public void createOrder(double price,ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) {
+        try {
+            String url = "https://api.bitstamp.net/v2/order/new";
+            String payload = String.format("{\"pair\": \"%s\", \"type\": \"%s\", \"side\": \"%s\", \"price\": %f, \"quantity\": %f, \"stop_loss\": %f, \"take_profit\": %f}",
+                    tradePair.toString('_'),
+                    type.toString(),
+                    side.toString(),
+                    price,
+                    quantity,
+                    stopLoss,
+                    takeProfit);
+            sendRequest(url, payload);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void cancelOrder(long orderId) {}
+
+    public void cancelAllOrders() {}
+
+
+    private void sendRequest(String url, String payload) {
 
     }
 }

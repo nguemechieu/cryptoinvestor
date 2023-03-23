@@ -104,4 +104,7 @@ public class Bittrex extends Exchange {
     public void onError(Exception ex) {
 
     }
+
+    public void createOrder(double price, ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) {
+    }
 }

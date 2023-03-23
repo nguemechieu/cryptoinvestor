@@ -193,8 +193,8 @@ public class Oanda extends Exchange {
     public Oanda(@NotNull TradePair tradePair, String api_key, String accountID, String token) throws IOException, TelegramApiException {
         super("ws://api-fxtrade.oanda.com", api_key);
         this.API_KEY = api_key;
-        Oanda.accountID = accountID;
-       this. tradePair =tradePair;
+
+       Exchange. tradePair =tradePair;
 
        telegram= new TelegramClient( token);
        TelegramClient.connect();
@@ -420,12 +420,12 @@ logger.info(
 
         String granularity = str + x;
         HttpRequest.Builder re = HttpRequest.newBuilder().uri(URI.create(
-                        String.format("https://api-fxtrade.oanda.com/v3/accounts/" +
+                        "https://api-fxtrade.oanda.com/v3/accounts/" +
                                         accountID + "instruments/" + tradePair.toString('_') +
                                         "/candles?price=BA&from=2016-10-17T15%3A00%3A00.000000000Z&granularity=" +
                                         granularity
 
-                                , actualGranularity, startDateString)));
+                                ));
 
         re.header("Authorization", "Bearer " + apiKey);
         re.header("Content-Type", "application/json");
@@ -539,7 +539,6 @@ logger.info(
                     rates=dat.getJSONObject("rates").toString(4);
                     out.println(rates);
                 }
-
             }
 
 
@@ -650,6 +649,66 @@ logger.info(
     }
  public static final    ArrayList<Trade> trades=new ArrayList<>();
 
+    public void createOrder(@NotNull TradePair tradePair, double price, @NotNull ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) throws IOException, InterruptedException {
+
+
+
+
+        String uriStr = "https://api-fxtrade.oanda.com/" +
+                "v3/accounts/"+accountID +"/orders/"+ tradePair.toString('_') +
+                "?side=" + side +
+                "&type=market" +
+                "&quantity=" + quantity +
+                "&price=" + price;
+
+
+        if (type.equals(ENUM_ORDER_TYPE.LIMIT)) {
+            uriStr = uriStr +
+                    "&limitPrice=" + price+
+                    "&stopPrice=" + stopLoss +
+                    "&takeProfitPrice=" + takeProfit;
+        }else if (type.equals(ENUM_ORDER_TYPE.STOP_LOSS)) {
+            uriStr = uriStr +
+                    "&stopPrice=" + stopLoss +
+                    "&takeProfitPrice=" + takeProfit;
+        }else if (type.equals(ENUM_ORDER_TYPE.TRAILING_STOP_LOSS)) {
+            uriStr = uriStr +
+                    "&trailingStopPrice=" + stopLoss +
+                    "&takeProfitPrice=" + takeProfit;
+        }else if (type.equals(ENUM_ORDER_TYPE.MARKET)){
+            uriStr = uriStr +
+                    "&stopPrice=" + stopLoss +
+                    "&takeProfitPrice=" + takeProfit;
+        }
+
+
+        requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Authorization", "Bearer " + API_KEY);//    API key as a string
+
+        HttpResponse<String> response = HttpClient.newHttpClient().send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+
+
+        if (response.statusCode() != 200) {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Order Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            return;
+        }
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+
+
+        System.out.println(uriStr);
+
+
+
+    }
 
 
     public static abstract class OandaCandleDataSupplier extends CandleDataSupplier {
@@ -691,7 +750,7 @@ logger.info(
                 // signal more data is false
                 return CompletableFuture.completedFuture(Collections.emptyList());
             }
-            String uriStr1 = "https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/trades?instruments=" + tradePair.toString('_');
+            String uriStr1 = "https://api-fxtrade.oanda.com/v3/accounts/" + accounts.getAccountID() + "/trades?instruments=" + tradePair.toString('_');
             requestBuilder.uri(URI.create(uriStr1));
             requestBuilder.header("CB-BEFORE", startDateString);
             requestBuilder.header("CB-AFTER", endDateString);

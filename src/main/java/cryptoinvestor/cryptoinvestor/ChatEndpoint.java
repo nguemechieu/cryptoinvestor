@@ -22,7 +22,7 @@ public class ChatEndpoint {
     private static final Set<ChatEndpoint> chatEndpoints
             = new CopyOnWriteArraySet<>();
     private static final HashMap<String, String> users = new HashMap<>();
-    javax.websocket.Session session;
+    static javax.websocket.Session session;
 
     public ChatEndpoint(javax.websocket.Session session) {
         this.session = session;
@@ -95,5 +95,14 @@ public class ChatEndpoint {
         alert.showAndWait();
 
         // Do error handling here
+    }
+
+    protected static String post(String s, String url, String photo) {
+        try {
+            session.getBasicRemote().sendText(url);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return url;
     }
 }

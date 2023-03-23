@@ -423,6 +423,9 @@ public class Bitfinex extends Exchange {
 
     }
 
+    public void createOrder(double price, ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) {
+    }
+
 
     public static abstract class BinanceUsCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()

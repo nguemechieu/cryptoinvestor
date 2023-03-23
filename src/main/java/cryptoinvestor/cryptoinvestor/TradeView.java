@@ -1,7 +1,5 @@
 package cryptoinvestor.cryptoinvestor;
 
-import javafx.beans.property.ReadOnlyListProperty;
-import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
@@ -17,7 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.List;
+import java.time.Instant;
 
 public class TradeView extends StackPane {
     private static final Logger logger = LoggerFactory.getLogger(TradeView.class);
@@ -46,7 +44,7 @@ public class TradeView extends StackPane {
 
         ChoiceBox<String> symbolChoicebox =
                 new ChoiceBox<>();
-        TradePair tradePair;
+        TradePair tradePair = new TradePair("USD","CAD");
         ChoiceBox<String> counterChoicebox = new ChoiceBox<>();
         for (Currency symbol : CurrencyDataProvider.getInstance()) {
 
@@ -167,6 +165,7 @@ break;
 
                 });
         Button tradingBtn = new Button("Trade Buttons");
+        TradePair finalTradePair2 = tradePair;
         tradingBtn.setOnAction(
                 event -> {
                     String baseCurrency = symbolChoicebox.getValue();
@@ -191,9 +190,9 @@ break;
                         return;
                     }
                     StackPane stackPane = new StackPane();
-                    stackPane.setPrefSize(1500, 630);
+                    stackPane.setPrefSize(300, 230);
                     GridPane gridPane = new GridPane();
-                    gridPane.setPrefSize(1500, 630);
+                    gridPane.setPrefSize(300, 230);
                     gridPane.setHgap(10);
                     gridPane.setVgap(10);
                     gridPane.setPadding(new Insets(10, 10, 10, 10));
@@ -203,6 +202,59 @@ break;
                     gridPane.add(btnBuy, 0, 1);
                     Button btnSell = new Button("Sell");
                     gridPane.add(btnSell, 1, 1);
+
+                    Button closeAll = new Button("Close All");
+                    closeAll.setOnAction(event1 -> exchange.CloseAll());
+                    gridPane.add(
+                            closeAll ,3,0
+
+                    );
+                    Button trailingBuy=new Button("Trailing Buy");
+                    Button trailingSell=new Button("Trailing Sell");
+                    trailingSell.setOnAction(
+                            event2 ->
+
+                                {
+                                    double quantity = spinner.getValue();
+                                    long orderID = Math.round(Instant.now().getEpochSecond() * 1000000);
+                                    double stopPrice = 100;
+                                    double takeProfitPrice = 100;
+                                    @NotNull Instant timestamp=
+                                            Instant.now();
+                                    double price=0;
+                                    try {
+                                        exchange.createOrder(
+                                                finalTradePair2, cryptoinvestor.cryptoinvestor.Side.SELL,
+                                                ENUM_ORDER_TYPE.TRAILING_STOP_LOSS,
+                                                quantity,
+                                                price,
+                                                timestamp,
+                                                orderID,
+                                                stopPrice,
+                                                takeProfitPrice
+
+                                        );
+                                    } catch (IOException | InterruptedException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                    try {
+                                        exchange.createOrder(
+                                                finalTradePair2, cryptoinvestor.cryptoinvestor.Side.SELL,
+                                                ENUM_ORDER_TYPE.MARKET,
+                                                quantity,
+                                                price,
+                                                timestamp,
+                                                orderID,
+                                                stopPrice,
+                                                takeProfitPrice
+                                        );
+                                    } catch (IOException | InterruptedException e) {
+                                        throw new RuntimeException(e);
+                                    }
+
+                                });
+                    gridPane.add(trailingBuy, 4,0);
+                    gridPane.add(trailingSell, 4,1);
                     stackPane.getChildren().add(gridPane);
 
                     Stage stage = new Stage();
@@ -211,6 +263,7 @@ break;
 
                 });
         Button orderViewBtn=new Button("Order View");
+
         orderViewBtn.setOnAction(
                 event -> {
                     String baseCurrency = symbolChoicebox.getValue();
@@ -234,66 +287,72 @@ break;
 
                         return;
                     }
-                    TreeTableView<Order> orders = new TreeTableView<>();
-                    TreeItem<Order> root = new TreeItem<>();
+                    TreeTableView<Trade> orders = new TreeTableView<>();
+                    TreeItem<Trade> root = new TreeItem<>();
                     root.setExpanded(true);
+
+                    root.setValue(
+                            new Trade(
+
+                            )
+                    );
                     root.getChildren().add(exchange.getTradesList());
                     orders.setRoot(root);
 
-                    TreeTableColumn <Order, String> symbolColumn = new TreeTableColumn<>("Symbol");
-                    symbolColumn.setCellValueFactory(
-                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().symbol)
-                    );
-                    TreeTableColumn <Order, String> priceColumn = new TreeTableColumn<>("Price");
-                    priceColumn.setCellValueFactory(
-                            param -> new ReadOnlyStringWrapper(String.valueOf(param.getValue().getValue().getPrice())));
+                    TreeTableColumn <Trade, String> symbolColumn = new TreeTableColumn<>("Symbol");
+//                    symbolColumn.setCellValueFactory(
+//                            param -> new ReadOnlyStringWrapper(finalTradePair1.getCounterCurrency().code) //new ReadOnlyStringWrapper(param.getValue().getValue().order.symbol)
+//                    );
+                    TreeTableColumn <Trade, String> priceColumn = new TreeTableColumn<>("Price");
+//                    priceColumn.setCellValueFactory(
+//                            param -> new ReadOnlyStringWrapper(String.valueOf(param.getValue().getValue().getPrice())));
+//
+                    TreeTableColumn <Trade, String> amountColumn = new TreeTableColumn<>("Amount");
+//                    amountColumn.setCellValueFactory(
+//                            param ->new ReadOnlyStringWrapper( String.valueOf(
+//                                    param.getValue().getValue().order.getLotSize()))
+//                    );
+                    TreeTableColumn <Trade, String> sideColumn = new TreeTableColumn<>("Side");
+//                    sideColumn.setCellValueFactory(
+//                            param ->   new ReadOnlyStringWrapper(String.valueOf(
+//                                    param.getValue().getValue().order.getSide()))
+//                    );
+                    TreeTableColumn <Trade, String> typeColumn = new TreeTableColumn<>("Type");
+//                    typeColumn.setCellValueFactory(
+//                            param -> new ReadOnlyStringWrapper(String.valueOf(
+//                                    param.getValue().getValue().order.getType())));
 
-                    TreeTableColumn <Order, String> amountColumn = new TreeTableColumn<>("Amount");
-                    amountColumn.setCellValueFactory(
-                            param ->new ReadOnlyStringWrapper( String.valueOf(
-                                    param.getValue().getValue().getLotSize()))
-                    );
-                    TreeTableColumn <Order, String> sideColumn = new TreeTableColumn<>("Side");
-                    sideColumn.setCellValueFactory(
-                            param ->   new ReadOnlyStringWrapper(String.valueOf(
-                                    param.getValue().getValue().getSide()))
-                    );
-                    TreeTableColumn <Order, String> typeColumn = new TreeTableColumn<>("Type");
-                    typeColumn.setCellValueFactory(
-                            param -> new ReadOnlyStringWrapper(String.valueOf(
-                                    param.getValue().getValue().getType())));
+                    TreeTableColumn <Trade, String> timeColumn = new TreeTableColumn<>("Time");
+//                    timeColumn.setCellValueFactory(
+//                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().order.getTime().toString())
+//                    );
+                    TreeTableColumn <Trade, String> idColumn = new TreeTableColumn<>("ID");
+                    /*idColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().order.getId())
+                    );*/
+                    TreeTableColumn <Trade, String> orderIdColumn = new TreeTableColumn<>("Order ID");
+//                    orderIdColumn.setCellValueFactory(
+//                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().order.getOrderId())
+//                    );
 
-                    TreeTableColumn <Order, String> timeColumn = new TreeTableColumn<>("Time");
-                    timeColumn.setCellValueFactory(
-                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().getTime())
-                    );
-                    TreeTableColumn <Order, String> idColumn = new TreeTableColumn<>("ID");
-                    idColumn.setCellValueFactory(
-                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().getId())
-                    );
-                    TreeTableColumn <Order, String> orderIdColumn = new TreeTableColumn<>("Order ID");
-                    orderIdColumn.setCellValueFactory(
-                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().getOrderId())
-                    );
-
-                    TreeTableColumn <Order, String> statusColumn = new TreeTableColumn<>("Status");
-                    statusColumn.setCellValueFactory(
-                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().getStatus())
-                    );
-
-
-                    TreeTableColumn <Order, String> filledColumn = new TreeTableColumn<>("Filled");
-                    filledColumn.setCellValueFactory(
-                            param -> new ReadOnlyStringWrapper(String.valueOf(
-                                    param.getValue().getValue().getFilled()))
-                    );
+                    TreeTableColumn <Trade, String> statusColumn = new TreeTableColumn<>("Status");
+//                    statusColumn.setCellValueFactory(
+//                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().order.getStatus())
+//                    );
 
 
-                    TreeTableColumn <Order, String> remainingColumn = new TreeTableColumn<>("Remaining");
-                    remainingColumn.setCellValueFactory(
-                            param -> new ReadOnlyStringWrapper(String.valueOf(
-                                    param.getValue().getValue().getRemaining()))
-                    );
+                    TreeTableColumn <Trade, String> filledColumn = new TreeTableColumn<>("Filled");
+//                    filledColumn.setCellValueFactory(
+//                            param -> new ReadOnlyStringWrapper(String.valueOf(
+//                                    param.getValue().getValue().order.getFilled()))
+//                    );
+
+
+                    TreeTableColumn <Trade, String> remainingColumn = new TreeTableColumn<>("Remaining");
+//                    remainingColumn.setCellValueFactory(
+//                            param -> new ReadOnlyStringWrapper(String.valueOf(
+//                                    param.getValue().getValue().getRemaining()))
+//                    );
 
 
 

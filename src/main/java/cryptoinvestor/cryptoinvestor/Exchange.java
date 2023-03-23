@@ -1,7 +1,9 @@
 package cryptoinvestor.cryptoinvestor;
 
 
-import com.jfoenix.controls.RecursiveTreeItem;
+import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
+import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
+import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TreeItem;
 import org.java_websocket.drafts.Draft_6455;
@@ -25,16 +27,17 @@ import java.util.concurrent.CompletableFuture;
 public abstract class Exchange {
 
     private static final Logger logger = LoggerFactory.getLogger(Exchange.class);
+    protected static String accountID;
     public TelegramClient telegram;
     protected String phraseSecret1;
     protected String apiSecret;
     protected String apiKey;
-    protected TradePair tradePair;
+    protected static TradePair tradePair;
     Accounts account;
     private String resize;
     private SocketFactory socket;
     private boolean isOpen;
-    private ArrayList<Trade> trades=new ArrayList<>();
+    protected ArrayList<Trade> trades=new ArrayList<>();
 
 
     public Exchange(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException {
@@ -46,12 +49,11 @@ public abstract class Exchange {
         this.socket = SocketFactory.getDefault();
         this.isOpen = true;
         this.account = new Accounts();
-        this.telegram = new TelegramClient(token);
         this.phraseSecret1 = passphrase;
         this.apiSecret = passphrase;
         this.apiKey = passphrase;
-        this.tradePair = tradePair;
-
+        Exchange.tradePair = tradePair;
+        TelegramClient.connect();
 
 
         logger.info("Connected to " + resize);
@@ -80,6 +82,8 @@ public abstract class Exchange {
         this.account = new Accounts();
 
         logger.info("Connected to " + resize);
+
+        TelegramClient.connect();
     }
 
     public Exchange(String oandaApiKey, String telegramToken) throws TelegramApiException, IOException {
@@ -462,17 +466,84 @@ public abstract class Exchange {
     }
 
 
-    public TreeItem<Order> getTradesList() {
-        TreeItem<Order> tradesList=
+    public TreeItem<Trade> getTradesList() {
+        TreeItem<Trade> tradesList=
                 new TreeItem<>();
-        tradesList.setExpanded(true);
-        tradesList.getChildren().addAll(Trade.getTrades());
+
         tradesList.setExpanded(true);
 
 
 
 
         return tradesList;
+    }
+
+    public boolean createOrder(
+            @NotNull TradePair symbol,
+            @NotNull Side side,
+            ENUM_ORDER_TYPE type,
+            double quantity,
+            double price,
+            @NotNull Instant time,
+            @NotNull Long id,
+            double stopLoss,
+            double takeProfit
+    ) throws IOException, InterruptedException {
+        Order order = new Order(id,
+                symbol,
+                time,
+                type,
+                side,
+                0,
+                0,
+                quantity,
+                price,
+                stopLoss,
+                takeProfit
+        );
+        order.showOrderDetails();
+
+        if (this instanceof Coinbase coinbase){
+            coinbase.createOrder(tradePair,price,type,side,quantity,stopLoss,takeProfit);
+        }else if (this instanceof BinanceUs binanceUs){
+            binanceUs .createOrder(price,type,side,quantity,stopLoss,takeProfit);
+
+        }
+        else if (this instanceof Bittrex bittrex){
+            bittrex.createOrder(price,type,side,quantity,stopLoss,takeProfit);
+        }
+        else if (this instanceof Bitfinex bitfinex){
+            bitfinex.createOrder(price,type,side,quantity,stopLoss,takeProfit);
+        }
+        else if (this instanceof Bitstamp bitstamp){
+            bitstamp.createOrder(price,type,side,quantity,stopLoss,takeProfit);
+        }
+        else if (this instanceof Oanda oanda){
+            oanda.createOrder(tradePair,price,type,side,quantity,stopLoss,takeProfit);
+        }
+
+        return true;
+    }
+
+    public void CloseAll() {
+        if (this instanceof Coinbase coinbase){
+            coinbase.CloseAll();
+        }else if (this instanceof BinanceUs binanceUs){
+            binanceUs.CloseAll();
+
+        }
+        else if (this instanceof Bittrex bittrex){
+            bittrex.CloseAll();
+        }
+        else if (this instanceof Bitfinex bitfinex){
+            bitfinex.CloseAll();
+        }
+        else if (this instanceof Bitstamp bitstamp){
+            bitstamp.CloseAll();
+        }
+        else if (this instanceof Oanda oanda){
+            oanda.CloseAll();
+        }
     }
 }
 

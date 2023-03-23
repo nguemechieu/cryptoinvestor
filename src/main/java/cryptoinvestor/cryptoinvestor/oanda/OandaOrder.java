@@ -1,21 +1,21 @@
 package cryptoinvestor.cryptoinvestor.oanda;
 
 
-import cryptoinvestor.cryptoinvestor.Order;
-import cryptoinvestor.cryptoinvestor.Side;
-import cryptoinvestor.cryptoinvestor.TRADE_ORDER_TYPE;
-import cryptoinvestor.cryptoinvestor.TradePair;
+import cryptoinvestor.cryptoinvestor.*;
+import org.jetbrains.annotations.NotNull;
+
+import java.time.Instant;
 
 public class OandaOrder extends Order {
-    private String id;
+    private long id;
     private String status;
     private String currency;
     private String amount;
     private String amountInCents;
     private String date;
 
-    public OandaOrder(TradePair tradePair, String timestamp, TRADE_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price, double stopLoss, double takeProfit) {
-        super(tradePair, timestamp, order_type, side, remaining, fee, lotSize, price, stopLoss, takeProfit);
+    public OandaOrder(Long id, @NotNull TradePair tradePair, Instant timestamp, ENUM_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price, double stopLoss, double takeProfit) {
+        super(id, tradePair, timestamp, order_type, side, remaining, fee, lotSize, price, stopLoss, takeProfit);
     }
 
 
@@ -51,19 +51,15 @@ public class OandaOrder extends Order {
         this.date = date;
     }
 
-    public String getId() {
-        return id;
-    }
 
-    public void setId(String id) {
+
+    public void setId(Long id) {
         this.id = id;
-        if (id != null) {
-            this.status = "open";
-            this.currency = "USD";
-            this.amount = "0.00";
-            this.amountInCents = "0.00";
-            this.date = new java.util.Date().toString();
-        }
+        this.status = "open";
+        this.currency = "USD";
+        this.amount = "0.00";
+        this.amountInCents = "0.00";
+        this.date = new java.util.Date().toString();
     }
 
     public String getStatus() {
@@ -75,7 +71,7 @@ public class OandaOrder extends Order {
     }
 
     public void setOrderId(Object o) {
-        this.id = o.toString();
+        this.id = Long.parseLong(o.toString());
     }
 
     public void setPrice(Object o) {

@@ -69,6 +69,11 @@ public class BinanceUs extends Exchange {
         logger.info("BinanceUs " + nanoTime());
     }
 
+    public void createOrder(double price1, ENUM_ORDER_TYPE type1, Side side1, double quantity1, double stopLoss1, double takeProfit1) {
+        createOrder(price1, type1, side1, quantity1, stopLoss1, takeProfit1);
+
+    }
+
     @Override
     public String getName() {
         return
@@ -386,16 +391,23 @@ public class BinanceUs extends Exchange {
 
     }
 
-    public void createMarketOrder(@NotNull TradePair tradePair, String side, double size) {
+    public void createOrder(
+            @NotNull TradePair tradePair, TRADE_ORDER_TYPE orderType,
+            Side side,
+            int size,
+            double price,
+            double stopPrice,
+            double takeProfit
+    ) {
         JSONObject jsonObject = getJSON();
         System.out.println(jsonObject.toString(4));
 
         String uriStr = "https://api.binance.us/" +
                 "api/v3/orders/" + tradePair.toString('/') +
                 "?side=" + side +
-                "&type=market" +
+                "&type=" +orderType+
                 "&quantity=" + size +
-                "&price=" + jsonObject.getJSONObject("data").getJSONObject("rates").getDouble("USD");
+                "&price=" +price+"&stopLoss=" +stopPrice+"&takeProfit=" +takeProfit;
 
         System.out.println(uriStr);
 
@@ -462,7 +474,7 @@ public class BinanceUs extends Exchange {
                             HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
                     .thenApply(response -> {
-                        Log.info("Binance response: -->", response);
+                        Log.info("Binance Us response: -->", response);
                         JsonNode res;
                         try {
                             res = OBJECT_MAPPER.readTree(response);
@@ -471,6 +483,13 @@ public class BinanceUs extends Exchange {
                         }
 
                         if (!res.isEmpty()) {
+
+
+                            if (res.has("message")) {
+                                System.out.println(res.get("message").asText());
+                                return
+                                        Collections.emptyList();
+                            }
                             // Remove the current in-progress candle
                             if (res.get(0).get(0).asInt() + secondsPerCandle > endTime.get()) {
                                 ((ArrayNode) res).remove(0);

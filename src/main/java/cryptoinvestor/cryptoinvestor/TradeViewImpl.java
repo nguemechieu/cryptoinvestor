@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.List;
 
@@ -45,7 +46,7 @@ public class TradeViewImpl extends Region {
     private  String apiKey;
     private  String apiSecret;
 
-    public  TradeViewImpl(TradePair tradePair,  Exchange exchange, String apiKey, String apiSecret) throws URISyntaxException, IOException, TelegramApiException, ParseException, InterruptedException {
+    public  TradeViewImpl(TradePair tradePair,  Exchange exchange, String apiKey, String apiSecret) throws URISyntaxException, IOException, TelegramApiException, ParseException, InterruptedException, NoSuchAlgorithmException {
 
         super();
         this.tradePair = tradePair;

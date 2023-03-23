@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Objects;
 
@@ -23,7 +24,7 @@ public class CryptoInvestorScene extends TabPane {
 
     private static final Logger logger = LoggerFactory.getLogger(CryptoInvestorScene.class);
 
-    public CryptoInvestorScene() throws TelegramApiException, IOException, ParseException, InterruptedException, URISyntaxException {
+    public CryptoInvestorScene() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException {
         VBox ordersBox = new VBox(listOrders());
         VBox navigator = new VBox(listNavigator());
         ordersBox.setTranslateX(150);

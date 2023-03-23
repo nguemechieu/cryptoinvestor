@@ -29,6 +29,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -59,18 +60,19 @@ public class Coinbase extends Exchange {
     protected String PASSPHRASE = "w73hzit0cgl";
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
-
+    private String telegramToken;
+    static TelegramClient telegramBot;
     public Coinbase(
             @NotNull String telegramToken,
             @NotNull String apiKey,
             @NotNull String passphrase
-    ) throws TelegramApiException, IOException {
+    ) throws TelegramApiException, IOException, NoSuchAlgorithmException {
         super(telegramToken, apiKey, passphrase);
 
 
         requestBuilder.header("CB-ACCESS-KEY", apiKey);
         requestBuilder.header("CB-ACCESS-PASSPHRASE", PASSPHRASE);
-        // requestBuilder.header("CB-ACCESS-SIGNATURE", timestampSignature(apiKey, PASSPHRASE));
+        requestBuilder.header("CB-ACCESS-SIGNATURE", timestampSignature(apiKey, PASSPHRASE));
         requestBuilder.header("CB-ACCESS-TIMESTAMP", Date.from(Instant.now()).toString());
         requestBuilder.header("CB-ACCESS-VERSION", API_VERSION);
         requestBuilder.header("Content-Type", "application/json");
@@ -80,6 +82,9 @@ public class Coinbase extends Exchange {
         requestBuilder.header("Referer", "https://www.coinbase.com/");
         requestBuilder.header("Sec-Fetch-Dest", "empty");
         requestBuilder.header("Sec-Fetch-Mode", "cors");
+        telegramBot=new TelegramClient(telegramToken);
+
+        logger.info("Coinbase initialized");
 
     }
 
@@ -92,7 +97,7 @@ public class Coinbase extends Exchange {
     @Override
     public String getName() {
         return
-                "Coinbase";
+                "COINBASE";
     }
 
     @Override
@@ -114,22 +119,22 @@ public class Coinbase extends Exchange {
     private @Nullable String timestampSignature(
             String apiKey,
             String passphrase
-    ) {
+    ) throws NoSuchAlgorithmException {
         Objects.requireNonNull(apiKey);
         Objects.requireNonNull(passphrase);
 
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+        String timestamp = new Date().toString();
         String stringToSign = timestamp + "\n" + apiKey + "\n" + passphrase;
 
-        try {
-            byte[] hash = MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes());
-            return Base64.getEncoder().encodeToString(hash);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
+//        try {
+//            byte[] hash = MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes());
+//            return Base64.getEncoder().encodeToString(hash);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//        }
 
-
+return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes()));
     }
 
 
@@ -403,19 +408,47 @@ public class Coinbase extends Exchange {
         System.out.println(jsonObject.toString(4));
 
     }
+    HttpClient client = HttpClient.newHttpClient();
 
-    public void createMarketOrder(TradePair tradePair, String side, double size) {
-        JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4));
+    public void createOrder(TradePair tradePair, double price, ENUM_ORDER_TYPE orderType, Side side, double size,
+                            double stopLoss, double takeProfit) throws IOException, InterruptedException {
+       // JSONObject jsonObject = getJSON();
+     //   System.out.println(jsonObject.toString(4));
 
         String uriStr = "https://api.pro.coinbase.com/" +
-                "products/" + tradePair + "/orders" +
+                "products/" + tradePair.toString('_') + "/orders" +
                 "?side=" + side +
-                "&type=market" +
+                "&type=" +orderType+
                 "&quantity=" + size +
-                "&price=" + jsonObject.getJSONObject("data").getJSONObject("rates").getDouble("USD");
-
+                "&price=" +price+
+                "&stop-loss=" +stopLoss+
+                "&take-profit=" +takeProfit
+                ;
         System.out.println(uriStr);
+        HttpRequest.Builder request = HttpRequest.newBuilder();
+        requestBuilder.uri(URI.create(uriStr));
+        HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+
+        if (response.statusCode() != 200) {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            telegramBot.sendMessage("Error: " + response.body());
+        }else {
+            JSONObject jsonObject = new JSONObject(response.body());
+
+            telegramBot.sendMessage(jsonObject.toString(4));
+            System.out.println(jsonObject.toString(4));
+        }
+
+
+
 
 
     }
@@ -473,19 +506,7 @@ public class Coinbase extends Exchange {
                         try {
                             res = OBJECT_MAPPER.readTree(response);
 
-                            if (res.has("message")) {
 
-
-                                Alert alert = new Alert(Alert.AlertType.WARNING);
-                                alert.setTitle("Coinbase Error");
-                                alert.setHeaderText("Coinbase Error");
-                                alert.setContentText(res.get("message").asText());
-                                alert.showAndWait();
-
-
-                                return Collections.emptyList();
-
-                            }
 
 
                         } catch (JsonProcessingException ex) {
@@ -493,6 +514,24 @@ public class Coinbase extends Exchange {
                         }
 
                         if (!res.isEmpty()) {
+
+
+
+                            if (res.has("message")) {
+                                Alert alert = new Alert(Alert.AlertType.WARNING);
+                                alert.setTitle("Coinbase Error");
+                                alert.setHeaderText("Coinbase Error");
+                                alert.setContentText(res.get("message").asText());
+                                alert.showAndWait();
+
+
+                                try {
+                                    telegramBot.sendMessage("Coinbase Error: " + res.get("message").asText());
+                                } catch (IOException | InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                return Collections.emptyList();
+                            }
                             // Remove the current in-progress candle
                             if (res.get(0).get(0).asInt() + secondsPerCandle > endTime.get()) {
                                 ((ArrayNode) res).remove(0);
