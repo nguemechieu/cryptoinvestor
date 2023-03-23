@@ -40,8 +40,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import static java.lang.System.out;
 import static cryptoinvestor.cryptoinvestor.FXUtils.computeTextDimensions;
+import static java.lang.System.out;
+
 public class CandleStickChartToolbar extends Region {
 
 
@@ -55,7 +56,7 @@ public class CandleStickChartToolbar extends Region {
 
 
     public CandleStickChartToolbar(ObservableNumberValue containerWidth, ObservableNumberValue containerHeight,
-                            Set<Integer> granularities) throws URISyntaxException, IOException {
+                                   Set<Integer> granularities) throws URISyntaxException, IOException {
         Objects.requireNonNull(containerWidth);
         Objects.requireNonNull(containerHeight);
         Objects.requireNonNull(granularities);
@@ -68,7 +69,7 @@ public class CandleStickChartToolbar extends Region {
         for (Integer granularity : granularities) {
             if (granularity < 3600) {
                 ToolbarButton toolbar0 = new ToolbarButton((granularity / 60) + "m", granularity);
-                      toolbar0.setPadding(new Insets(20, 20, 20, 20));
+                toolbar0.setPadding(new Insets(20, 20, 20, 20));
                 toolbarNodes.add(toolbar0);
 
 
@@ -80,7 +81,7 @@ public class CandleStickChartToolbar extends Region {
                     toolbarNodes.add(minuteHourSeparator);
                 }
                 ToolbarButton toolbar1 = new ToolbarButton((granularity / 3600) + "h", granularity);
-                      toolbarNodes.add(toolbar1);
+                toolbarNodes.add(toolbar1);
             } else if (granularity < 604800) {
                 if (!passedHourDayBoundary) {
                     passedHourDayBoundary = true;
@@ -97,7 +98,7 @@ public class CandleStickChartToolbar extends Region {
                     toolbarNodes.add(dayWeekSeparator);
                 }
                 ToolbarButton toolbar3 = new ToolbarButton((granularity / 604800) + "w", granularity);
-                      toolbarNodes.add(toolbar3);
+                toolbarNodes.add(toolbar3);
             } else {
                 if (!passedWeekMonthBoundary) {
                     passedWeekMonthBoundary = true;
@@ -107,7 +108,7 @@ public class CandleStickChartToolbar extends Region {
                 }
                 ToolbarButton toolbar9 = new ToolbarButton((granularity / 2592000) + "mo", granularity);
 
-                     toolbarNodes.add(toolbar9);
+                toolbarNodes.add(toolbar9);
             }
         }
         Separator intervalZoomSeparator = new Separator();
@@ -182,8 +183,12 @@ public class CandleStickChartToolbar extends Region {
                     tool.setOnAction(event -> secondsPerCandle.setValue(tool.duration));
                 } else if (tool.tool != null && tool.tool.isZoomFunction()) {
                     tool.setOnAction(event -> {
-                        candleStickChart.changeZoom(
-                                tool.tool.getZoomDirection());
+                        try {
+                            candleStickChart.changeZoom(
+                                    tool.tool.getZoomDirection());
+                        } catch (IOException | ParseException | InterruptedException | TelegramApiException e) {
+                            throw new RuntimeException(e);
+                        }
                     });
 
 
@@ -200,52 +205,40 @@ public class CandleStickChartToolbar extends Region {
                         }
                     });
 
-                }else if (tool.tool!= null && tool.tool.isOptions()) {
+                } else if (tool.tool != null && tool.tool.isOptions()) {
                     tool.setOnAction(event -> optionsPopOver.show(tool));
-                }else if (tool.tool!= null && tool.tool.isPrint()) {
+                } else if (tool.tool != null && tool.tool.isPrint()) {
                     tool.setOnAction(event -> out.println("Now Printing ..." + candleStickChart.toString()));
 
-                }else if (tool.tool!= null && tool.tool.isAutoTrading()) {
-                    tool.setOnAction(event ->{
-                            tool.setActive(true);
-                            tool.setText("Mode: Automatic");
-
-                            candleStickChart.isAutoTrading(event);});
-                }else if (tool.tool!= null && tool.tool.isArea()) {
-                    tool.setOnAction(event -> candleStickChart.setAreaChart());
-                }else if (tool.tool!= null && tool.tool.isVolume()) {
-                    tool.setOnAction(event -> candleStickChart.setVolumeChart());
-                }else if (tool.tool!= null && tool.tool.isBar()) {
-                    tool.setOnAction(event -> candleStickChart.setBarChart());
-                }else if (tool.tool!= null && tool.tool.isNews()) {
+                } else if (tool.tool != null && tool.tool.isAutoTrading()) {
                     tool.setOnAction(event -> {
-                        try {
-                            candleStickChart.setNewsChart();
-                        } catch (ParseException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
-                }
+                        tool.setActive(true);
+                        tool.setText("Mode: Automatic");
 
-                else if (tool.tool!= null && tool.tool.isLine()) {
+                        candleStickChart.isAutoTrading(event);
+                    });
+                } else if (tool.tool != null && tool.tool.isArea()) {
+                    tool.setOnAction(event -> candleStickChart.setAreaChart());
+                } else if (tool.tool != null && tool.tool.isVolume()) {
+                    tool.setOnAction(event -> candleStickChart.setVolumeChart());
+                } else if (tool.tool != null && tool.tool.isBar()) {
+                    tool.setOnAction(event -> candleStickChart.setBarChart());
+                } else if (tool.tool != null && tool.tool.isNews()) {
+                    tool.setOnAction(event -> {
+                        candleStickChart.setNewsChart();
+                    });
+                } else if (tool.tool != null && tool.tool.isLine()) {
                     tool.setOnAction(event -> candleStickChart.setLineChart());
-                }
-                else if (tool.tool!= null && tool.tool.isPie()) {
+                } else if (tool.tool != null && tool.tool.isPie()) {
                     tool.setOnAction(event -> candleStickChart.setPieChart());
-                }
-                else if (tool.tool!= null && tool.tool.isScatter()) {
+                } else if (tool.tool != null && tool.tool.isScatter()) {
                     tool.setOnAction(event -> candleStickChart.setScatterChart());
-                }
-                else if (tool.tool!= null && tool.tool.isHistogram()) {
+                } else if (tool.tool != null && tool.tool.isHistogram()) {
                     tool.setOnAction(event -> candleStickChart.setHistogramChart());
 
-                }else if (tool.tool!= null && tool.tool.isCurrency()) {
+                } else if (tool.tool != null && tool.tool.isCurrency()) {
                     tool.setOnAction(event -> candleStickChart.setCurrencyChart());
                 }
-
-
-
-
 
 
             }
@@ -257,29 +250,28 @@ public class CandleStickChartToolbar extends Region {
     }
 
     enum Tool {
-        ZOOM_IN("/img/search-plus-solid.png"),
-        ZOOM_OUT("/img/search-minus-solid.png"),
-        SCREENSHOT("/img/Screen Shot.png"),
-        AUTO_TRADING("/img/auto-trading-solid.png"),
-         CURRENCY("/img/symbol.png"),
-        BAR("/img/bar-solid.png"),
-        AREA("/img/area-solid.png"),
+        ZOOM_IN("/cryptoinvestor/img/search-plus-solid.png"),
+        ZOOM_OUT("/cryptoinvestor/img/search-minus-solid.png"),
+        SCREENSHOT("/cryptoinvestor/img/Screen Shot.png"),
+        AUTO_TRADING("/cryptoinvestor/img/auto-trading-solid.png"),
+        CURRENCY("/cryptoinvestor/img/symbol.png"),
+        BAR("/cryptoinvestor/img/bar-solid.png"),
+        AREA("/cryptoinvestor/img/area-solid.png"),
 
-        LINE("/img/line-solid.png"),
+        LINE("/cryptoinvestor/img/line-solid.png"),
 
-        HISTOGRAM("/img/histogram-solid.png"),
+        HISTOGRAM("/cryptoinvestor/img/histogram-solid.png"),
 
 
+        PIE("/cryptoinvestor/img/pie-solid.png"),
+        SCATTER("/cryptoinvestor/img/scatter-solid.png"),
+        VOLUME("/cryptoinvestor/img/volume-chart-solid.png"),
 
-        PIE("/img/pie-solid.png"),
-        SCATTER("/img/scatter-solid.png"),
-        VOLUME("/img/volume-chart-solid.png"),
+        NEWS("/cryptoinvestor/img/news-solid.png"),
 
-        NEWS("/img/news-solid.png"),
-
-        SEARCHTOOL("/img/search.png"),
-        OPTIONS("/img/cog-solid.png"), PRINTS(
-                "/img/print-solid.png"
+        SEARCHTOOL("/cryptoinvestor/img/search.png"),
+        OPTIONS("/cryptoinvestor/img/cog-solid.png"), PRINTS(
+                "/cryptoinvestor/img/print-solid.png"
         );
 
         private final String img;
@@ -303,6 +295,7 @@ public class CandleStickChartToolbar extends Region {
         boolean isScreenShot() {
             return this == SCREENSHOT;
         }
+
         boolean isAutoTrading() {
             return this == AUTO_TRADING;
         }
@@ -311,6 +304,7 @@ public class CandleStickChartToolbar extends Region {
         boolean isBar() {
             return this == BAR;
         }
+
         boolean isArea() {
             return this == AREA;
         }
@@ -318,31 +312,30 @@ public class CandleStickChartToolbar extends Region {
         boolean isLine() {
             return this == LINE;
         }
+
         boolean isHistogram() {
             return this == HISTOGRAM;
         }
+
         boolean isPie() {
             return this == PIE;
         }
+
         boolean isScatter() {
             return this == SCATTER;
         }
+
         boolean isVolume() {
             return this == VOLUME;
         }
+
         boolean isNews() {
             return this == NEWS;
         }
+
         boolean isSearch() {
             return this == SEARCHTOOL;
         }
-
-
-
-
-
-
-
 
 
         public boolean isOptions() {
@@ -387,12 +380,12 @@ public class CandleStickChartToolbar extends Region {
             this(textLabel, null, null, duration);
         }
 
-        ToolbarButton(Tool tool) throws URISyntaxException, IOException {
-            this(null, tool, tool.img, -1);
+        ToolbarButton(Tool tool) {
+            this("", tool, tool.img, -1);
         }
 
 
-        private ToolbarButton(String textLabel, Tool tool, String img, int duration) throws URISyntaxException, IOException {
+        private ToolbarButton(String textLabel, Tool tool, String img, int duration) {
             if (textLabel == null && img == null) {
                 throw new IllegalArgumentException("textLabel and img were both null");
             }
@@ -402,9 +395,10 @@ public class CandleStickChartToolbar extends Region {
             setText(textLabel == null ? "" : textLabel);
             if (img != null) {
                 graphicLabel = new ImageView(new Image(Objects.requireNonNull(ToolbarButton.class.getResourceAsStream(img))));
-                graphicLabel.setFitHeight(computeTextDimensions(String.valueOf(graphicLabel), Font.font("" , FontWeight.BOLD, FontPosture.REGULAR, 16)).getHeight());
+                graphicLabel.setFitHeight(computeTextDimensions(String.valueOf(graphicLabel), Font.font("", FontWeight.BOLD, FontPosture.REGULAR, 16)).getHeight());
                 graphicLabel.setFitWidth(computeTextDimensions(String.valueOf(graphicLabel), Font.font("", FontWeight.BOLD, FontPosture.REGULAR, 16)).getWidth());
                 setGraphic(graphicLabel);
+
             } else {
                 graphicLabel = null;
             }

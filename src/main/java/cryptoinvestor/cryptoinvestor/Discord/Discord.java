@@ -1,50 +1,56 @@
 package cryptoinvestor.cryptoinvestor.Discord;
 
 
-import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import cryptoinvestor.cryptoinvestor.Chat;
+import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
+import cryptoinvestor.cryptoinvestor.TelegramClient;
+
+import java.io.IOException;
 
 
-public class Discord {
+public class Discord extends TelegramClient {
+    String url = "https://discord.com/api/oauth2/authorize?client_id=1087210119097499751&permissions=0&scope=bot";
+
+    String discordToken = "MTA4NzIxMDExOTA5NzQ5OTc1MQ.GTPtoi.IoKi82j9vnTZAe1VG8LHO60aFUGJzgfYG5blYo";
+
+    private String clientId = "72421114444444444";
+    String host =
+            "https://api.discord.org/bot" +
+                    this.getClientId() +
+                    "/sendMessage?chat_id=" +
+                    this.getChatId() +
+                    "&parse_mode=Markdown&text=";
+    private String clientSecret = "1087210119097499751";
     private String apiUrl;
     private String apiVersion;
-    private String clientSecret;
-    private String clientId;
     private String accessToken;
     private String refreshToken;
 
     public Discord(
-            final String clientId,
-            final String clientSecret,
-            final String accessToken,
-            final String refreshToken) {
-
-        this.clientId = clientId;
+            String apiUrl,
+            String apiVersion,
+            String clientSecret,
+            String clientId,
+            String accessToken,
+            String refreshToken) throws IOException, InterruptedException {
+        super(
+                apiUrl,
+                apiVersion,
+                clientSecret,
+                clientId,
+                accessToken,
+                refreshToken
+        );
+        this.apiUrl = apiUrl;
+        this.apiVersion = apiVersion;
         this.clientSecret = clientSecret;
+        this.clientId = clientId;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
-        this.apiUrl = Coinbase.API_URL;
-        this.apiVersion = Coinbase.API_VERSION;
+        connect();
+        this.sendMessage(Chat.getWelcomeMessage());
 
-        if (this.clientId == null || this.clientSecret == null) {
-            throw new IllegalArgumentException("You must provide clientId and clientSecret");
-
-            // this.clientId = clientId;
-            // this.clientSecret = clientSecret;
-            // this.apiUrl = API_URL;
-            // this.apiVersion = API_VERSION;
-        }
-
-        if (this.accessToken == null || this.refreshToken == null) {
-            throw new IllegalArgumentException("You must provide accessToken and refreshToken");
-
-            // this.accessToken = accessToken;
-            // this.refreshToken = refreshToken;
-            // this.apiUrl = API_URL;
-            // this.apiVersion = API_VERSION;
-        }
-
-
+        this.sendMessage(Coinbase.getCoinbaseMessage());
     }
 
     public String getApiUrl() {
@@ -93,21 +99,5 @@ public class Discord {
 
     public void setRefreshToken(String refreshToken) {
         this.refreshToken = refreshToken;
-    }
-
-    void sendMessage(Chat chat, String message) {
-    }
-
-    void sendMessage(Chat chat, String message, String file) {
-
-        sendMessage(chat, message);
-        sendMessage(chat, file);
-
-    }
-
-    void sendPhoto(
-            Chat chat,
-            String message,
-            String file) {
     }
 }

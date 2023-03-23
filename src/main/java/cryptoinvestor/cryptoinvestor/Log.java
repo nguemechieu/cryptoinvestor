@@ -11,11 +11,14 @@ public class Log {
 
     public Log() {
         System.out.println("Log");
+        org.slf4j.Logger logger =
+                org.slf4j.LoggerFactory.getLogger(Log.class);
+        logger.info("Log");
 
 
     }
 
-    public static void info( String s,String message) {
+    public static void info(String s, String message) {
         System.out.println(message);
         System.out.println(s);
 
@@ -63,7 +66,7 @@ public class Log {
     }
 
     public static void e(String tag, @NotNull String noCoinInfoAvailable) {
-        Logger.getLogger( tag,noCoinInfoAvailable.getClass().getName());
+        Logger.getLogger(tag, noCoinInfoAvailable.getClass().getName());
         System.err.println(noCoinInfoAvailable);
         org.slf4j.Logger logger =
                 org.slf4j.LoggerFactory.getLogger(tag);

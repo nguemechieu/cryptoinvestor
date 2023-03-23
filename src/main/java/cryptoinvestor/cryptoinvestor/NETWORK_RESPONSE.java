@@ -1,5 +1,10 @@
 package cryptoinvestor.cryptoinvestor;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
+
+import static cryptoinvestor.cryptoinvestor.TelegramClient.message;
+
 public enum NETWORK_RESPONSE {
     SERVER_OK(200),
     CREATED(201),
@@ -141,7 +146,8 @@ public enum NETWORK_RESPONSE {
     NETWORK_RESPONSE(int i) {
     }
 
-    public NETWORK_RESPONSE value(int responseCode) {
+    @Contract(pure = true)
+    public @Nullable NETWORK_RESPONSE value(int responseCode) {
 
         if (this.ordinal() == responseCode) {
             return this;
@@ -157,6 +163,10 @@ public enum NETWORK_RESPONSE {
 
     public boolean compareTo(int responseCode) {
         return OK.ordinal() == responseCode;
+    }
+
+    public String getMessage() {
+        return message;
     }
 }
 

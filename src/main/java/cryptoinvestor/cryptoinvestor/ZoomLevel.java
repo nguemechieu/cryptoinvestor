@@ -32,7 +32,7 @@ public class ZoomLevel {
         numVisibleCandles = new SimpleDoubleProperty(plotAreaWidthProperty.doubleValue() / candleWidth);
         numVisibleCandles.bind(Bindings.createDoubleBinding(() -> plotAreaWidthProperty.doubleValue() / candleWidth,
                 plotAreaWidthProperty));
-        this.secondsPerPixel = (float)secondsPerCandle / candleWidth;
+        this.secondsPerPixel = (float) secondsPerCandle / candleWidth;
         pixelsPerSecond = 1d / secondsPerPixel;
         this.xAxisFormatter = xAxisFormatter;
         this.minXValue = minXValue;

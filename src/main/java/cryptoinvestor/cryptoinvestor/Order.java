@@ -5,93 +5,107 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Date;
 
- public class Order {
+public class Order {
     public static String timestamp;
-     private static int lastError;
-     private static int ticket;
-     public static TRADE_ORDER_TYPE order_type;
+    public static TRADE_ORDER_TYPE order_type;
     public static double remaining;
     public static double fee;
-
-     public static void setLastError(int lastError) {
-         Order.lastError = lastError;
-     }
-
-     public static void setTicket(int ticket) {
-         Order.ticket = ticket;
-     }
-
-     @Override
-     public String toString() {
-         return "Order{" +
-                 "id=" + id +
-                 ", total=" + total +
-                 ", currency='" + currency + '\'' +
-                 ", created=" + created +
-                 ", takeProfit=" + takeProfit +
-                 ", updated=" + updated +
-                 ", closed=" + closed +
-                 ", status='" + status + '\'' +
-                 '}';
-     }
-
-     protected Long id;
     protected static double lotSize;
     protected static double price;
+    protected static double stopLoss;
+    protected static String symbol;
+    protected static String type;
+    private static int lastError;
+    private static int ticket;
+    protected Long id;
     protected double total;
     protected String currency;
     protected Date created;
-    protected static double stopLoss;
     protected double takeProfit;
     protected Date updated;
     protected Date closed;
     protected String status;
-    protected static String symbol;
-    protected static String type;
+
+    public Order(String timestamp, TRADE_ORDER_TYPE order_type, double remaining, double fee, double lotSize, double price) {
+        Order.timestamp = timestamp;
+        Order.order_type = order_type;
+        Order.remaining = remaining;
+        Order.fee = fee;
+        Order.lotSize = lotSize;
+        Order.price = price;
 
 
-     public Order(String timestamp, TRADE_ORDER_TYPE order_type, double remaining, double fee, double lotSize, double price) {
-         Order.timestamp = timestamp;
-         Order.order_type = order_type;
-         Order.remaining = remaining;
-         Order.fee = fee;
-         Order.lotSize = lotSize;
-         Order.price = price;
+    }
 
+    public static Object getOpenTime() {
+        return timestamp;
+    }
 
-     }
+    public static int getLastError() {
+        return lastError;
+    }
 
-     public static Object getOpenTime() {
-         return timestamp;
-     }
+    public static void setLastError(int lastError) {
+        Order.lastError = lastError;
+    }
 
-     public static int getLastError() {
-         return lastError;
-     }
+    @Contract(pure = true)
+    public static @NotNull String getErrorDescription(int err) {
+        return "Error " + err;
+    }
 
-     @Contract(pure = true)
-     public static @NotNull String getErrorDescription(int err) {
-         return "Error " + err;
-     }
+    public static long getMagicNumber() {
+        return timestamp.length();
+    }
 
-     public static long getMagicNumber() {
-         return timestamp.length();
-     }
+    public static int getTicket() {
+        return ticket;
+    }
 
-     public static int getTicket() {
-         return ticket;
-     }
+    public static void setTicket(int ticket) {
+        Order.ticket = ticket;
+    }
 
-     public static double getStopLoss() {
+    public static double getStopLoss() {
         return stopLoss;
     }
 
-     public static double getOpenPrice() {
-         return price;
-     }
-
-     public void setStopLoss(double stopLoss) {
+    public void setStopLoss(double stopLoss) {
         Order.stopLoss = stopLoss;
+    }
+
+    public static double getOpenPrice() {
+        return price;
+    }
+
+    public static String getSymbol() {
+        return symbol;
+    }
+
+    public void setSymbol(String symbol) {
+        Order.symbol = symbol;
+    }
+
+    public static String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        Order.type = type;
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "id=" + id +
+                ", total=" + total +
+                ", currency='" + currency + '\'' +
+                ", created=" + created +
+                ", takeProfit=" + takeProfit +
+                ", updated=" + updated +
+                ", closed=" + closed +
+                ", status='" + status + '\'' +
+                '}';
     }
 
     public double getTakeProfit() {
@@ -102,7 +116,7 @@ import java.util.Date;
         this.takeProfit = takeProfit;
     }
 
-     public String getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
@@ -204,22 +218,6 @@ import java.util.Date;
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public static String getSymbol() {
-        return symbol;
-    }
-
-    public void setSymbol(String symbol) {
-        Order.symbol = symbol;
-    }
-
-    public static String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        Order.type = type;
     }
 
     public void showOrderDetails() {

@@ -1,12 +1,12 @@
 package cryptoinvestor.cryptoinvestor;
 
 import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 public class MessageEncoder implements Encoder.Text<Message> {
     private static final Logger logger = LoggerFactory.getLogger(MessageEncoder.class);

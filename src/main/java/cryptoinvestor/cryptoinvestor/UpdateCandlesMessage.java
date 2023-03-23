@@ -3,8 +3,19 @@ package cryptoinvestor.cryptoinvestor;
 public class UpdateCandlesMessage {
 
     public double open;
+    public double high;
+    public double low;
+    public double close;
+    public double volume;
+    public long timestamp;
+    public String exchange;
+    public String pair;
+    public String type;
+    public String side;
+    public double amount;
+    public double price;
 
-    public UpdateCandlesMessage( double open, double high, double low, double close, double volume, long timestamp, String exchange, String pair, String type, String side, double amount, double price) {
+    public UpdateCandlesMessage(double open, double high, double low, double close, double volume, long timestamp, String exchange, String pair, String type, String side, double amount, double price) {
 
         this.open = open;
         this.high = high;
@@ -38,7 +49,6 @@ public class UpdateCandlesMessage {
                 ", price=" + price +
                 '}';
     }
-
 
     public double getOpen() {
         return open;
@@ -138,16 +148,4 @@ public class UpdateCandlesMessage {
     public void setPrice(double price) {
         this.price = price;
     }
-
-    public double high;
-    public double low;
-    public double close;
-    public double volume;
-    public long timestamp;
-    public String exchange;
-    public String pair;
-    public String type;
-    public String side;
-    public double amount;
-    public double price;
 }

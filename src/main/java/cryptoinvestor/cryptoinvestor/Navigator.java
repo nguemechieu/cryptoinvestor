@@ -17,7 +17,6 @@ public class Navigator extends Region {
         HBox hBox = new HBox(new Region(), new Region(), new Region());
 
 
-
         vBox.getChildren().addAll(hBox);
 
 

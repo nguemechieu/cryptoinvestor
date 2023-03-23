@@ -22,9 +22,10 @@ import java.util.HashMap;
 
 import static java.lang.System.out;
 
- class News extends RecursiveTreeObject<News>{
+class News extends RecursiveTreeObject<News> {
     int hours;
     int seconds;
+    String url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=1bed8a31256f1525dbb0b6daf6898823";
     private String title;// title of the
     private String country;// country of the news
     private String description;// description of the news
@@ -219,7 +220,7 @@ import static java.lang.System.out;
         return super.clone();
     }
 
-     public String getCountry() {
+    public String getCountry() {
         return country;
     }
 
@@ -259,29 +260,28 @@ import static java.lang.System.out;
         this.forecast = forecast;
     }
 
-
     public String getPrevious() {
         return previous;
     }
 
-     @Override
-     public String toString() {
-         return
-                 "hours=" + hours +
-                 ", seconds=" + seconds +
-                 ", title='" + title + '\'' +
-                 ", country='" + country + '\'' +
-                 ", description='" + description + '\'' +
-                 ", impact='" + impact + '\'' +
-                 ", previous='" + previous + '\'' +
-                 ", date=" + date +
-                 ", forecast='" + forecast + '\'' +
-                 ", minutes=" + minutes +
-                 ", offset=" + offset ;
-     }
-
-     public void setPrevious(String previous) {
+    public void setPrevious(String previous) {
         this.previous = previous;
+    }
+
+    @Override
+    public String toString() {
+        return
+                "hours=" + hours +
+                        ", seconds=" + seconds +
+                        ", title='" + title + '\'' +
+                        ", country='" + country + '\'' +
+                        ", description='" + description + '\'' +
+                        ", impact='" + impact + '\'' +
+                        ", previous='" + previous + '\'' +
+                        ", date=" + date +
+                        ", forecast='" + forecast + '\'' +
+                        ", minutes=" + minutes +
+                        ", offset=" + offset;
     }
 
     public int getHours() {
@@ -315,38 +315,38 @@ import static java.lang.System.out;
     public void setOffset(int codePointCount) {
         this.offset = codePointCount;
     }
-    String url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=1bed8a31256f1525dbb0b6daf6898823";
 
-        private @Nullable JSONArray makeRequest() {
-            try {
-                HttpURLConnection connection = (HttpURLConnection) new URL(this.url).openConnection();
-                connection.setDoOutput(true);
-                connection.setDoInput(true);
-                connection.setUseCaches(false);
-                connection.setRequestMethod("GET");
-                connection.setRequestProperty("Content-Type", "application/json");
-                connection.setRequestProperty("Accept", "application/json");
-                // connection.setRequestProperty("Authorization", "Bearer " + getToken());
-                connection.connect();
-                int responseCode = connection.getResponseCode();
-                out.printf("Response Code: %d%n", responseCode);
-                InputStream in = connection.getInputStream();
-                BufferedReader reader = new BufferedReader(new InputStreamReader((in)));
-                String inputLine;
-                StringBuilder response = new StringBuilder();
-                while ((inputLine = reader.readLine()) != null) {
-                    response.append(inputLine);
-                    response.append("\r\n");
-                }
-                reader.close();
-                return new JSONArray(response.toString());
-
-
-            } catch (IOException e) {
-                e.printStackTrace();
+    private @Nullable JSONArray makeRequest() {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) new URL(this.url).openConnection();
+            connection.setDoOutput(true);
+            connection.setDoInput(true);
+            connection.setUseCaches(false);
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setRequestProperty("Accept", "application/json");
+            // connection.setRequestProperty("Authorization", "Bearer " + getToken());
+            connection.connect();
+            int responseCode = connection.getResponseCode();
+            out.printf("Response Code: %d%n", responseCode);
+            InputStream in = connection.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader((in)));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+            while ((inputLine = reader.readLine()) != null) {
+                response.append(inputLine);
+                response.append("\r\n");
             }
-            return null;
+            reader.close();
+            return new JSONArray(response.toString());
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+        return null;
+    }
+
     public HashMap<Object, Object> getNews() {
         HashMap<Object, Object> news = null;
         JSONArray data = makeRequest();
@@ -358,9 +358,9 @@ import static java.lang.System.out;
             JSONObject obj = data.getJSONObject(i);
             String title = obj.getString("title");
 
-          seconds= (int) (date.getTime()/1000);
+            seconds = (int) (date.getTime() / 1000);
 
-          minutes=seconds/60;
+            minutes = seconds / 60;
             if (obj.has("title")) {
 
 
@@ -378,63 +378,65 @@ import static java.lang.System.out;
                 news.put("offset", offset);
 
             } else {
-                Log.warn( " Error getting news");
-            }}
+                Log.warn(" Error getting news");
+            }
+        }
 
-            System.out.println(news);
-            return news;
+        System.out.println(news);
+        return news;
 
     }
 
     public Object getTradePair() {
-            HashMap<Object, Object> news = null;
-            JSONArray data = makeRequest();
-            if (data == null) {
-                Log.e(String.valueOf(Integer.parseInt("News")), "Error getting news");
-                return null;
+        HashMap<Object, Object> news = null;
+        JSONArray data = makeRequest();
+        if (data == null) {
+            Log.e(String.valueOf(Integer.parseInt("News")), "Error getting news");
+            return null;
+        }
+        for (int i = 0; i < data.length(); i++) {
+            JSONObject obj = data.getJSONObject(i);
+            String title = obj.getString("title");
+            if (obj.has("title")) {
+                news = new HashMap<>();
+                news.put("title", title);
+                news.put("country", country);
+                news.put("impact", impact);
+                news.put("date", date);
+                news.put("forecast", forecast);
+                news.put("previous", previous);
+
+
+            } else {
+                Log.warn(" Error getting news");
             }
-            for (int i = 0; i < data.length(); i++) {
-                JSONObject obj = data.getJSONObject(i);
-                String title = obj.getString("title");
-                if (obj.has("title")) {
-                    news = new HashMap<>();
-                    news.put("title", title);
-                    news.put("country", country);
-                    news.put("impact", impact);
-                    news.put("date", date);
-                    news.put("forecast", forecast);
-                    news.put("previous", previous);
-
-
-                } else {
-                    Log.warn( " Error getting news");
-                }}
-            System.out.println(news);
+        }
+        System.out.println(news);
         assert news != null;
         return news.get("country");
 
-            }
+    }
 
 
-     public void draw() {
-            Line newsLine = new Line();
-            newsLine.setRotate(90);
-            newsLine.setStroke(Paint.valueOf("BLACK"));
+    public void draw() {
+        Line newsLine = new Line();
+        newsLine.setRotate(90);
+        newsLine.setStroke(Paint.valueOf("BLACK"));
 
-            if (getImpact().equals("High")) {
-                newsLine.setStroke(Paint.valueOf("RED"));
-            }
-            if (getImpact().equals("Medium")) {
-                newsLine.setStroke(Paint.valueOf("YELLOW"));
-            }
-            if (getImpact().equals("Low")) {
-                newsLine.setStroke(Paint.valueOf("GREEN"));
-            }
-            newsLine.setStartX(0);
-            newsLine.setStartY(0);
-            newsLine.setEndX(100);
-            newsLine.setEndY(100);
-            Canvas canvas = new Canvas(500,400);
+        if (getImpact().equals("High")) {
+            newsLine.setStroke(Paint.valueOf("RED"));
+        }
+        if (getImpact().equals("Medium")) {
+            newsLine.setStroke(Paint.valueOf("YELLOW"));
+        }
+        if (getImpact().equals("Low")) {
+            newsLine.setStroke(Paint.valueOf("GREEN"));
+        }
+        newsLine.setStartX(0);
+        newsLine.setStartY(0);
+        newsLine.setEndX(100);
+        newsLine.setEndY(100);
+        Canvas canvas = new Canvas(500, 400);
         StableTicksAxis xAxis = new StableTicksAxis();
         xAxis.setLabel("Hours");
         xAxis.setMinorTickVisible(false);
@@ -450,29 +452,19 @@ import static java.lang.System.out;
         canvas.setLayoutX(0);
 
         canvas.setLayoutY(0);
-         VBox vBox = new VBox();
-         vBox.getChildren().add(newsLine);
-         vBox.getChildren().add(xAxis);
-         vBox.getChildren().add(yAxis);
-         StackPane stackPane = new StackPane();
-         stackPane.getChildren().add(vBox);
+        VBox vBox = new VBox();
+        vBox.getChildren().add(newsLine);
+        vBox.getChildren().add(xAxis);
+        vBox.getChildren().add(yAxis);
+        StackPane stackPane = new StackPane();
+        stackPane.getChildren().add(vBox);
 
-         StackPane.setMargin(vBox, new Insets(10, 10, 10, 10));
-         StackPane.setMargin(newsLine, new Insets(10, 10, 10, 10));
-         StackPane.setMargin(xAxis, new Insets(10, 10, 10, 10));
-         StackPane.setMargin(yAxis, new Insets(10, 10, 10, 10));
-         stackPane.setStyle("-fx-background-color: WHITE");
-
-
+        StackPane.setMargin(vBox, new Insets(10, 10, 10, 10));
+        StackPane.setMargin(newsLine, new Insets(10, 10, 10, 10));
+        StackPane.setMargin(xAxis, new Insets(10, 10, 10, 10));
+        StackPane.setMargin(yAxis, new Insets(10, 10, 10, 10));
+        stackPane.setStyle("-fx-background-color: WHITE");
 
 
-
-
-
-
-
-
-
-
-     }
- }
+    }
+}

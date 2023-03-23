@@ -13,7 +13,8 @@ import javafx.beans.property.SimpleIntegerProperty;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -24,7 +25,6 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -37,9 +37,6 @@ import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
-
 public class BinanceUs extends Exchange {
 
     private static final Logger logger = LoggerFactory.getLogger(BinanceUs.class);
@@ -51,18 +48,13 @@ public class BinanceUs extends Exchange {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static final String ur0 = "wss://stream.binance.us:9443";
-
-
+    static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     protected String PASSPHRASE = "w73hzit0cgl";
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
-
-
-    static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-
-    public BinanceUs(String telegramToken) throws IOException, ParseException, InterruptedException, TelegramApiException {
-        super(ur0, telegramToken);
+    public BinanceUs(TradePair tradePair, String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException {
+        super(tradePair, ur0, telegramToken, binanceUsApiKey);
 
 
         requestBuilder.header("Content-Type", "application/json");
@@ -72,11 +64,15 @@ public class BinanceUs extends Exchange {
         requestBuilder.header("Sec-Fetch-Dest", "empty");
         requestBuilder.header("Sec-Fetch-Mode", "cors");
         requestBuilder.header("Accept", "application/json");
-       // requestBuilder.header("X-MBX-APIKEY",telegramToken);
-        //requestBuilder.header("X-MBX-APISECRET", telegramToken);
-        requestBuilder.header("Authorization", telegramToken);
-        //requestBuilder.header("Connection", "keep-alive");
-logger.info("BinanceUs " +nanoTime());
+        requestBuilder.header("Authorization", binanceUsApiKey);
+
+        logger.info("BinanceUs " + nanoTime());
+    }
+
+    @Override
+    public String getName() {
+        return
+                "BinanceUs";
     }
 
     @Override
@@ -117,7 +113,6 @@ logger.info("BinanceUs " +nanoTime());
 //    }
 
 
-
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
      * <p>
@@ -153,10 +148,10 @@ logger.info("BinanceUs " +nanoTime());
                             ,
                             HttpResponse.BodyHandlers.ofString());
 
-                    Log.info("response headers: " , response.headers().toString());
+                    Log.info("response headers: ", response.headers().toString());
                     if (response.headers().firstValue("CB-AFTER").isEmpty()) {
                         futureResult.completeExceptionally(new RuntimeException(
-                                "Oanda trades response did not contain header \"CB-AFTER\": " + response));
+                                "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.Oanda trades response did not contain header \"CB-AFTER\": " + response));
                         return;
                     }
 
@@ -166,7 +161,7 @@ logger.info("BinanceUs " +nanoTime());
 
                     if (!tradesResponse.isArray()) {
                         futureResult.completeExceptionally(new RuntimeException(
-                                "Oanda trades response was not an array!"));
+                                "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.Oanda trades response was not an array!"));
                     }
                     if (tradesResponse.isEmpty()) {
                         futureResult.completeExceptionally(new IllegalArgumentException("tradesResponse was empty"));
@@ -211,7 +206,7 @@ logger.info("BinanceUs " +nanoTime());
         String endDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME
                 .format(LocalDateTime.ofEpochSecond(new Date().getTime(), 0, ZoneOffset.UTC));
 
-        Log.info("Start date: " + startDateString,"");
+        Log.info("Start date: " + startDateString, "");
         Log.info("End date: " + endDateString, "");
         Log.info("TradePair " + tradePair, "");
         Log.info("Second per Candle: " + secondsPerCandle, "");
@@ -238,13 +233,13 @@ logger.info("BinanceUs " +nanoTime());
         return HttpClient.newHttpClient().sendAsync(
                         HttpRequest.newBuilder()
                                 .uri(URI.create(
-                                        "https://api.binance.us/api/v3/klines?symbol="+tradePair.toString('/')+"&interval="+timeFrame
-                                                ))
+                                        "https://api.binance.us/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame
+                                ))
                                 .GET().build(),
                         HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenApply(response -> {
-                    Log.info("BinanceUs response: " , response);
+                    Log.info("BinanceUs response: ", response);
                     JsonNode res;
                     try {
                         res = OBJECT_MAPPER.readTree(response);
@@ -305,9 +300,6 @@ logger.info("BinanceUs " +nanoTime());
     }
 
 
-
-
-
     private @NotNull JSONObject getJSON() {
 
         JSONObject jsonObject = new JSONObject();
@@ -331,7 +323,7 @@ logger.info("BinanceUs " +nanoTime());
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String inputLine;
             StringBuilder response = new StringBuilder();
-            while ((inputLine = in.readLine())!= null) {
+            while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
 
             }
@@ -344,22 +336,16 @@ logger.info("BinanceUs " +nanoTime());
 
             String rates;
             if (jsonObject.has("data")) {
-                JSONObject dat =new JSONObject(jsonObject.getJSONObject("data").toString(4));
+                JSONObject dat = new JSONObject(jsonObject.getJSONObject("data").toString(4));
                 if (dat.has("rates")) {
-                    rates=dat.getJSONObject("rates").toString(4);
+                    rates = dat.getJSONObject("rates").toString(4);
                     out.println(rates);
                 }
 
             }
 
 
-
-
-
-
-
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         out.println(jsonObject.toString(4));
@@ -372,7 +358,7 @@ logger.info("BinanceUs " +nanoTime());
 
         System.out.println("Connected");
         JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4) + " "+ handshake);
+        System.out.println(jsonObject.toString(4) + " " + handshake);
 
     }
 
@@ -380,7 +366,7 @@ logger.info("BinanceUs " +nanoTime());
     public void onMessage(String message) {
         System.out.println(message);
         JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4) );
+        System.out.println(jsonObject.toString(4));
 
     }
 
@@ -405,7 +391,7 @@ logger.info("BinanceUs " +nanoTime());
         System.out.println(jsonObject.toString(4));
 
         String uriStr = "https://api.binance.us/" +
-                "api/v3/orders/" + tradePair.toString('/')  +
+                "api/v3/orders/" + tradePair.toString('/') +
                 "?side=" + side +
                 "&type=market" +
                 "&quantity=" + size +
@@ -414,10 +400,7 @@ logger.info("BinanceUs " +nanoTime());
         System.out.println(uriStr);
 
 
-
-
     }
-
 
 
     public static abstract class BinanceUsCandleDataSupplier extends CandleDataSupplier {
@@ -466,7 +449,7 @@ logger.info("BinanceUs " +nanoTime());
 
             int startTime = Math.max(endTime.get() - (numCandles * secondsPerCandle), EARLIEST_DATA);
 
-            String uriStr = "https://api.binance.us/api/v3/klines?symbol="+tradePair.toString('/')+"&interval="+timeFrame;
+            String uriStr = "https://api.binance.us/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame;
 
             if (startTime == EARLIEST_DATA) {
                 // signal more data is false
@@ -479,7 +462,7 @@ logger.info("BinanceUs " +nanoTime());
                             HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
                     .thenApply(response -> {
-                        Log.info("Binance response: -->" , response);
+                        Log.info("Binance response: -->", response);
                         JsonNode res;
                         try {
                             res = OBJECT_MAPPER.readTree(response);

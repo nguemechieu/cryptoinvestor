@@ -22,11 +22,12 @@ import static java.lang.System.out;
 public class NewsManager {
 
     private static final String url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=1bed8a31256f1525dbb0b6daf6898823";
-    public static ArrayList<News> news=new ArrayList<>();
+    public static ArrayList<News> news = new ArrayList<>();
     static News news1 = new News(null, null, null, null, "", "");
 
     public NewsManager() throws ParseException {
         load();
+        news.add(news1);
 
     }
 

@@ -11,44 +11,42 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-public class Trade implements Runnable{
+
+public class Trade implements Runnable {
 
     public static CandleData candle;
-   static Logger logger = LoggerFactory.getLogger(Trade.class);
+    static Logger logger = LoggerFactory.getLogger(Trade.class);
+    static List<Order> orderList =
+            List.of(
+                    new Order(
+                            new Date(1530000000000L).toString(), TRADE_ORDER_TYPE.BUY, 0, 9, 0.01, 1.45
+
+                    ),
+                    new Order(
+                            new Date().toString(), TRADE_ORDER_TYPE.SELL, 0, 9, 0.01, 1.45
+
+                    ),
+                    new Order(
+                            new Date(1550000000000L).toString(), TRADE_ORDER_TYPE.BUY, 0, 9, 0.01, 1.45
+
+                    ),
+                    new Order(
+                            new Date(1560000000000L).toString(), TRADE_ORDER_TYPE.SELL, 0, 9, 0.01, 1.45
+
+                    ),
+                    new Order(
+                            new Date(1570000000000L).toString(), TRADE_ORDER_TYPE.BUY, 0, 9, 2, 1.45
+
+                    )
+            );
+    SimpleObjectProperty<Exchange> exchange = new SimpleObjectProperty<>(this, "exchange");
     private TradePair tradePair;
     private Money price;
     private Money amount;
     private Side transactionType;
     private long localTradeId;
     private Instant timestamp;
-
-    static List<Order> orderList=
-            List.of(
-                    new Order(
-                            new Date(1530000000000L).toString(),TRADE_ORDER_TYPE.BUY,0,9,0.01,1.45
-
-                    ),
-                    new Order(
-                            new Date().toString(),TRADE_ORDER_TYPE.SELL,0,9,0.01,1.45
-
-                    ),
-                    new Order(
-                            new Date(1550000000000L).toString(),TRADE_ORDER_TYPE.BUY,0,9,0.01,1.45
-
-                    ),
-                    new Order(
-                            new Date(1560000000000L).toString(),TRADE_ORDER_TYPE.SELL,0,9,0.01,1.45
-
-                    ),
-                    new Order(
-                            new Date(1570000000000L).toString(),TRADE_ORDER_TYPE.BUY,0,9,2,1.45
-
-                    )
-                   );
     private Money fee;
-
-
-    SimpleObjectProperty<Exchange> exchange = new SimpleObjectProperty<>(this, "exchange");
 
     public Trade(TradePair tradePair, Money price, Money amount, Side transactionType,
                  long localTradeId, Instant timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException {
@@ -94,7 +92,6 @@ public class Trade implements Runnable{
         trades.put("clientExtensions", clientExtensions);
 
 
-
     }
 
     public Trade() throws TelegramApiException, IOException, InterruptedException {
@@ -108,12 +105,9 @@ public class Trade implements Runnable{
     }
 
 
-
-
     public static int getConnexionInfo() {
         return 1;
     }
-
 
 
     public static Trade fromMessage(String message) {
@@ -185,16 +179,10 @@ public class Trade implements Runnable{
     }
 
 
-
-
-
-
-
-
     private int OrdersTotal() {
         int count = 0;
-        for (Order i:  orderList) {
-            if (i!= null) {
+        for (Order i : orderList) {
+            if (i != null) {
                 count++;
             }
         }
@@ -205,7 +193,7 @@ public class Trade implements Runnable{
     public void run() {
 
 
-       OnTick();
+        OnTick();
     }
 
     private void OnTick() {

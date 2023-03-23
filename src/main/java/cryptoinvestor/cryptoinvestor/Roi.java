@@ -5,6 +5,12 @@ public class Roi {
     public String currency;
     public String percentage;
 
+    public Roi(String times, String currency, String percentage) {
+        this.times = times;
+        this.currency = currency;
+        this.percentage = percentage;
+    }
+
     @Override
     public String toString() {
         return "Roi{" +
@@ -12,11 +18,5 @@ public class Roi {
                 ", currency='" + currency + '\'' +
                 ", percentage='" + percentage + '\'' +
                 '}';
-    }
-
-    public Roi(String times, String currency, String percentage) {
-        this.times = times;
-        this.currency = currency;
-        this.percentage = percentage;
     }
 }

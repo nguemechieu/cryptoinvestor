@@ -3,7 +3,6 @@ package cryptoinvestor.cryptoinvestor;
 import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import javafx.beans.property.IntegerProperty;
-import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 
 import java.time.Instant;
 import java.util.List;
@@ -22,6 +21,7 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
     protected final int secondsPerCandle;
     protected final TradePair tradePair;
     protected final IntegerProperty endTime;
+
     public CandleDataSupplier(int numCandles, int secondsPerCandle, TradePair tradePair, IntegerProperty endTime) {
 
 
@@ -46,24 +46,22 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
     public Set<Integer> getSupportedGranularities() {
         if (
 
-                        this.get() instanceof Coinbase
+                this.get() instanceof Coinbase
 
         ) {
 
-            return Set.of( 60,60 * 5, 60 * 15,3600,3600*6,3600*24);
+            return Set.of(60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24);
 
-        } else if (this.get()  instanceof BinanceUs) {
+        } else if (this.get() instanceof BinanceUs) {
 
             return Set.of(60, 60 * 5, 60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7,
                     3600 * 24 * 7 * 4, 3600 * 24 * 365);
 
-        }
-        else if (this.get()  instanceof Oanda) {
+        } else if (this.get() instanceof CurrencyDataProvider.Oanda) {
             return Set.of(60, 60 * 5,
                     60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7,
                     3600 * 24 * 7 * 4, 3600 * 24 * 365);
-        }
-        else {
+        } else {
             out.println("CandleS granularity Not valid instance " + this);
             return Set.of(60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24);
 

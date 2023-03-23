@@ -2,10 +2,9 @@ package cryptoinvestor.cryptoinvestor;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.drafts.Draft;
-import  org.java_websocket.handshake.ServerHandshake;
+import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -33,7 +32,7 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
         this.connectionEstablished.addListener((observable, oldValue, newValue) -> {
             if (newValue) {
                 webSocketInitializedLatch.countDown();
-                Log.info("","Connection established");
+                Log.info("", "Connection established");
             }
         });
         this.connect(clientUri, clientDraft);
@@ -118,8 +117,7 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
         if (connectionEstablished.get()) {
             liveTradesConsumer.onConnectionEstablished();
 
-        }
-        else {
+        } else {
             liveTradesConsumer.onConnectionFailed();
 
             CompletableFuture.runAsync(() -> {
@@ -134,9 +132,12 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
                     } catch (IOException | InterruptedException | ParseException e) {
                         throw new RuntimeException(e);
                     }
-                }
-                else {
-                    liveTradesConsumer.onConnectionFailed();
+                } else {
+                    try {
+                        liveTradesConsumer.onConnectionFailed();
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             });
         }

@@ -16,7 +16,6 @@ public record UsersManager() {
     static Alert alert = new Alert(Alert.AlertType.ERROR, "Please fill in all the fields");
 
 
-
     static {
         try {
 

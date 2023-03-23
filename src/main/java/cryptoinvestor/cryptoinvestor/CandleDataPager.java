@@ -10,8 +10,8 @@ import java.util.function.Consumer;
 
 
 public class CandleDataPager {
-CandleDataSupplier candleDataSupplier;
-CandleDataPreProcessor candleDataPreProcessor;
+    CandleDataSupplier candleDataSupplier;
+    CandleDataPreProcessor candleDataPreProcessor;
 
     public CandleDataPager(CandleStickChart candleStickChart, CandleDataSupplier candleDataSupplier) {
         Objects.requireNonNull(candleStickChart);
@@ -45,7 +45,7 @@ CandleDataPreProcessor candleDataPreProcessor;
                 Log.error("exception during accepting futureCandleData: " + ex);
                 Log.info(
                         "candleStickChart: " + candleStickChart +
-                                ", candleDataPreProcessor: " ,""
+                                ", candleDataPreProcessor: ", ""
                 );
 
 

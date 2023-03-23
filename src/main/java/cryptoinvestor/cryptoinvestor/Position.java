@@ -8,7 +8,7 @@ public class Position {
     public String resettablePL;
     public String guaranteedExecutionFees;
     public String financing;
-     @JsonProperty("short")
+    @JsonProperty("short")
     public Short myshort = new Short("", "", "", "", "", "", "");
     public String instrument;
     public String commission;

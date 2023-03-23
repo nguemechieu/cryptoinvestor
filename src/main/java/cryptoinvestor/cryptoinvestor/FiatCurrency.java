@@ -18,19 +18,8 @@ public abstract class FiatCurrency extends Currency {
         numericCode = -1;
     }
 
-    @Override
-    public String toString() {
-        return
-                "locale=" + locale +
-                ", centralBank='" + centralBank + '\'' +
-                ", numericCode=" + numericCode +
-                ", code='" + code + '\'' +
-                ", fractionalDigits=" + fractionalDigits +
-                ", symbol='" + symbol + '\'' ;
-    }
-
     protected FiatCurrency(String fullDisplayName, String shortDisplayName, String code, int fractionalDigits,
-                           String symbol, Locale locale, String centralBank, int numericCode,String image) {
+                           String symbol, Locale locale, String centralBank, int numericCode, String image) {
         super(CurrencyType.FIAT, fullDisplayName, shortDisplayName, code, fractionalDigits, symbol, image);
 
         Objects.requireNonNull(locale, "locale must not be null");
@@ -44,6 +33,17 @@ public abstract class FiatCurrency extends Currency {
         this.locale = locale;
         this.centralBank = centralBank;
         this.numericCode = numericCode;
+    }
+
+    @Override
+    public String toString() {
+        return
+                "locale=" + locale +
+                        ", centralBank='" + centralBank + '\'' +
+                        ", numericCode=" + numericCode +
+                        ", code='" + code + '\'' +
+                        ", fractionalDigits=" + fractionalDigits +
+                        ", symbol='" + symbol + '\'';
     }
 
     public abstract int compareTo(@NotNull java.util.Currency o);

@@ -152,6 +152,11 @@ public class CandleStickChartOptions {
         return newsGridLinesVisible.getReadOnlyProperty();
     }
 
+    public boolean isAutoTrading() {
+        return true;
+    }
+
+
     private static class ChartOption {
         private final ToggleSwitch optionSwitch;
         private final Label optionLabel;

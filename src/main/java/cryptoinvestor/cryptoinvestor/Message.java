@@ -1,25 +1,27 @@
 package cryptoinvestor.cryptoinvestor;
 
-public record   Message (){
+public record Message() {
 
-        private static String from;
-        private static String to;
-        private static String content;
+    private static String from;
+    private static String to;
+    private static String content;
 
-        public void setContent(String s) {
-                content = s;
-        }
-        public String getContent() {
-                return content;
-        }
+    public String getContent() {
+        return content;
+    }
 
-        public void setFrom(String s) {
-                from = s;
-        }
-        public String getFrom() {
-                return from;
-        }
+    public void setContent(String s) {
+        content = s;
+    }
 
-        //standard constructors, getters, setters
+    public String getFrom() {
+        return from;
+    }
+
+    public void setFrom(String s) {
+        from = s;
+    }
+
+    //standard constructors, getters, setters
 
 }

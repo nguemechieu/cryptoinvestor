@@ -139,12 +139,12 @@ public class InProgressCandle {
         this.openPrice = i;
     }
 
-    public void setClosePriceSoFar(int i) {
-            this.closePriceSoFar = i;
-    }
-
     public int getClosePriceSoFar() {
         return closePriceSoFar;
+    }
+
+    public void setClosePriceSoFar(int i) {
+        this.closePriceSoFar = i;
     }
 
     public void setOpenTimeSoFar(int i) {

@@ -17,10 +17,11 @@ public class Instrument {
     public Financing financing;
     public String maximumTrailingStopDistance;
     public String maximumOrderUnits;
+    String tags;
 
     public Instrument() {
     }
-    String tags;
+
     @Override
     public String toString() {
 

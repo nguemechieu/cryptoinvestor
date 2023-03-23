@@ -3,8 +3,8 @@ package cryptoinvestor.cryptoinvestor;
 
 public class Chat {
 
-     String chat_type;
     public String message_text;
+    String chat_type;
     String chat_id;
     String title;
     String type;
@@ -28,6 +28,10 @@ public class Chat {
         this.title = title;
         this.type = type;
         this.username = username;
+    }
+
+    public static String getWelcomeMessage() {
+        return "Welcome to Cryptoinvestor!";
     }
 
     public String getChat_id() {

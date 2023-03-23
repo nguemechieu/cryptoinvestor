@@ -2,15 +2,12 @@ package cryptoinvestor.cryptoinvestor;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.Id;
 
 import java.io.Serializable;
-import java.util.ArrayList;
+
+
 @Entity
-@Table(
-        name = "account",
-        schema = "protected"
-)
 
 public class Account implements Serializable {
     @JsonProperty("createdByUserID")
@@ -33,13 +30,13 @@ public class Account implements Serializable {
     public String currency;
     public double commission;
     public double marginCloseoutPercent;
+    @Id
     public String id;
     public int openTradeCount;
     public int pendingOrderCount;
     public boolean hedgingEnabled;
     public String resettablePLTime;
-    public ArrayList<Object> trades;
-    public ArrayList<Position> positions;
+
     public String marginAvailable;
     public String dividendAdjustment;
     public String marginCloseoutPositionValue;
@@ -49,9 +46,9 @@ public class Account implements Serializable {
     public String guaranteedStopLossOrderMode;
     public String marginUsed;
     public String guaranteedExecutionFees;
-    public ArrayList<Object> orders;
+
+
     public String pl;
-    public long positionCount;
     public Object exchange;
 
     public Account() {
@@ -83,8 +80,7 @@ public class Account implements Serializable {
                 ", pendingOrderCount=" + pendingOrderCount +
                 ", hedgingEnabled=" + hedgingEnabled +
                 ", resettablePLTime='" + resettablePLTime + '\'' +
-                ", trades=" + trades +
-                ", positions=" + positions +
+
                 ", marginAvailable='" + marginAvailable + '\'' +
                 ", dividendAdjustment='" + dividendAdjustment + '\'' +
                 ", marginCloseoutPositionValue='" + marginCloseoutPositionValue + '\'' +
@@ -94,7 +90,7 @@ public class Account implements Serializable {
                 ", guaranteedStopLossOrderMode='" + guaranteedStopLossOrderMode + '\'' +
                 ", marginUsed='" + marginUsed + '\'' +
                 ", guaranteedExecutionFees='" + guaranteedExecutionFees + '\'' +
-                ", orders=" + orders +
+
                 ", pl='" + pl + '\'' +
                 '}';
     }
@@ -243,14 +239,6 @@ public class Account implements Serializable {
         this.marginCloseoutPercent = marginCloseoutPercent;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public int getOpenTradeCount() {
         return openTradeCount;
     }
@@ -281,22 +269,6 @@ public class Account implements Serializable {
 
     public void setResettablePLTime(String resettablePLTime) {
         this.resettablePLTime = resettablePLTime;
-    }
-
-    public ArrayList<Object> getTrades() {
-        return trades;
-    }
-
-    public void setTrades(ArrayList<Object> trades) {
-        this.trades = trades;
-    }
-
-    public ArrayList<Position> getPositions() {
-        return positions;
-    }
-
-    public void setPositions(ArrayList<Position> positions) {
-        this.positions = positions;
     }
 
     public String getMarginAvailable() {
@@ -371,14 +343,6 @@ public class Account implements Serializable {
         this.guaranteedExecutionFees = guaranteedExecutionFees;
     }
 
-    public ArrayList<Object> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(ArrayList<Object> orders) {
-        this.orders = orders;
-    }
-
     public String getPl() {
         return pl;
     }
@@ -387,5 +351,15 @@ public class Account implements Serializable {
         this.pl = pl;
     }
 
+    public String getId() {
+        return id;
+    }
 
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setId(Long id) {
+        this.id = String.valueOf(id);
+    }
 }

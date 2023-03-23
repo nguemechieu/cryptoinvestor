@@ -13,28 +13,21 @@ public class Accounts {
     private double resettableBalance;
     private double pnl;
     private double previousUrgeLoss;
-
-    public void setMarginPercent(double marginPercent) {
-        this.marginPercent = marginPercent;
-    }
-
-    public void setProfit(double profit) {
-        this.profit = profit;
-    }
-
-    public void setLow(double low) {
-        this.low = low;
-    }
-
-    public void setHigh(double high) {
-        this.high = high;
-    }
-
-    public void setOpen(double open) {
-        this.open = open;
-    }
-
     private double open;
+    private String name;
+    private String currency;
+    private String accountType;
+    private String accountStatus;
+    private String tradingTimeZone;
+    private String tradingTime;
+    private String tradingMode;
+    private String tradingStatus;
+    private String tradingSession;
+    private String accountID;
+
+    public Accounts() {
+        super();
+    }
 
     @Override
     public String toString() {
@@ -52,58 +45,6 @@ public class Accounts {
                 ", tradingSession='" + tradingSession + '\'' +
                 ", accountID='" + accountID + '\'' +
                 '}';
-    }
-
-    private String name;
-    private String currency;
-
-    public void setBalance(double balance) {
-        this.balance = balance;
-    }
-
-    public void setCurrency(String currency) {
-        this.currency = currency;
-    }
-
-    public void setAccountType(String accountType) {
-        this.accountType = accountType;
-    }
-
-    public void setAccountStatus(String accountStatus) {
-        this.accountStatus = accountStatus;
-    }
-
-    public void setTradingTimeZone(String tradingTimeZone) {
-        this.tradingTimeZone = tradingTimeZone;
-    }
-
-    public void setTradingTime(String tradingTime) {
-        this.tradingTime = tradingTime;
-    }
-
-    public void setTradingMode(String tradingMode) {
-        this.tradingMode = tradingMode;
-    }
-
-    public void setTradingStatus(String tradingStatus) {
-        this.tradingStatus = tradingStatus;
-    }
-
-    public void setTradingSession(String tradingSession) {
-        this.tradingSession = tradingSession;
-    }
-
-    private String accountType;
-    private String accountStatus;
-    private String tradingTimeZone;
-    private String tradingTime;
-    private String tradingMode;
-    private String tradingStatus;
-    private String tradingSession;
-    private String accountID;
-
-    public Accounts() {
-        super();
     }
 
     public String getTags() {
@@ -132,62 +73,112 @@ public class Accounts {
         return balance;
     }
 
+    public void setBalance(double balance) {
+        this.balance = balance;
+    }
+
     public String getCurrency() {
         return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
     }
 
     public String getAccountType() {
         return accountType;
     }
 
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+
     public String getAccountStatus() {
         return accountStatus;
+    }
+
+    public void setAccountStatus(String accountStatus) {
+        this.accountStatus = accountStatus;
     }
 
     public String getTradingTimeZone() {
         return tradingTimeZone;
     }
 
+    public void setTradingTimeZone(String tradingTimeZone) {
+        this.tradingTimeZone = tradingTimeZone;
+    }
+
     public String getTradingTime() {
         return tradingTime;
+    }
+
+    public void setTradingTime(String tradingTime) {
+        this.tradingTime = tradingTime;
     }
 
     public String getTradingMode() {
         return tradingMode;
     }
 
+    public void setTradingMode(String tradingMode) {
+        this.tradingMode = tradingMode;
+    }
+
     public String getTradingStatus() {
         return tradingStatus;
+    }
+
+    public void setTradingStatus(String tradingStatus) {
+        this.tradingStatus = tradingStatus;
     }
 
     public String getTradingSession() {
         return tradingSession;
     }
 
-
-
-    public void setAccountID(String accountID) {
-        this.accountID = accountID;
+    public void setTradingSession(String tradingSession) {
+        this.tradingSession = tradingSession;
     }
 
     public String getAccountID() {
         return accountID;
     }
 
+    public void setAccountID(String accountID) {
+        this.accountID = accountID;
+    }
+
     public double getMarginPercent() {
         return marginPercent;
+    }
+
+    public void setMarginPercent(double marginPercent) {
+        this.marginPercent = marginPercent;
     }
 
     public double getOpen() {
         return open;
     }
 
+    public void setOpen(double open) {
+        this.open = open;
+    }
+
     public double getHigh() {
         return high;
     }
 
+    public void setHigh(double high) {
+        this.high = high;
+    }
+
     public double getLow() {
         return low;
+    }
+
+    public void setLow(double low) {
+        this.low = low;
     }
 
     public double getFreeMargin() {
@@ -196,6 +187,10 @@ public class Accounts {
 
     public double getProfit() {
         return profit;
+    }
+
+    public void setProfit(double profit) {
+        this.profit = profit;
     }
 
     public double getReset() {
@@ -231,10 +226,10 @@ public class Accounts {
     }
 
     public ArrayList<Order> getOrders() {
-        ArrayList<Order> orders=new ArrayList<>();
+        ArrayList<Order> orders = new ArrayList<>();
 
-        orders.add(new Order(this.accountID,TRADE_ORDER_TYPE.LIMIT_ORDER,1.2,
-                0.012,0.01,123.3));
+        orders.add(new Order(this.accountID, TRADE_ORDER_TYPE.LIMIT_ORDER, 1.2,
+                0.012, 0.01, 123.3));
 
         for (Order order : orders) {
             System.out.println(order);

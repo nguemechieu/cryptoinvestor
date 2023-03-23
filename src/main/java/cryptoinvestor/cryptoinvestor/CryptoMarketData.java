@@ -3,16 +3,6 @@ package cryptoinvestor.cryptoinvestor;
 public class CryptoMarketData {
 
     public Double last_close;
-    private  String athChangePercentage;
-    private  String lastUpdated;
-    private  String athDate;
-    private  String atl;
-    private String atlChangePercentage;
-    private String atlDate;
-    private String currency;
-    private String times;
-    private String percentage;
-
     String id;
     String symbol;
     String name;
@@ -32,6 +22,20 @@ public class CryptoMarketData {
     String total_supply;
     String max_supply;
     String ath;
+    String ath_change_percentage;
+    String ath_date;
+    String atl_change_percentage;
+    String atl_date;
+    Roi roi;
+    private String athChangePercentage;
+    private String lastUpdated;
+    private String athDate;
+    private String atl;
+    private String atlChangePercentage;
+    private String atlDate;
+    private String currency;
+    private String times;
+    private String percentage;
 
     public CryptoMarketData(String id, String symbol, String name, String image, String currentPrice, String marketCap, String marketCapRank, String fullyDilutedValuation, String totalVolume, String high24h, String low24h, String priceChange24h, String priceChangePercentage24h, String marketCapChange24h, String marketCapChangePercentage24h, String circulatingSupply, String totalSupply, String maxSupply, String ath, String athChangePercentage, String athDate, String atl, String atlChangePercentage, String atlDate, String currency, String times, String percentage, String lastUpdated) {
         this.id = id;
@@ -63,6 +67,34 @@ public class CryptoMarketData {
         this.percentage = percentage;
         this.lastUpdated = lastUpdated;
 
+    }
+
+    public CryptoMarketData(String id, String symbol, String name, String image, String current_price, String market_cap, String market_cap_rank, String fully_diluted_valuation, String total_volume, String high_24h, String low_24h, String price_change_24h, String price_change_percentage_24h, String market_cap_change_24h, String market_cap_change_percentage_24h, String circulating_supply, String total_supply, String max_supply, String ath, String ath_change_percentage, String ath_date, String atl, String atl_change_percentage, String atl_date, Roi roi) {
+        this.id = id;
+        this.symbol = symbol;
+        this.name = name;
+        this.image = image;
+        this.current_price = current_price;
+        this.market_cap = market_cap;
+        this.market_cap_rank = market_cap_rank;
+        this.fully_diluted_valuation = fully_diluted_valuation;
+        this.total_volume = total_volume;
+        this.high_24h = high_24h;
+        this.low_24h = low_24h;
+        this.price_change_24h = price_change_24h;
+        this.price_change_percentage_24h = price_change_percentage_24h;
+        this.market_cap_change_24h = market_cap_change_24h;
+        this.market_cap_change_percentage_24h = market_cap_change_percentage_24h;
+        this.circulating_supply = circulating_supply;
+        this.total_supply = total_supply;
+        this.max_supply = max_supply;
+        this.ath = ath;
+        this.ath_change_percentage = ath_change_percentage;
+        this.ath_date = ath_date;
+        this.atl = atl;
+        this.atl_change_percentage = atl_change_percentage;
+        this.atl_date = atl_date;
+        this.roi = roi;
     }
 
     public String getId() {
@@ -265,11 +297,12 @@ public class CryptoMarketData {
         this.roi = roi;
     }
 
-    String ath_change_percentage;
-    String ath_date;
-
     public String getAthChangePercentage() {
         return athChangePercentage;
+    }
+
+    public void setAthChangePercentage(String athChangePercentage) {
+        this.athChangePercentage = athChangePercentage;
     }
 
     @Override
@@ -309,10 +342,6 @@ public class CryptoMarketData {
                 ", atl_date='" + atl_date + '\'' +
                 ", roi=" + roi +
                 '}';
-    }
-
-    public void setAthChangePercentage(String athChangePercentage) {
-        this.athChangePercentage = athChangePercentage;
     }
 
     public String getLastUpdated() {
@@ -370,39 +399,6 @@ public class CryptoMarketData {
     public void setPercentage(String percentage) {
         this.percentage = percentage;
     }
-
-    public CryptoMarketData(String id, String symbol, String name, String image, String current_price, String market_cap, String market_cap_rank, String fully_diluted_valuation, String total_volume, String high_24h, String low_24h, String price_change_24h, String price_change_percentage_24h, String market_cap_change_24h, String market_cap_change_percentage_24h, String circulating_supply, String total_supply, String max_supply, String ath, String ath_change_percentage, String ath_date, String atl, String atl_change_percentage, String atl_date, Roi roi) {
-        this.id = id;
-        this.symbol = symbol;
-        this.name = name;
-        this.image = image;
-        this.current_price = current_price;
-        this.market_cap = market_cap;
-        this.market_cap_rank = market_cap_rank;
-        this.fully_diluted_valuation = fully_diluted_valuation;
-        this.total_volume = total_volume;
-        this.high_24h = high_24h;
-        this.low_24h = low_24h;
-        this.price_change_24h = price_change_24h;
-        this.price_change_percentage_24h = price_change_percentage_24h;
-        this.market_cap_change_24h = market_cap_change_24h;
-        this.market_cap_change_percentage_24h = market_cap_change_percentage_24h;
-        this.circulating_supply = circulating_supply;
-        this.total_supply = total_supply;
-        this.max_supply = max_supply;
-        this.ath = ath;
-        this.ath_change_percentage = ath_change_percentage;
-        this.ath_date = ath_date;
-        this.atl = atl;
-        this.atl_change_percentage = atl_change_percentage;
-        this.atl_date = atl_date;
-        this.roi = roi;
-    }
-
-    String atl_change_percentage;
-    String atl_date;
-     Roi roi;
-
 
 
 }

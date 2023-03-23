@@ -12,10 +12,10 @@ public class OrdersDisplay extends VBox {
 
         BorderPane borderPane = new BorderPane();
 
-        BorderPane.setMargin(this, new Insets(10, 10, 10,12));
-        setPadding( new Insets(10, 10, 10,12));
-        setSpacing( 10);
-        setPrefSize( 1300, 200);
+        BorderPane.setMargin(this, new Insets(10, 10, 10, 12));
+        setPadding(new Insets(10, 10, 10, 12));
+        setSpacing(10);
+        setPrefSize(1300, 200);
         setAlignment(Pos.CENTER);
 
         borderPane.setCenter(this);
@@ -24,8 +24,7 @@ public class OrdersDisplay extends VBox {
 
         //orderListView.getItems().addAll(exchange.getOrdersList());
 
-      //  orderListView.setItems(exchange.getOrdersList());
-
+        //  orderListView.setItems(exchange.getOrdersList());
 
 
     }

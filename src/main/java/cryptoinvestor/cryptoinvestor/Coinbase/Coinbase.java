@@ -10,10 +10,14 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cryptoinvestor.cryptoinvestor.*;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.control.Alert;
 import org.java_websocket.handshake.ServerHandshake;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -24,7 +28,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.ParseException;
+import java.security.MessageDigest;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -35,38 +39,38 @@ import java.util.concurrent.Future;
 
 import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
-
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 
 public class Coinbase extends Exchange {
-
-
+    public static final Logger logger = LoggerFactory.getLogger(Coinbase.class);
     public static final String API_URL = "https://api.coinbase.com/v2/exchange-rates?currency=BTC";
     public static final String API_VERSION = "v2";
+
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static final String ur0 = "wss://ws-direct.exchange.coinbase.com";
-
-
+    private static final String ur1 = "wss://ws-api.exchange.coinbase.com";
+    static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     protected String PASSPHRASE = "w73hzit0cgl";
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
+    public Coinbase(
+            @NotNull String telegramToken,
+            @NotNull String apiKey,
+            @NotNull String passphrase
+    ) throws TelegramApiException, IOException {
+        super(telegramToken, apiKey, passphrase);
 
 
-    static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-
-    public Coinbase(String telegramToken) throws IOException, ParseException, InterruptedException, TelegramApiException {
-        super(ur0, telegramToken);
-
-
-
-        requestBuilder.header("CB-ACCESS-KEY", API_KEY0);
+        requestBuilder.header("CB-ACCESS-KEY", apiKey);
         requestBuilder.header("CB-ACCESS-PASSPHRASE", PASSPHRASE);
-       // requestBuilder.header("CB-ACCESS-SIGNATURE", timestampSignature(API_KEY0, PASSPHRASE));
+        // requestBuilder.header("CB-ACCESS-SIGNATURE", timestampSignature(apiKey, PASSPHRASE));
         requestBuilder.header("CB-ACCESS-TIMESTAMP", Date.from(Instant.now()).toString());
         requestBuilder.header("CB-ACCESS-VERSION", API_VERSION);
         requestBuilder.header("Content-Type", "application/json");
@@ -77,6 +81,18 @@ public class Coinbase extends Exchange {
         requestBuilder.header("Sec-Fetch-Dest", "empty");
         requestBuilder.header("Sec-Fetch-Mode", "cors");
 
+    }
+
+    @Contract(pure = true)
+    public static @NotNull String getCoinbaseMessage() {
+        return
+                "{\"method\":\"get_exchange_rates\",\"params\":{},\"id\":1}";
+    }
+
+    @Override
+    public String getName() {
+        return
+                "Coinbase";
     }
 
     @Override
@@ -95,27 +111,26 @@ public class Coinbase extends Exchange {
                 };
     }
 
-//    private @Nullable String timestampSignature(
-//            String apiKey,
-//            String passphrase
-//    ) {
-//        Objects.requireNonNull(apiKey);
-//        Objects.requireNonNull(passphrase);
-//
-//        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
-//        String stringToSign = timestamp + "\n" + apiKey + "\n" + passphrase;
-//
-//        try {
-//            byte[] hash = MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes());
-//            return Base64.getEncoder().encodeToString(hash);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-//
-//
-//    }
+    private @Nullable String timestampSignature(
+            String apiKey,
+            String passphrase
+    ) {
+        Objects.requireNonNull(apiKey);
+        Objects.requireNonNull(passphrase);
 
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT);
+        String stringToSign = timestamp + "\n" + apiKey + "\n" + passphrase;
+
+        try {
+            byte[] hash = MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes());
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+
+
+    }
 
 
     /**
@@ -153,7 +168,7 @@ public class Coinbase extends Exchange {
                             ,
                             HttpResponse.BodyHandlers.ofString());
 
-                    Log.info("response headers: " , response.headers().toString());
+                    Log.info("response headers: ", response.headers().toString());
                     if (response.headers().firstValue("CB-AFTER").isEmpty()) {
                         futureResult.completeExceptionally(new RuntimeException(
                                 "Coinbase trades response did not contain header \"CB-AFTER\": " + response));
@@ -165,12 +180,23 @@ public class Coinbase extends Exchange {
                     JsonNode tradesResponse = OBJECT_MAPPER.readTree(response.body());
 
                     if (!tradesResponse.isArray()) {
-                        futureResult.completeExceptionally(new RuntimeException(
-                                "coinbase trades response was not an array!"));
-                    }
-                    if (tradesResponse.isEmpty()) {
+                        futureResult.completeExceptionally(new RuntimeException("coinbase trades response was not an array!"));
+
+
+                    } else if (tradesResponse.isEmpty()) {
                         futureResult.completeExceptionally(new IllegalArgumentException("tradesResponse was empty"));
+                    } else if (tradesResponse.has("message")) {
+
+
+                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                        alert.setTitle("Coinbase Error");
+                        alert.setHeaderText("Coinbase Error");
+                        alert.setContentText(tradesResponse.get("message").asText());
+                        alert.showAndWait();
+
+
                     } else {
+
                         for (int j = 0; j < tradesResponse.size(); j++) {
                             JsonNode trade = tradesResponse.get(j);
                             Instant time = Instant.from(ISO_INSTANT.parse(trade.get("time").asText()));
@@ -203,28 +229,39 @@ public class Coinbase extends Exchange {
     @Override
     public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
             TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-        String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
+        String startDateString1 = ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
                 currentCandleStartedAt, ZoneOffset.UTC));
         long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
         // Get the closest supported granularity to the ideal granularity.
         int actualGranularity = getCandleDataSupplier(secondsPerCandle, tradePair).getSupportedGranularities().stream()
                 .min(Comparator.comparingInt(i -> (int) Math.abs(i - idealGranularity)))
                 .orElseThrow(() -> new NoSuchElementException("Supported granularities was empty!"));
-        // TODO: If actualGranularity = secondsPerCandle there are no sub-candles to fetch and we must get all the
-        //  data for the current live syncing candle from the raw trades method.
+
         return HttpClient.newHttpClient().sendAsync(
                         HttpRequest.newBuilder()
                                 .uri(URI.create(String.format(
                                         "https://api.pro.coinbase.com/products/%s/candles?granularity=%s&start=%s",
-                                        tradePair.toString('-'), actualGranularity, startDateString)))
+                                        tradePair.toString('-'), actualGranularity, startDateString1)))
                                 .GET().build(),
                         HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenApply(response -> {
-                    Log.info("Coinbase response: " , response);
+                    Log.info("Coinbase response: ", response);
                     JsonNode res;
                     try {
                         res = OBJECT_MAPPER.readTree(response);
+                        if (res.has("message")) {
+
+
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setTitle("Coinbase Error");
+                            alert.setHeaderText("Coinbase Error");
+                            alert.setContentText(res.get("message").asText());
+                            alert.showAndWait();
+
+
+                        }
+
                     } catch (JsonProcessingException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -248,12 +285,12 @@ public class Coinbase extends Exchange {
                                 currCandle.get(0).asInt() >= currentCandleStartedAt.getEpochSecond() +
                                         secondsPerCandle) {
                             // skip this sub-candle if it is not in the parent candle's duration (this is just a
-                              //  Coinbase is  not respecting start/end times
+                            //  Coinbase is  not respecting start/end times
                             continue;
 
                         } else {
                             if (!foundFirst) {
-                                // FIXME: Why are we only using the first sub-candle here?
+
                                 currentTill = currCandle.get(0).asInt();
                                 lastTradePrice = currCandle.get(4).asDouble();
                                 foundFirst = true;
@@ -281,9 +318,6 @@ public class Coinbase extends Exchange {
     }
 
 
-
-
-
     private @NotNull JSONObject getJSON() {
 
         JSONObject jsonObject = new JSONObject();
@@ -307,7 +341,7 @@ public class Coinbase extends Exchange {
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
             String inputLine;
             StringBuilder response = new StringBuilder();
-            while ((inputLine = in.readLine())!= null) {
+            while ((inputLine = in.readLine()) != null) {
                 response.append(inputLine);
 
             }
@@ -320,22 +354,16 @@ public class Coinbase extends Exchange {
 
             String rates;
             if (jsonObject.has("data")) {
-                JSONObject dat =new JSONObject(jsonObject.getJSONObject("data").toString(4));
+                JSONObject dat = new JSONObject(jsonObject.getJSONObject("data").toString(4));
                 if (dat.has("rates")) {
-                    rates=dat.getJSONObject("rates").toString(4);
+                    rates = dat.getJSONObject("rates").toString(4);
                     out.println(rates);
                 }
 
             }
 
 
-
-
-
-
-
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
         out.println(jsonObject.toString(4));
@@ -348,7 +376,7 @@ public class Coinbase extends Exchange {
 
         System.out.println("Connected");
         JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4) + " "+ handshake);
+        System.out.println(jsonObject.toString(4) + " " + handshake);
 
     }
 
@@ -356,7 +384,7 @@ public class Coinbase extends Exchange {
     public void onMessage(String message) {
         System.out.println(message);
         JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4) );
+        System.out.println(jsonObject.toString(4));
 
     }
 
@@ -390,10 +418,7 @@ public class Coinbase extends Exchange {
         System.out.println(uriStr);
 
 
-
-
     }
-
 
 
     public static abstract class CoinbaseCandleDataSupplier extends CandleDataSupplier {
@@ -443,10 +468,26 @@ public class Coinbase extends Exchange {
                             HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
                     .thenApply(response -> {
-                        Log.info("coinbase response: " , response);
+                        Log.info("coinbase response: ", response);
                         JsonNode res;
                         try {
                             res = OBJECT_MAPPER.readTree(response);
+
+                            if (res.has("message")) {
+
+
+                                Alert alert = new Alert(Alert.AlertType.WARNING);
+                                alert.setTitle("Coinbase Error");
+                                alert.setHeaderText("Coinbase Error");
+                                alert.setContentText(res.get("message").asText());
+                                alert.showAndWait();
+
+
+                                return Collections.emptyList();
+
+                            }
+
+
                         } catch (JsonProcessingException ex) {
                             throw new RuntimeException(ex);
                         }

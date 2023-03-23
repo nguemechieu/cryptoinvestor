@@ -217,7 +217,17 @@ public class ToggleSwitchSkin extends SkinBase<ToggleSwitch> {
         return topInset + Math.max(thumb.prefHeight(-1), label.prefHeight(-1)) + bottomInset;
     }
 
-    private static final CssMetaData<ToggleSwitch, Number> THUMB_MOVE_ANIMATION_TIME = new CssMetaData<>(
+    @Override
+    protected double computeMaxWidth(double height, double topInset, double rightInset, double bottomInset,
+                                     double leftInset) {
+        return getSkinnable().prefWidth(height);
+    }
+
+    @Override
+    protected double computeMaxHeight(double width, double topInset, double rightInset, double bottomInset,
+                                      double leftInset) {
+        return getSkinnable().prefHeight(width);
+    }    private static final CssMetaData<ToggleSwitch, Number> THUMB_MOVE_ANIMATION_TIME = new CssMetaData<>(
             "-thumb-move-animation-time", StyleConverter.getSizeConverter(), 300) {
         @Override
         public boolean isSettable(ToggleSwitch toggleSwitch) {
@@ -234,21 +244,11 @@ public class ToggleSwitchSkin extends SkinBase<ToggleSwitch> {
     };
 
     @Override
-    protected double computeMaxWidth(double height, double topInset, double rightInset, double bottomInset,
-                                     double leftInset) {
-        return getSkinnable().prefWidth(height);
-    }
-
-    @Override
-    protected double computeMaxHeight(double width, double topInset, double rightInset, double bottomInset,
-                                      double leftInset) {
-        return getSkinnable().prefHeight(width);
-    }
-
-    @Override
     public List<CssMetaData<? extends Styleable, ?>> getCssMetaData() {
         return getClassCssMetaData();
     }
+
+
 
 
 }

@@ -10,17 +10,15 @@ import java.util.Objects;
 
 
 public abstract class Currency {
+    public static final CryptoCurrency NULL_CRYPTO_CURRENCY = new NullCryptoCurrency(CurrencyType.CRYPTO, "XXX", "XXX",
+            "XXX", 0, "XXX", null);
+    public static final FiatCurrency NULL_FIAT_CURRENCY = new NullFiatCurrency();
     static Logger logger = LoggerFactory.getLogger(Currency.class);
-    CurrencyType currencyType;
-    String fullDisplayName;
-
     protected String code;
     protected int fractionalDigits;
     protected String symbol;
-
-    public static final CryptoCurrency NULL_CRYPTO_CURRENCY = new NullCryptoCurrency(CurrencyType.CRYPTO,"XXX","",
-            "XXX", 0, "XXX", null);
-    public static final FiatCurrency NULL_FIAT_CURRENCY = new NullFiatCurrency();
+    CurrencyType currencyType;
+    String fullDisplayName;
     String shortDisplayName;
     private String image;
 
@@ -103,11 +101,11 @@ public abstract class Currency {
     public String toString() {
         return
                 "currencyType=" + currencyType +
-                ", fullDisplayName='" + fullDisplayName + '\'' +
-                ", code='" + code + '\'' +
-                ", fractionalDigits=" + fractionalDigits +
-                ", symbol='" + symbol + '\'' +
-                ", shortDisplayName='" + shortDisplayName + '\'' ;
+                        ", fullDisplayName='" + fullDisplayName + '\'' +
+                        ", code='" + code + '\'' +
+                        ", fractionalDigits=" + fractionalDigits +
+                        ", symbol='" + symbol + '\'' +
+                        ", shortDisplayName='" + shortDisplayName + '\'';
     }
 
     @Override
@@ -126,13 +124,13 @@ public abstract class Currency {
     }
 
     private static class NullCryptoCurrency extends CryptoCurrency {
-        protected NullCryptoCurrency(CurrencyType crypto, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol,String image) {
+        protected NullCryptoCurrency(CurrencyType crypto, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {
             super(crypto,
                     fullDisplayName,
                     shortDisplayName,
                     code,
                     fractionalDigits,
-                    symbol,image
+                    symbol, image
             );
         }
 

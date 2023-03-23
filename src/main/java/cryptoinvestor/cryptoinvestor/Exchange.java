@@ -1,8 +1,6 @@
 package cryptoinvestor.cryptoinvestor;
 
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
@@ -17,7 +15,6 @@ import java.net.URI;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.security.Principal;
-import java.text.ParseException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -27,26 +24,60 @@ import java.util.concurrent.CompletableFuture;
 
 public abstract class Exchange {
 
-    Accounts account;
     private static final Logger logger = LoggerFactory.getLogger(Exchange.class);
-    private final String urlize;
-
     public TelegramClient telegram;
+    protected String phraseSecret1;
+    protected String apiSecret;
+    protected String apiKey;
+    protected TradePair tradePair;
+    Accounts account;
+    private String urlize;
     private SocketFactory socket;
     private boolean isOpen;
-    private ObservableList<Order> ordersList= FXCollections.observableArrayList();
 
-    public Exchange(String ur, String token) throws TelegramApiException, IOException {
+    public Exchange(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException {
         this.urlize = ur;
         this.telegram = new TelegramClient(token);
-        this.telegram.connect();
 
-     logger.info("Connected to " + urlize);
-     this.socket = SocketFactory.getDefault();
-     this.isOpen = true;
-     this.account = new Accounts();
+
+        logger.info("Connected to " + urlize);
+        this.socket = SocketFactory.getDefault();
+        this.isOpen = true;
+        this.account = new Accounts();
+        this.telegram = new TelegramClient(token);
+        this.phraseSecret1 = passphrase;
+        this.apiSecret = passphrase;
+        this.apiKey = passphrase;
+        this.tradePair = tradePair;
+
+
+        logger.info("Connected to " + urlize);
 
     }
+
+    public Exchange(String bittrex, String token, String s, String s1, String s2, String s3, String s4) throws TelegramApiException, IOException {
+        this.urlize = bittrex;
+        this.telegram = new TelegramClient(token);
+        logger.info("Connected to " + urlize);
+        this.socket = SocketFactory.getDefault();
+        this.isOpen = true;
+        this.account = new Accounts();
+        logger.info("Connected to " + urlize);
+    }
+
+
+    public Exchange(String coinbaseApiKey, String coinbaseSecret, String telegramToken) throws TelegramApiException, IOException {
+        this.apiKey = coinbaseApiKey;
+        this.phraseSecret1 = coinbaseSecret;
+        this.telegram = new TelegramClient(telegramToken);
+        this.socket = SocketFactory.getDefault();
+        this.isOpen = true;
+        this.account = new Accounts();
+
+        logger.info("Connected to " + urlize);
+    }
+
+    public abstract String getName();
 
     public abstract CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair);
 
@@ -127,16 +158,12 @@ public abstract class Exchange {
 
                     @Override
                     public long getMaxIdleTimeout() {
-                        return 0;
+                        return
+                                0;
                     }
 
                     @Override
                     public void setMaxIdleTimeout(long timeout) {
-
-                    }
-
-                    @Override
-                    public void setMaxBinaryMessageBufferSize(int max) {
 
                     }
 
@@ -146,13 +173,18 @@ public abstract class Exchange {
                     }
 
                     @Override
-                    public void setMaxTextMessageBufferSize(int max) {
+                    public void setMaxBinaryMessageBufferSize(int max) {
 
                     }
 
                     @Override
                     public int getMaxTextMessageBufferSize() {
                         return 0;
+                    }
+
+                    @Override
+                    public void setMaxTextMessageBufferSize(int max) {
+
                     }
 
                     @Override
@@ -252,8 +284,9 @@ public abstract class Exchange {
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
-            return null;
+                return null;
             }
+
             @Override
             public long getDefaultMaxSessionIdleTimeout() {
                 return 0;
@@ -293,13 +326,11 @@ public abstract class Exchange {
             public CompletableFuture<WebSocket> sendText(CharSequence data, boolean last) {
 
 
+                Log.info(
+                        String.format("Exchange %s sent text message %s",
+                                getExchangeName(), data), "text" + data
 
-
-               Log.info(
-                       String.format("Exchange %s sent text message %s",
-                                getExchangeName(), data),"text"+data
-
-               );
+                );
 
 
                 return null;
@@ -311,14 +342,11 @@ public abstract class Exchange {
             public CompletableFuture<WebSocket> sendBinary(ByteBuffer data, boolean last) {
 
 
-
                 return null;
             }
 
             @Override
             public CompletableFuture<WebSocket> sendPing(ByteBuffer message) {
-
-
 
 
                 return null;
@@ -335,7 +363,7 @@ public abstract class Exchange {
 
                 logger.info(
                         String.format("Exchange %s closed connection with status code %d and reason %s",
-                                getExchangeName(), statusCode, reason),"status"+statusCode
+                                getExchangeName(), statusCode, reason), "status" + statusCode
                 );
 
 
@@ -395,8 +423,6 @@ public abstract class Exchange {
         return this.getClass().getSimpleName();
     }
 
-    public ObservableList<Order> getOrdersList() {
-        return ordersList;
-    }
+
 }
 

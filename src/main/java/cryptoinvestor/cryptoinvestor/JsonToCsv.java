@@ -8,32 +8,29 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.ParseException;
 
 import static java.lang.System.out;
-public class JsonToCsv  {
+
+public class JsonToCsv {
 
 
-    public void convertJsonToCsv(String jsonfileName, Object data) throws IOException, ParseException {
+    public void convertJsonToCsv(String jsonfileName, Object data) throws IOException {
 
+        try {
 
+            if (data == null || jsonfileName == null) {
+                out.println("No data to convert");
+                return;
+            }
+            FileWriter file = new FileWriter(jsonfileName);
 
+            file.write(String.valueOf(data));
+            out.println(jsonfileName + " converted to csv");
+            file.flush();
 
-            try {
-
-                if (data== null|| jsonfileName==null) {
-                    out.println("No data to convert");
-                    return;
-                }
-                FileWriter file = new FileWriter(jsonfileName);
-
-                file.write(String.valueOf(data));
-                out.println(jsonfileName + " converted to csv");
-                file.flush();
-
-                file.close();
-            } catch (IOException io) {
-                Log.error(io.getMessage());
+            file.close();
+        } catch (IOException io) {
+            Log.error(io.getMessage());
         }
 
 
@@ -45,7 +42,7 @@ public class JsonToCsv  {
         CsvMapper csvMapper = new CsvMapper();
         csvMapper.writerFor(JsonNode.class)
                 .with(csvSchema)
-                .writeValue(new File(jsonfileName+".csv"), jsonTree);
+                .writeValue(new File(jsonfileName + ".csv"), jsonTree);
         out.println(jsonTree);
 
     }

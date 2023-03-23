@@ -7,25 +7,33 @@ import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Objects;
+
 @Entity
 @Table(name = "CandleData")
+@Inheritance(strategy = InheritanceType.JOINED)
+@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
+@DiscriminatorValue("CandleData")
+@PrimaryKeyJoinColumn(name = "id", referencedColumnName = "id")
+
 @Access(AccessType.FIELD)
 
- public class CandleData extends RecursiveTreeObject<CandleData>  implements Serializable {
+public class CandleData extends RecursiveTreeObject<CandleData> implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
 
     private final double averagePrice = -1;
-    public int closeTime ;
-    private final int openTime ;
-    private final double openPrice ;
-    private final double closePrice ;
-    private final double highPrice ;
-    private final double lowPrice;
-    private final double volume;
+    public int closeTime;
+    int openTime;
+    double openPrice;
+    double closePrice;
+    double highPrice;
+    double lowPrice;
+    double volume;
     private double volumeWeightedAveragePrice;
     private boolean placeHolder;
+    @Id
+    private Long id;
 
     public CandleData(double openPrice, double closePrice, double highPrice, double lowPrice, int openTime,
                       double volume) {
@@ -43,6 +51,10 @@ import java.util.Objects;
         this.highPrice = highPrice;
         this.lowPrice = lowPrice;
         this.volume = volume;
+    }
+
+    public CandleData() {
+
     }
 
 
@@ -120,5 +132,11 @@ import java.util.Objects;
                 new Date(openTime), volume);
     }
 
+    public Long getId() {
+        return id;
+    }
 
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

@@ -13,9 +13,19 @@ public enum ENUM_EXCHANGE_LIST {
             "KUCOIN US", 10
     ), BITFINEX_US(
             "BITFINEX US", 11
+    ), BITSTAMP(
+            "BITSTAMP", 12
+    ), POLONIEX(
+            "POLONIEX", 13
+    ), BINANCE(
+            "BINANCE", 14
     );
 
 
     ENUM_EXCHANGE_LIST(String s, int i) {
+    }
+
+    public Object getIcon() {
+        return null;
     }
 }

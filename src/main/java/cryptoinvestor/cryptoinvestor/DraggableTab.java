@@ -27,15 +27,6 @@ import java.util.Set;
 
 public class DraggableTab extends Tab {
 
-    public static final Object CURRENCY =
-            new Object() {
-                @Contract(pure = true)
-                @Override
-                public @NotNull String toString() {
-                    return "Currency";
-                }
-            };
-
 
     private static final Set<TabPane> tabPanes = new HashSet<>();
     private static final Stage markerStage;
@@ -54,7 +45,7 @@ public class DraggableTab extends Tab {
     boolean detachable;
 
 
-        public DraggableTab(String text) {
+    public DraggableTab(String text, Object icon) {
         nameLabel = new Label(text);
         setGraphic(nameLabel);
         detachable = true;
@@ -240,7 +231,6 @@ public class DraggableTab extends Tab {
     public DoubleProperty prefWidthProperty() {
         return nameLabel.prefWidthProperty();
     }
-
 
 
     record InsertData(int index, TabPane insertPane) {

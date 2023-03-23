@@ -10,7 +10,7 @@ public interface LiveTradesConsumer {
 
     void onConnectionEstablished() throws IOException, InterruptedException, ParseException;
 
-    void onConnectionFailed();
+    void onConnectionFailed() throws IOException, InterruptedException;
 
     void onMessage(String message) throws IOException, InterruptedException;
 }

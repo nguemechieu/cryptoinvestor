@@ -45,7 +45,6 @@ public class Root extends VBox {
     }
 
 
-
     @Override
     public Node getStyleableNode() {
         return super.getStyleableNode();

@@ -2,11 +2,10 @@ package cryptoinvestor.cryptoinvestor;
 
 import com.google.gson.Gson;
 
-import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.EndpointConfig;
 
-public  class MessageDecoder implements Decoder.Text<Message>  {
+public class MessageDecoder implements Decoder.Text<Message> {
 
     private static final Gson gson = new Gson();
 

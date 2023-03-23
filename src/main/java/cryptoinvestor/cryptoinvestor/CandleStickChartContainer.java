@@ -1,4 +1,5 @@
 package cryptoinvestor.cryptoinvestor;
+
 import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.layout.AnchorPane;
@@ -6,6 +7,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -26,18 +28,17 @@ import static javafx.scene.layout.AnchorPane.*;
 
 public class CandleStickChartContainer extends Region {
 
-    boolean liveSyncing;
-    CandleStickChartToolbar toolbar;
-    VBox candleChartContainer;
-     TradePair tradePair;
-     SimpleIntegerProperty secondsPerCandle;
-
     static {
         new SimpleIntegerProperty(3600);
     }
 
-
+    boolean liveSyncing;
+    CandleStickChartToolbar toolbar;
+    VBox candleChartContainer;
+    TradePair tradePair;
+    SimpleIntegerProperty secondsPerCandle;
     private CandleStickChart candleStickChart;
+
     public CandleStickChartContainer(Exchange exchange, TradePair tradePair, boolean liveSyncing) throws URISyntaxException, IOException {
         Objects.requireNonNull(exchange, "exchange must not be null");
         Objects.requireNonNull(tradePair, "tradePair must not be null");
@@ -49,12 +50,14 @@ public class CandleStickChartContainer extends Region {
         getStyleClass().add("candle-chart-container");
         setPrefSize(Double.MAX_VALUE, Double.MAX_VALUE);
         CandleDataSupplier candleDataSupplier = exchange.getCandleDataSupplier(secondsPerCandle.get(), tradePair);
+
+
         toolbar = new CandleStickChartToolbar(widthProperty(), heightProperty(), candleDataSupplier.getSupportedGranularities());
         HBox toolbarContainer = new HBox(toolbar);
         toolbarContainer.setPrefWidth(Double.MAX_VALUE);
-        toolbarContainer.setPrefHeight(10);
+        toolbarContainer.setPrefHeight(12);
         toolbarContainer.prefWidthProperty().bind(prefWidthProperty());
-        toolbarContainer.setTranslateX(1);
+        toolbarContainer.setTranslateX(300);
 
         setLeftAnchor(toolbarContainer, 82.0);
         setRightAnchor(toolbarContainer, 0.0);
@@ -69,7 +72,7 @@ public class CandleStickChartContainer extends Region {
         secondsPerCandle.addListener((observableDurationValue, oldDurationValue, newDurationValue) -> {
             if (!oldDurationValue.equals(newDurationValue)) {
                 try {
-                    createNewChart(exchange,newDurationValue.intValue(), liveSyncing);
+                    createNewChart(exchange, newDurationValue.intValue(), liveSyncing);
                 } catch (ParseException | TelegramApiException | IOException | InterruptedException |
                          URISyntaxException e) {
                     throw new RuntimeException(e);
@@ -87,7 +90,7 @@ public class CandleStickChartContainer extends Region {
 
     }
 
-    private void createNewChart(Exchange exchange,int secondsPerCandle, boolean liveSyncing) throws ParseException, TelegramApiException, IOException, InterruptedException, URISyntaxException {
+    private void createNewChart(Exchange exchange, int secondsPerCandle, boolean liveSyncing) throws ParseException, TelegramApiException, IOException, InterruptedException, URISyntaxException {
         if (secondsPerCandle <= 0) {
             throw new IllegalArgumentException("secondsPerCandle must be positive but was: " + secondsPerCandle);
         }
