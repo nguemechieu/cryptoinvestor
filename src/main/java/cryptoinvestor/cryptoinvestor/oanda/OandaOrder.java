@@ -2,7 +2,9 @@ package cryptoinvestor.cryptoinvestor.oanda;
 
 
 import cryptoinvestor.cryptoinvestor.Order;
+import cryptoinvestor.cryptoinvestor.Side;
 import cryptoinvestor.cryptoinvestor.TRADE_ORDER_TYPE;
+import cryptoinvestor.cryptoinvestor.TradePair;
 
 public class OandaOrder extends Order {
     private String id;
@@ -12,43 +14,10 @@ public class OandaOrder extends Order {
     private String amountInCents;
     private String date;
 
-    public OandaOrder() {
-        super(
-                "", TRADE_ORDER_TYPE.LIMIT_ORDER,1,0,0.01,0
-        );
-
+    public OandaOrder(TradePair tradePair, String timestamp, TRADE_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price, double stopLoss, double takeProfit) {
+        super(tradePair, timestamp, order_type, side, remaining, fee, lotSize, price, stopLoss, takeProfit);
     }
 
-
-
-    @Override
-    public String toString() {
-        return "OandaOrder{" +
-                "id='" + id + '\'' +
-                ", status='" + status + '\'' +
-                ", currency='" + currency + '\'' +
-                ", amount='" + amount + '\'' +
-                ", amountInCents='" + amountInCents + '\'' +
-                ", date='" + date + '\'' +
-                ", timestamp='" + timestamp + '\'' +
-                ", id=" + id +
-                ", order_type=" + order_type +
-                ", lotSize=" + lotSize +
-                ", price=" + price +
-                ", total=" + total +
-                ", remaining=" + remaining +
-                ", fee=" + fee +
-                ", currency='" + currency + '\'' +
-                ", created=" + created +
-                ", stopLoss=" + stopLoss +
-                ", takeProfit=" + takeProfit +
-                ", updated=" + updated +
-                ", closed=" + closed +
-                ", status='" + status + '\'' +
-                ", symbol='" + symbol + '\'' +
-                ", type='" + type + '\'' +
-                '}';
-    }
 
     public String getCurrency() {
         return currency;
@@ -120,7 +89,5 @@ public class OandaOrder extends Order {
     public void setUnits(Object o) {
     }
 
-    public boolean getOrderId() {
-        return true;
-    }
+
 }

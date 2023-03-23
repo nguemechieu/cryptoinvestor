@@ -10,9 +10,10 @@ import java.util.Objects;
 
 
 public abstract class Currency {
+    private static final Logger logger = LoggerFactory.getLogger(Currency.class);
     public static final CryptoCurrency NULL_CRYPTO_CURRENCY = new NullCryptoCurrency(CurrencyType.CRYPTO, "XXX", "XXX",
             "XXX", 5, "XXX", "XXX");
-    static Logger logger = LoggerFactory.getLogger(Currency.class);
+
     public static final FiatCurrency NULL_FIAT_CURRENCY = new NullFiatCurrency();
 
     protected String code;

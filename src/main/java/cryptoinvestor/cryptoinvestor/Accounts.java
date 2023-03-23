@@ -225,16 +225,5 @@ public class Accounts {
         return profit;
     }
 
-    public ArrayList<Order> getOrders() {
-        ArrayList<Order> orders = new ArrayList<>();
 
-        orders.add(new Order(this.accountID, TRADE_ORDER_TYPE.LIMIT_ORDER, 1.2,
-                0.012, 0.01, 123.3));
-
-        for (Order order : orders) {
-            System.out.println(order);
-            orders.add(order);
-        }
-        return orders;
-    }
 }

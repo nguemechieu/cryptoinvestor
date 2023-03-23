@@ -4,13 +4,11 @@ import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import javafx.geometry.Insets;
 import javafx.geometry.NodeOrientation;
 import javafx.geometry.Side;
-import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.control.TabPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Border;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -56,11 +54,7 @@ public class TradeViewImpl extends Region {
         this.exchange = exchange;
 
   setPadding(new Insets(10, 10, 10, 10));
-  setStyle("-fx-background-image: url(cryptoinvestor/cryptoinvestor/images/cryptoinvestor.png);");
-  setStyle("-fx-background-repeat: no-repeat;");
-  setStyle("-fx-background-position: center center;");
-  setStyle("-fx-background-size: 100% 100%;");
-  setStyle("-fx-background-color: #000000;");
+
   setTradePair(tradePair);
 
   setApiKey(apiKey);
@@ -72,12 +66,12 @@ public class TradeViewImpl extends Region {
         anchorPane.setSide(Side.BOTTOM);
         for (Currency tradePair1 : getTradePairs()) {
             int index = getTradePairs().indexOf(tradePair1);
-            DraggableTab tradeTab = new DraggableTab(tradePair1.code + " - " + "USD");
+            DraggableTab tradeTab = new DraggableTab(tradePair1.code + " - " + "USD","");
             VBox container=new VBox();
             container.setStyle("-fx-background-size: 100% 100%;");
             container.setPrefSize(1500,500
             );
-            Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+            Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
 if (index>2){
     break;
 }

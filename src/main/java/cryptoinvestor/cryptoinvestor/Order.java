@@ -1,22 +1,29 @@
 package cryptoinvestor.cryptoinvestor;
 
+import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Date;
 
-public class Order {
-    public static String timestamp;
-    public static TRADE_ORDER_TYPE order_type;
-    public static double remaining;
-    public static double fee;
-    protected static double lotSize;
-    protected static double price;
-    protected static double stopLoss;
-    protected static String symbol;
-    protected static String type;
+public class Order extends RecursiveTreeObject<Order> {
+     ArrayList<Order> orders=new ArrayList<>();
+    private  TradePair tradePair;
+    String timestamp;
+    TRADE_ORDER_TYPE order_type;
+    double remaining;
+    double fee;
+   double lotSize;
+    double price;
+   double stopLoss;
+ String symbol;
+   TRADE_ORDER_TYPE type;
+
     private static int lastError;
-    private static int ticket;
+    private int orderID;
+
+    int ticket=orderID;
     protected Long id;
     protected double total;
     protected String currency;
@@ -25,19 +32,52 @@ public class Order {
     protected Date updated;
     protected Date closed;
     protected String status;
+    private Side side;
+    private String filled;
 
-    public Order(String timestamp, TRADE_ORDER_TYPE order_type, double remaining, double fee, double lotSize, double price) {
-        Order.timestamp = timestamp;
-        Order.order_type = order_type;
-        Order.remaining = remaining;
-        Order.fee = fee;
-        Order.lotSize = lotSize;
-        Order.price = price;
+    public int getOrderID() {
+        return orderID;
+    }
+
+    public void setOrderID(int orderID) {
+        this.orderID = orderID;
+    }
+
+    public void setSide(Side side) {
+        this.side = side;
+    }
+
+    public void setFilled(String filled) {
+        this.filled = filled;
+    }
+
+    public Order(@NotNull TradePair tradePair, String timestamp, TRADE_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price
+
+    , double stopLoss, double takeProfit
+    ) {
+        this.timestamp = timestamp;
+        this.order_type = order_type;
+        this.remaining = remaining;
+        this.fee = fee;
+        this.lotSize = lotSize;
+        this.price = price;
+        this.stopLoss = stopLoss;
+        this.symbol = tradePair.getCounterCurrency().symbol;
+        this.type = order_type;
+
+        this.currency = tradePair.getCounterCurrency().symbol;
+        this.created = new Date();
+        this.takeProfit = takeProfit;
+        this.updated = new Date();
+        this.side = side;
+        this.tradePair = tradePair;
+
+ orders.add(this);
 
 
     }
 
-    public static Object getOpenTime() {
+    public Object getOpenTime() {
         return timestamp;
     }
 
@@ -54,44 +94,44 @@ public class Order {
         return "Error " + err;
     }
 
-    public static long getMagicNumber() {
+    public  long getMagicNumber() {
         return timestamp.length();
     }
 
-    public static int getTicket() {
+    public  int getTicket() {
         return ticket;
     }
 
-    public static void setTicket(int ticket) {
-        Order.ticket = ticket;
+    public  void setTicket(int ticket) {
+        this.ticket = ticket;
     }
 
-    public static double getStopLoss() {
+    public  double getStopLoss() {
         return stopLoss;
     }
 
     public void setStopLoss(double stopLoss) {
-        Order.stopLoss = stopLoss;
+        this.stopLoss = stopLoss;
     }
 
-    public static double getOpenPrice() {
+    public  double getOpenPrice() {
         return price;
     }
 
-    public static String getSymbol() {
+    public  String getSymbol() {
         return symbol;
     }
 
     public void setSymbol(String symbol) {
-        Order.symbol = symbol;
+        this.symbol = symbol;
     }
 
-    public static String getType() {
+    public  TRADE_ORDER_TYPE getType() {
         return type;
     }
 
-    public void setType(String type) {
-        Order.type = type;
+    public void setType(TRADE_ORDER_TYPE type) {
+        this.type = type;
     }
 
     @Override
@@ -121,7 +161,7 @@ public class Order {
     }
 
     public void setTimestamp(String timestamp) {
-        Order.timestamp = timestamp;
+        this.timestamp = timestamp;
     }
 
     public String getId() {
@@ -137,7 +177,7 @@ public class Order {
     }
 
     public void setOrder_type(TRADE_ORDER_TYPE order_type) {
-        Order.order_type = order_type;
+        this.order_type = order_type;
     }
 
     public double getLotSize() {
@@ -145,7 +185,7 @@ public class Order {
     }
 
     public void setLotSize(double lotSize) {
-        Order.lotSize = lotSize;
+        this.lotSize = lotSize;
     }
 
     public double getPrice() {
@@ -153,7 +193,7 @@ public class Order {
     }
 
     public void setPrice(double price) {
-        Order.price = price;
+        this.price = price;
     }
 
     public double getTotal() {
@@ -169,7 +209,7 @@ public class Order {
     }
 
     public void setRemaining(double remaining) {
-        Order.remaining = remaining;
+        this.remaining = remaining;
     }
 
     public double getFee() {
@@ -177,7 +217,7 @@ public class Order {
     }
 
     public void setFee(double fee) {
-        Order.fee = fee;
+        this.fee = fee;
     }
 
     public String getCurrency() {
@@ -235,5 +275,29 @@ public class Order {
         System.out.println("status: " + status);
         System.out.println("symbol: " + symbol);
         System.out.println("type: " + type);
+    }
+
+    public Side getSide() {
+        return side;
+    }
+
+    public TradePair getTradePair() {
+        return tradePair;
+    }
+
+    public void setTradePair(TradePair tradePair) {
+        this.tradePair = tradePair;
+    }
+
+    public String getTime() {
+        return timestamp;
+    }
+
+    public String getOrderId() {
+        return String.valueOf(orderID);
+    }
+
+    public String getFilled() {
+        return filled;
     }
 }

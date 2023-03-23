@@ -1,5 +1,7 @@
 package cryptoinvestor.cryptoinvestor;
 
+import javafx.beans.property.ReadOnlyListProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
@@ -15,17 +17,21 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.text.ParseException;
 import java.util.List;
 
 public class TradeView extends StackPane {
     private static final Logger logger = LoggerFactory.getLogger(TradeView.class);
-    String accountID;
 
-    private TradePair tradePair;
+
+    private TradePair tradePair=
+            new TradePair(
+                    "ETH",
+                    "BTC"
+            );
+
     private Exchange exchange;
 
-    public TradeView(Exchange exchange) throws URISyntaxException, IOException, TelegramApiException, ParseException, InterruptedException {
+    public TradeView(Exchange exchange) throws URISyntaxException, IOException {
 
         super();
 
@@ -41,17 +47,74 @@ public class TradeView extends StackPane {
         ChoiceBox<String> symbolChoicebox =
                 new ChoiceBox<>();
         TradePair tradePair;
-
+        ChoiceBox<String> counterChoicebox = new ChoiceBox<>();
         for (Currency symbol : CurrencyDataProvider.getInstance()) {
-            symbolChoicebox.getItems().addAll(
-                    symbol.code
-            );
+
+            if (exchange.getName().equals("OANDA")) {
+                symbolChoicebox.getItems().addAll(
+                        "USD",
+                        "EUR",
+                        "GBP",
+                        "CAD",
+                        "AUD",
+                        "NZD",
+                        "CHF",
+                        "JPY",
+                        "CNY",
+                        "SGD",
+                        "HKD",
+                        "INR",
+                        "IDR",
+                        "MYR",
+                        "THB",
+                        "TRY",
+                        "DKK",
+                        "SEK",
+                        "NOK",
+                        "ZAR",
+                        "MXN"
+                );
+                symbolChoicebox.setValue("USD");
+                counterChoicebox.getItems().addAll(
+                        "USD",
+                        "EUR",
+                        "GBP",
+                        "CAD",
+                        "AUD",
+                        "NZD",
+                        "CHF",
+                        "JPY",
+                        "CNY",
+                        "SGD",
+                        "HKD",
+                        "INR",
+                        "IDR",
+                        "MYR",
+                        "THB",
+                        "TRY",
+                        "DKK",
+                        "SEK",
+                        "NOK",
+                        "ZAR",
+                        "MXN"
+                );
+
+break;
+
+            } else {
+
+                if (symbol.currencyType.equals(CurrencyType.CRYPTO)) {
+                symbolChoicebox.getItems().add(
+                        symbol.code
+                );
+                }
+            }
+
+
         }
         symbolChoicebox.setValue("SELECT A BASE CURRENCY");
+        counterChoicebox.setValue("USD");
 
-
-        ChoiceBox<String> counterChoicebox = new ChoiceBox<>();
-        counterChoicebox.getItems().addAll("USD", "CAD", "BTC");
         Button removeBtn = new Button("Remove");
         removeBtn.setOnAction(
                 event -> tabPane.getTabs().remove(tabPane.getSelectionModel().getSelectedItem())
@@ -60,6 +123,9 @@ public class TradeView extends StackPane {
         Button AddBtn = new Button("Load new chart");
         AddBtn.setOnAction(
                 event -> {
+
+
+
                     String baseCurrency = symbolChoicebox.getValue();
                     String counterCurrency = counterChoicebox.getValue();
                     if (baseCurrency.equals("SELECT A BASE CURRENCY")) {
@@ -81,6 +147,7 @@ public class TradeView extends StackPane {
 
                         return;
                     }
+
                     DraggableTab tradeTab2 = new DraggableTab(
                             baseCurrency + " / " + counterCurrency
                             , "");
@@ -99,7 +166,7 @@ public class TradeView extends StackPane {
                     tabPane.getSelectionModel().select(tradeTab2);
 
                 });
-        Button tradingBtn = new Button("Trading Button");
+        Button tradingBtn = new Button("Trade Buttons");
         tradingBtn.setOnAction(
                 event -> {
                     String baseCurrency = symbolChoicebox.getValue();
@@ -130,7 +197,7 @@ public class TradeView extends StackPane {
                     gridPane.setHgap(10);
                     gridPane.setVgap(10);
                     gridPane.setPadding(new Insets(10, 10, 10, 10));
-                    Spinner<Double> spinner = new Spinner<>(0.01, 1000000, 0);
+                    Spinner<Double> spinner = new Spinner<>(0.01, 100000, 0);
                     gridPane.add(spinner, 1, 0);
                     Button btnBuy = new Button("Buy");
                     gridPane.add(btnBuy, 0, 1);
@@ -143,7 +210,101 @@ public class TradeView extends StackPane {
                     stage.show();
 
                 });
-        HBox hBox = new HBox(symbolChoicebox, counterChoicebox, removeBtn, AddBtn, tradingBtn);
+        Button orderViewBtn=new Button("Order View");
+        orderViewBtn.setOnAction(
+                event -> {
+                    String baseCurrency = symbolChoicebox.getValue();
+                    String counterCurrency = counterChoicebox.getValue();
+                    if (baseCurrency.equals("SELECT A BASE CURRENCY")) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+
+                        alert.setHeaderText(null);
+                        alert.setContentText("Please select a base currency");
+                        alert.showAndWait();
+                        return;
+                    }
+                    if (counterCurrency.equals("SELECT A COUNTER CURRENCY")) {
+                        Alert alert = new Alert(Alert.AlertType.ERROR);
+                        alert.setTitle("Error");
+
+                        alert.setHeaderText(null);
+                        alert.setContentText("Please select a counter currency");
+                        alert.showAndWait();
+
+                        return;
+                    }
+                    TreeTableView<Order> orders = new TreeTableView<>();
+                    TreeItem<Order> root = new TreeItem<>();
+                    root.setExpanded(true);
+                    root.getChildren().add(exchange.getTradesList());
+                    orders.setRoot(root);
+
+                    TreeTableColumn <Order, String> symbolColumn = new TreeTableColumn<>("Symbol");
+                    symbolColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().symbol)
+                    );
+                    TreeTableColumn <Order, String> priceColumn = new TreeTableColumn<>("Price");
+                    priceColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(String.valueOf(param.getValue().getValue().getPrice())));
+
+                    TreeTableColumn <Order, String> amountColumn = new TreeTableColumn<>("Amount");
+                    amountColumn.setCellValueFactory(
+                            param ->new ReadOnlyStringWrapper( String.valueOf(
+                                    param.getValue().getValue().getLotSize()))
+                    );
+                    TreeTableColumn <Order, String> sideColumn = new TreeTableColumn<>("Side");
+                    sideColumn.setCellValueFactory(
+                            param ->   new ReadOnlyStringWrapper(String.valueOf(
+                                    param.getValue().getValue().getSide()))
+                    );
+                    TreeTableColumn <Order, String> typeColumn = new TreeTableColumn<>("Type");
+                    typeColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(String.valueOf(
+                                    param.getValue().getValue().getType())));
+
+                    TreeTableColumn <Order, String> timeColumn = new TreeTableColumn<>("Time");
+                    timeColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().getTime())
+                    );
+                    TreeTableColumn <Order, String> idColumn = new TreeTableColumn<>("ID");
+                    idColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().getId())
+                    );
+                    TreeTableColumn <Order, String> orderIdColumn = new TreeTableColumn<>("Order ID");
+                    orderIdColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().getOrderId())
+                    );
+
+                    TreeTableColumn <Order, String> statusColumn = new TreeTableColumn<>("Status");
+                    statusColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(param.getValue().getValue().getStatus())
+                    );
+
+
+                    TreeTableColumn <Order, String> filledColumn = new TreeTableColumn<>("Filled");
+                    filledColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(String.valueOf(
+                                    param.getValue().getValue().getFilled()))
+                    );
+
+
+                    TreeTableColumn <Order, String> remainingColumn = new TreeTableColumn<>("Remaining");
+                    remainingColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(String.valueOf(
+                                    param.getValue().getValue().getRemaining()))
+                    );
+
+
+
+                    orders.getColumns().addAll(symbolColumn, priceColumn, amountColumn, sideColumn,
+                    typeColumn, timeColumn, idColumn, orderIdColumn, statusColumn, filledColumn, remainingColumn);
+                    Scene scene = new Scene(orders,1000,200);
+                    Stage stage = new Stage();
+                    stage.setScene(scene);
+                    stage.show();
+                });
+        HBox hBox = new HBox(symbolChoicebox, counterChoicebox, removeBtn, AddBtn, tradingBtn, orderViewBtn);
         setPadding(new Insets(10, 10, 10, 10));
 
 
@@ -171,29 +332,7 @@ public class TradeView extends StackPane {
 
     }
 
-    private @NotNull TreeTableView<Object> listNavigator() {
-        TreeTableView<Object> orders = new TreeTableView<>();
-        orders.setPrefHeight(300);
-        orders.setPrefWidth(200);
-        return orders;
-    }
 
-    private @NotNull ListView<Order> listOrders() {
-        ListView<Order> orders = new ListView<>();
-        orders.setPrefHeight(100);
-        orders.setPrefWidth(100);
-        orders.setCellFactory(param -> new OrderCell());
-        orders.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
-                Order order = orders.getSelectionModel().getSelectedItem();
-                if (order != null) {
-                    order.showOrderDetails();
-                }
-            }
-        });
-        orders.getItems().addAll(Trade.getOrders());
-        return orders;
-    }
 
     public TradePair getTradePair() {
         return tradePair;
@@ -203,9 +342,7 @@ public class TradeView extends StackPane {
         this.tradePair = tradePair;
     }
 
-    @NotNull List<Currency> getTradePairs() {
-        return CurrencyDataProvider.getInstance();
-    }
+
 
     public double getPrice() {
 

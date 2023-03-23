@@ -27,7 +27,7 @@ import static javafx.geometry.Pos.CENTER_LEFT;
 import static javafx.scene.control.ContentDisplay.GRAPHIC_ONLY;
 import static javafx.scene.paint.Color.YELLOW;
 
-public class PopOverSkin implements Skin<PopOver> {
+ public class PopOverSkin implements Skin<PopOver> {
     private static final String DETACHED_STYLE_CLASS = "detached";
     private final Path path;
     private final Path clip;

@@ -57,7 +57,7 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
             return Set.of(60, 60 * 5, 60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7,
                     3600 * 24 * 7 * 4, 3600 * 24 * 365);
 
-        } else if (this.get() instanceof CurrencyDataProvider.Oanda) {
+        } else if (this.get() != null) {
             return Set.of(60, 60 * 5,
                     60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7,
                     3600 * 24 * 7 * 4, 3600 * 24 * 365);

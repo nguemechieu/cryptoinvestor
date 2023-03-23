@@ -1,11 +1,61 @@
 package cryptoinvestor.cryptoinvestor;
 
-import javafx.beans.property.*;
+//CHECKSTYLE:OFF
+/*
+ * Copyright (c) 2013 - 2015 ControlsFX
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *     * Redistributions of source code must retain the above copyright
+ * notice, this list of conditions and the following disclaimer.
+ *     * Redistributions in binary form must reproduce the above copyright
+ * notice, this list of conditions and the following disclaimer in the
+ * documentation and/or other materials provided with the distribution.
+ *     * Neither the name of ControlsFX, any associated website, nor the
+ * names of its contributors may be used to endorse or promote products
+ * derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL CONTROLSFX BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+
+
+import static java.util.Objects.requireNonNull;
+import static javafx.scene.input.MouseEvent.MOUSE_CLICKED;
+
+import javafx.animation.FadeTransition;
+import javafx.beans.InvalidationListener;
+import javafx.beans.WeakInvalidationListener;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.DoubleProperty;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
+import javafx.event.EventHandler;
+import javafx.geometry.Bounds;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.control.PopupControl;
+import javafx.scene.control.Skin;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Window;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 
 /**
@@ -20,59 +70,15 @@ import javafx.util.Duration;
  * icon. PopOver controls automatically resize themselves when the content node
  * changes its size.
  */
-class PopOver extends PopupControl {
+public class PopOver extends PopupControl {
 
     private static final String DEFAULT_STYLE_CLASS = "popover"; //$NON-NLS-1$
 
     private static final Duration DEFAULT_FADE_DURATION = Duration.seconds(.2);
-    private final StackPane root = new StackPane();
-    private final ObjectProperty<Node> contentNode = new SimpleObjectProperty<>(
-            this, "contentNode") { //$NON-NLS-1$
-        @Override
-        public void setValue(Node node) {
-            if (node == null) {
-                throw new IllegalArgumentException(
-                        "content node can not be null"); //$NON-NLS-1$
-            }
-        }
-    };
-    private final ChangeListener<Number> xListener = (value, oldX, newX) -> setAnchorX(
-            getAnchorX() + (newX.doubleValue() - oldX.doubleValue()));
-    private final WeakChangeListener<Number> weakXListener = new WeakChangeListener<>(
-            xListener);
-    private final ChangeListener<Number> yListener = (value, oldY, newY) -> setAnchorY(
-            getAnchorY() + (newY.doubleValue() - oldY.doubleValue()));
-    private final WeakChangeListener<Number> weakYListener = new WeakChangeListener<>(
-            yListener);
-    private final BooleanProperty headerAlwaysVisible = new SimpleBooleanProperty(this,
-            "headerAlwaysVisible"); //$NON-NLS-1$
 
-
-    // Content support.
-    private final BooleanProperty detachable = new SimpleBooleanProperty(this,
-            "detachable", true); //$NON-NLS-1$
-    private final BooleanProperty detached = new SimpleBooleanProperty(this,
-            "detached", false); //$NON-NLS-1$
-    // arrow size support
-    private final DoubleProperty arrowSize = new SimpleDoubleProperty(this,
-            "arrowSize", 12); //$NON-NLS-1$
-    // arrow indent support
-    private final DoubleProperty arrowIndent = new SimpleDoubleProperty(this,
-            "arrowIndent", 12); //$NON-NLS-1$
-    // radius support
-    private final DoubleProperty cornerRadius = new SimpleDoubleProperty(this,
-            "cornerRadius", 6); //$NON-NLS-1$    private final InvalidationListener hideListener = observable -> {
-        if (!isDetached()) {
-            hide(Duration.ZERO);
-        }
-    };
-    private final StringProperty title = new SimpleStringProperty(this, "title", "Info"); //$NON-NLS-1$ //$NON-NLS-2$    private final WeakInvalidationListener weakHideListener = new WeakInvalidationListener(
-            hideListener);
-    private final ObjectProperty<ArrowLocation> arrowLocation = new SimpleObjectProperty<>(
-            this, "arrowLocation", ArrowLocation.LEFT_TOP); //$NON-NLS-1$
     private double targetX;
+
     private double targetY;
-    private Window ownerWindow;
 
     /**
      * Creates a pop over with a label as the content node.
@@ -83,7 +89,7 @@ class PopOver extends PopupControl {
         getStyleClass().add(DEFAULT_STYLE_CLASS);
 
         getRoot().getStylesheets().add(
-                requireNonNull(PopOver.class.getResource("/cryptoinvestor/css/popover.css")).toExternalForm());
+                requireNonNull(PopOver.class.getResource("/cryptoinvestor/css/popover.css")).toExternalForm()); //$NON-NLS-1$
 
         setAnchorLocation(AnchorLocation.WINDOW_TOP_LEFT);
         setOnHiding(evt -> setDetached(false));
@@ -116,6 +122,7 @@ class PopOver extends PopupControl {
 
         setAutoHide(true);
     }
+
     /**
      * Creates a pop over with the given node as the content node.
      *
@@ -125,12 +132,14 @@ class PopOver extends PopupControl {
         this();
 
         setContentNode(content);
-    }    private final EventHandler<WindowEvent> closePopOverOnOwnerWindowClose = event -> ownerWindowClosing();
+    }
 
     @Override
     protected Skin<?> createDefaultSkin() {
         return new PopOverSkin(this);
     }
+
+    private final StackPane root = new StackPane();
 
     /**
      * The root pane stores the content node of the popover. It is accessible
@@ -148,6 +157,20 @@ class PopOver extends PopupControl {
     public final StackPane getRoot() {
         return root;
     }
+
+
+    // Content support.
+
+    private final ObjectProperty<Node> contentNode = new SimpleObjectProperty<>(
+            this, "contentNode") { //$NON-NLS-1$
+        @Override
+        public void setValue(Node node) {
+            if (node == null) {
+                throw new IllegalArgumentException(
+                        "content node can not be null"); //$NON-NLS-1$
+            }
+        }
+    };
 
     /**
      * Returns the content shown by the pop over.
@@ -178,6 +201,30 @@ class PopOver extends PopupControl {
         contentNodeProperty().set(content);
     }
 
+    private final InvalidationListener hideListener = observable -> {
+        if (!isDetached()) {
+            hide(Duration.ZERO);
+        }
+    };
+
+    private final WeakInvalidationListener weakHideListener = new WeakInvalidationListener(
+            hideListener);
+
+    private final ChangeListener<Number> xListener = (value, oldX, newX) -> setAnchorX(
+            getAnchorX() + (newX.doubleValue() - oldX.doubleValue()));
+
+    private final WeakChangeListener<Number> weakXListener = new WeakChangeListener<>(
+            xListener);
+
+    private final ChangeListener<Number> yListener = (value, oldY, newY) -> setAnchorY(
+            getAnchorY() + (newY.doubleValue() - oldY.doubleValue()));
+
+    private final WeakChangeListener<Number> weakYListener = new WeakChangeListener<>(
+            yListener);
+
+    private Window ownerWindow;
+    private final EventHandler<WindowEvent> closePopOverOnOwnerWindowClose = event -> ownerWindowClosing();
+
     /**
      * Shows the pop over in a position relative to the edges of the given owner
      * node. The position is dependent on the arrow location. If the arrow is
@@ -199,10 +246,10 @@ class PopOver extends PopupControl {
      * given owner. If the arrow points up then the pop over will be placed
      * below the given owner node.
      *
-     * @param owner  the owner of the pop over
+     * @param owner the owner of the pop over
      * @param offset if negative specifies the distance to the owner node or when
-     *               positive specifies the number of pixels that the arrow will
-     *               overlap with the owner node (positive values are recommended)
+     * positive specifies the number of pixels that the arrow will
+     * overlap with the owner node (positive values are recommended)
      */
     public final void show(Node owner, double offset) {
         requireNonNull(owner);
@@ -257,8 +304,8 @@ class PopOver extends PopupControl {
      * of the arrow of the pop over and not the location of the window.
      *
      * @param owner the owning node
-     * @param x     the x coordinate for the pop over arrow tip
-     * @param y     the y coordinate for the pop over arrow tip
+     * @param x the x coordinate for the pop over arrow tip
+     * @param y the y coordinate for the pop over arrow tip
      */
     @Override
     public final void show(Node owner, double x, double y) {
@@ -270,9 +317,9 @@ class PopOver extends PopupControl {
      * the given owner node. The x and y coordinate will be the target location
      * of the arrow of the pop over and not the location of the window.
      *
-     * @param owner          the owning node
-     * @param x              the x coordinate for the pop over arrow tip
-     * @param y              the y coordinate for the pop over arrow tip
+     * @param owner the owning node
+     * @param x the x coordinate for the pop over arrow tip
+     * @param y the y coordinate for the pop over arrow tip
      * @param fadeInDuration the time it takes for the pop over to be fully visible
      */
     public final void show(Node owner, double x, double y,
@@ -369,13 +416,11 @@ class PopOver extends PopupControl {
         hide(DEFAULT_FADE_DURATION);
     }
 
-    // always show header
-
     /**
      * Hides the pop over by quickly changing its opacity to 0.
      *
      * @param fadeOutDuration the duration of the fade transition that is being used to
-     *                        change the opacity of the pop over
+     * change the opacity of the pop over
      * @since 1.0
      */
     public final void hide(Duration fadeOutDuration) {
@@ -450,8 +495,6 @@ class PopOver extends PopupControl {
         };
     }
 
-    // detach support
-
     /**
      * Detaches the pop over from the owning node. The pop over will no longer
      * display an arrow pointing at the owner node.
@@ -462,21 +505,16 @@ class PopOver extends PopupControl {
         }
     }
 
+    // always show header
+
+    private final BooleanProperty headerAlwaysVisible = new SimpleBooleanProperty(this,
+            "headerAlwaysVisible"); //$NON-NLS-1$
+
     /**
      * Determines whether or not the {@link PopOver} header should remain visible, even while attached.
      */
     public final BooleanProperty headerAlwaysVisibleProperty() {
         return headerAlwaysVisible;
-    }
-
-    /**
-     * Returns the value of the detachable property.
-     *
-     * @return true if the header is visible even while attached
-     * @see #headerAlwaysVisibleProperty()
-     */
-    public final boolean isHeaderAlwaysVisible() {
-        return headerAlwaysVisible.getValue();
     }
 
     /**
@@ -490,20 +528,25 @@ class PopOver extends PopupControl {
     }
 
     /**
+     * Returns the value of the detachable property.
+     *
+     * @return true if the header is visible even while attached
+     * @see #headerAlwaysVisibleProperty()
+     */
+    public final boolean isHeaderAlwaysVisible() {
+        return headerAlwaysVisible.getValue();
+    }
+
+    // detach support
+
+    private final BooleanProperty detachable = new SimpleBooleanProperty(this,
+            "detachable", true); //$NON-NLS-1$
+
+    /**
      * Determines if the pop over is detachable at all.
      */
     public final BooleanProperty detachableProperty() {
         return detachable;
-    }
-
-    /**
-     * Returns the value of the detachable property.
-     *
-     * @return true if the user is allowed to detach / tear off the pop over
-     * @see #detachableProperty()
-     */
-    public final boolean isDetachable() {
-        return detachableProperty().get();
     }
 
     /**
@@ -517,6 +560,19 @@ class PopOver extends PopupControl {
     }
 
     /**
+     * Returns the value of the detachable property.
+     *
+     * @return true if the user is allowed to detach / tear off the pop over
+     * @see #detachableProperty()
+     */
+    public final boolean isDetachable() {
+        return detachableProperty().get();
+    }
+
+    private final BooleanProperty detached = new SimpleBooleanProperty(this,
+            "detached", false); //$NON-NLS-1$
+
+    /**
      * Determines whether the pop over is detached from the owning node or not.
      * A detached pop over no longer shows an arrow pointing at the owner and
      * features its own title bar.
@@ -525,6 +581,17 @@ class PopOver extends PopupControl {
      */
     public final BooleanProperty detachedProperty() {
         return detached;
+    }
+
+    /**
+     * Sets the value of the detached property.
+     *
+     * @param detached if true the pop over will change its apperance to "detached"
+     * mode
+     * @see #detachedProperty()
+     */
+    public final void setDetached(boolean detached) {
+        detachedProperty().set(detached);
     }
 
     /**
@@ -537,16 +604,9 @@ class PopOver extends PopupControl {
         return detachedProperty().get();
     }
 
-    /**
-     * Sets the value of the detached property.
-     *
-     * @param detached if true the pop over will change its apperance to "detached"
-     *                 mode
-     * @see #detachedProperty()
-     */
-    public final void setDetached(boolean detached) {
-        detachedProperty().set(detached);
-    }
+    // arrow size support
+    private final DoubleProperty arrowSize = new SimpleDoubleProperty(this,
+            "arrowSize", 12); //$NON-NLS-1$
 
     /**
      * Controls the size of the arrow. Default value is 12.
@@ -576,6 +636,10 @@ class PopOver extends PopupControl {
     public final void setArrowSize(double size) {
         arrowSizeProperty().set(size);
     }
+
+    // arrow indent support
+    private final DoubleProperty arrowIndent = new SimpleDoubleProperty(this,
+            "arrowIndent", 12); //$NON-NLS-1$
 
     /**
      * Controls the distance between the arrow and the corners of the pop over.
@@ -607,6 +671,10 @@ class PopOver extends PopupControl {
         arrowIndentProperty().set(size);
     }
 
+    // radius support
+    private final DoubleProperty cornerRadius = new SimpleDoubleProperty(this,
+            "cornerRadius", 6); //$NON-NLS-1$
+
     /**
      * Returns the corner radius property for the pop over.
      *
@@ -636,6 +704,10 @@ class PopOver extends PopupControl {
         cornerRadiusProperty().set(radius);
     }
 
+    // Detached stage title
+
+    private final StringProperty title = new SimpleStringProperty(this, "title", "Info"); //$NON-NLS-1$ //$NON-NLS-2$
+
     /**
      * Stores the title to display in the PopOver's header.
      *
@@ -644,8 +716,6 @@ class PopOver extends PopupControl {
     public final StringProperty titleProperty() {
         return title;
     }
-
-    // Detached stage title
 
     /**
      * Returns the value of the title property.
@@ -671,6 +741,9 @@ class PopOver extends PopupControl {
         titleProperty().set(title);
     }
 
+    private final ObjectProperty<ArrowLocation> arrowLocation = new SimpleObjectProperty<>(
+            this, "arrowLocation", ArrowLocation.LEFT_TOP); //$NON-NLS-1$
+
     /**
      * Stores the preferred arrow location. This might not be the actual
      * location of the arrow if auto fix is enabled.
@@ -680,16 +753,6 @@ class PopOver extends PopupControl {
      */
     public final ObjectProperty<ArrowLocation> arrowLocationProperty() {
         return arrowLocation;
-    }
-
-    /**
-     * Returns the value of the arrow location property.
-     *
-     * @return the preferred arrow location
-     * @see #arrowLocationProperty()
-     */
-    public final ArrowLocation getArrowLocation() {
-        return arrowLocationProperty().get();
     }
 
     /**
@@ -703,16 +766,20 @@ class PopOver extends PopupControl {
     }
 
     /**
+     * Returns the value of the arrow location property.
+     *
+     * @return the preferred arrow location
+     * @see #arrowLocationProperty()
+     */
+    public final ArrowLocation getArrowLocation() {
+        return arrowLocationProperty().get();
+    }
+
+    /**
      * All possible arrow locations.
      */
     public enum ArrowLocation {
         LEFT_TOP, LEFT_CENTER, LEFT_BOTTOM, RIGHT_TOP, RIGHT_CENTER, RIGHT_BOTTOM,
         TOP_LEFT, TOP_CENTER, TOP_RIGHT, BOTTOM_LEFT, BOTTOM_CENTER, BOTTOM_RIGHT
     }
-
-
-
-
-
-
 }

@@ -2,6 +2,7 @@ package cryptoinvestor.cryptoinvestor;
 
 import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
+import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -86,13 +87,15 @@ public class TradingWindow extends AnchorPane {
 //                    tabPane.getTabs().add(tab);
 //             }
                 case OANDA -> {
-                    CurrencyDataProvider.Oanda oanda = new CurrencyDataProvider.Oanda(
-                            new TradePair("USD", "CAD"),
+                    Oanda oanda = new Oanda(new TradePair("USD","CAD"),
                             "77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99"
 
                             , "001-001-2783446-002",
                             "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo"
                     );
+
+
+
                     tab.setContent(
                             new TradeView(oanda));
                 }

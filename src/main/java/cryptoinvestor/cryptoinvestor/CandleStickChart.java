@@ -118,6 +118,7 @@ public class CandleStickChart extends Region {
     private volatile ZoomLevel currZoomLevel;
     private volatile boolean paging;
     private StackPane chartStackPane;
+    boolean selectedAutoTrading;
 
     /**
      * Creates a new {@code CandleStickChart}. This constructor is package-private because it should only
@@ -154,7 +155,7 @@ public class CandleStickChart extends Region {
         candleDataPager = new CandleDataPager(this, candleDataSupplier);
         data = Collections.synchronizedNavigableMap(new TreeMap<>(Integer::compare));
         chartOptions = new CandleStickChartOptions();
-        canvasNumberFont = Font.font(FXUtils.getMonospacedFont(), 10);
+        canvasNumberFont = Font.font(FXUtils.getMonospacedFont(), 9);
         progressIndicator = new ProgressIndicator(-1);
         getStyleClass().add("candle-chart");
         xAxis = new StableTicksAxis();
@@ -297,12 +298,27 @@ public class CandleStickChart extends Region {
                 if (exchange.telegram.isOnline()) {
                     status0.setFill(Color.GREEN);
                     try {
+                        exchange.telegram.newsTrade();
 
-                        exchange.telegram.run();
+                        exchange.telegram.sendMessage(
+                                "Welcome to " + tradePair.getBaseCurrency().symbol + " " +
+                                        tradePair.getCounterCurrency().symbol + "!\n" +
+                                        "\n" +
+                                        "This is a " + tradePair.getCounterCurrency().symbol + " " +
+                                        tradePair.getBaseCurrency().symbol + " candlestick chart.\n" +
+                                        "\n" +
+                                        "The candlestick chart shows " + secondsPerCandle + " seconds of " +
+                                        tradePair.getBaseCurrency().symbol + " " +
+                                        tradePair.getCounterCurrency().symbol + " candles.\n" +
+                                        "\n"
+                        );
 
-                    } catch (IOException | InterruptedException | ParseException e) {
+
+
+                    } catch (IOException | ParseException | InterruptedException e) {
                         throw new RuntimeException(e);
                     }
+
                 }
 
 
@@ -572,6 +588,9 @@ public class CandleStickChart extends Region {
                     moveAlongX(1, true);
                     numCandlesToSkip = Math.max(((int) xAxis.getUpperBound() -
                             data.lastEntry().getValue().getOpenTime()) / secondsPerCandle, 0);
+                    if (numCandlesToSkip == 0) {
+                        return;
+                    }
                 }
             }
             inProgressCandleLastDraw = inProgressCandle.getOpenTime();
@@ -1000,6 +1019,7 @@ public class CandleStickChart extends Region {
     }
 
     private void setAutoTrading(boolean selected) {
+        this.selectedAutoTrading = selected;
     }
 
 
@@ -1182,17 +1202,15 @@ public class CandleStickChart extends Region {
             List<Trade> currentCandleTrades = candlePartitionedNewTrades.get(false);
 
             if (!currentCandleTrades.isEmpty()) {
-                inProgressCandle.setHighPriceSoFar(Math.max(currentCandleTrades.stream().mapToDouble(trade ->
-                                trade.getPrice().toDouble()).max().getAsDouble(),
+                inProgressCandle.setHighPriceSoFar(Math.max(currentCandleTrades.stream().mapToDouble(Trade::getPrice).max().getAsDouble(),
                         inProgressCandle.getHighPriceSoFar()));
-                inProgressCandle.setLowPriceSoFar(Math.max(currentCandleTrades.stream().mapToDouble(trade ->
-                                trade.getPrice().toDouble()).min().getAsDouble(),
+                inProgressCandle.setLowPriceSoFar(Math.max(currentCandleTrades.stream().mapToDouble(Trade::getPrice).min().getAsDouble(),
                         inProgressCandle.getLowPriceSoFar()));
                 inProgressCandle.setVolumeSoFar(inProgressCandle.getVolumeSoFar() +
                         currentCandleTrades.stream().mapToDouble(trade -> trade.getAmount().toDouble()).sum());
                 inProgressCandle.setCurrentTill(currentTill);
                 inProgressCandle.setLastPrice(currentCandleTrades.get(currentCandleTrades.size() - 1)
-                        .getPrice().toDouble());
+                        .getPrice());
                 data.put(inProgressCandle.getOpenTime(), inProgressCandle.snapshot());
             }
 
@@ -1204,13 +1222,11 @@ public class CandleStickChart extends Region {
 
                 if (!nextCandleTrades.isEmpty()) {
                     inProgressCandle.setIsPlaceholder(false);
-                    inProgressCandle.setHighPriceSoFar(nextCandleTrades.stream().mapToDouble(trade ->
-                            trade.getPrice().toDouble()).max().getAsDouble());
-                    inProgressCandle.setLowPriceSoFar(currentCandleTrades.stream().mapToDouble(trade ->
-                            trade.getPrice().toDouble()).min().getAsDouble());
+                    inProgressCandle.setHighPriceSoFar(nextCandleTrades.stream().mapToDouble(Trade::getPrice).max().getAsDouble());
+                    inProgressCandle.setLowPriceSoFar(currentCandleTrades.stream().mapToDouble(Trade::getPrice).min().getAsDouble());
                     inProgressCandle.setVolumeSoFar(nextCandleTrades.stream().mapToDouble(trade ->
                             trade.getAmount().toDouble()).sum());
-                    inProgressCandle.setLastPrice(nextCandleTrades.get(0).getPrice().toDouble());
+                    inProgressCandle.setLastPrice(nextCandleTrades.get(0).getPrice());
                     inProgressCandle.setCurrentTill((int) nextCandleTrades.get(0).getTimestamp().getEpochSecond());
                 } else {
                     inProgressCandle.setIsPlaceholder(true);
@@ -1307,16 +1323,16 @@ public class CandleStickChart extends Region {
                                             // We need to factor in the trades that have happened after the
                                             // "currentTill" time of the in-progress candle.
                                             inProgressCandle.setHighPriceSoFar(Math.max(trades.stream().mapToDouble(
-                                                            trade -> trade.getPrice().toDouble()).max().getAsDouble(),
+                                                            Trade::getPrice).max().getAsDouble(),
                                                     inProgressCandleData.getHighPriceSoFar()));
                                             inProgressCandle.setLowPriceSoFar(Math.max(trades.stream().mapToDouble(
-                                                            trade -> trade.getPrice().toDouble()).min().getAsDouble(),
+                                                            Trade::getPrice).min().getAsDouble(),
                                                     inProgressCandleData.getLowPriceSoFar()));
                                             inProgressCandle.setVolumeSoFar(inProgressCandleData.getVolumeSoFar() +
                                                     trades.stream().mapToDouble(
                                                             trade -> trade.getAmount().toDouble()).sum());
                                             inProgressCandle.setLastPrice(trades.get(trades.size() - 1).getPrice()
-                                                    .toDouble());
+                                                    );
                                         }
                                         Platform.runLater(() -> {
                                             try {

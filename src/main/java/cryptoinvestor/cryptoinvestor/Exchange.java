@@ -1,6 +1,9 @@
 package cryptoinvestor.cryptoinvestor;
 
 
+import com.jfoenix.controls.RecursiveTreeItem;
+import javafx.scene.control.ListView;
+import javafx.scene.control.TreeItem;
 import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
@@ -16,10 +19,7 @@ import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.security.Principal;
 import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class Exchange {
@@ -31,16 +31,18 @@ public abstract class Exchange {
     protected String apiKey;
     protected TradePair tradePair;
     Accounts account;
-    private String urlize;
+    private String resize;
     private SocketFactory socket;
     private boolean isOpen;
+    private ArrayList<Trade> trades=new ArrayList<>();
+
 
     public Exchange(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException {
-        this.urlize = ur;
+        this.resize = ur;
         this.telegram = new TelegramClient(token);
 
 
-        logger.info("Connected to " + urlize);
+        logger.info("Connected to " + resize);
         this.socket = SocketFactory.getDefault();
         this.isOpen = true;
         this.account = new Accounts();
@@ -51,18 +53,21 @@ public abstract class Exchange {
         this.tradePair = tradePair;
 
 
-        logger.info("Connected to " + urlize);
+
+        logger.info("Connected to " + resize);
 
     }
 
-    public Exchange(String bittrex, String token, String s, String s1, String s2, String s3, String s4) throws TelegramApiException, IOException {
-        this.urlize = bittrex;
+    public Exchange(String bitter, String token, String s, String s1, String s2, String s3, String s4) throws TelegramApiException, IOException {
+        this.resize = bitter;
         this.telegram = new TelegramClient(token);
-        logger.info("Connected to " + urlize);
+        logger.info("Connected to " + resize);
         this.socket = SocketFactory.getDefault();
         this.isOpen = true;
         this.account = new Accounts();
-        logger.info("Connected to " + urlize);
+
+
+        logger.info("Connected to " + resize);
     }
 
 
@@ -74,7 +79,18 @@ public abstract class Exchange {
         this.isOpen = true;
         this.account = new Accounts();
 
-        logger.info("Connected to " + urlize);
+        logger.info("Connected to " + resize);
+    }
+
+    public Exchange(String oandaApiKey, String telegramToken) throws TelegramApiException, IOException {
+        this.apiKey = oandaApiKey;
+        this.phraseSecret1 = oandaApiKey;
+        this.telegram = new TelegramClient(telegramToken);
+        this.socket = SocketFactory.getDefault();
+        this.isOpen = true;
+        this.account = new Accounts();
+
+        logger.info("Connected to " + resize);
     }
 
     public abstract String getName();
@@ -89,7 +105,7 @@ public abstract class Exchange {
     public ExchangeWebSocketClient getWebsocketClient() {
 
         return new ExchangeWebSocketClient(
-                URI.create(urlize),
+                URI.create(resize),
                 new Draft_6455()
         ) {
             @Override
@@ -128,6 +144,7 @@ public abstract class Exchange {
 
                     @Override
                     public void removeMessageHandler(MessageHandler listener) {
+                        logger.info("Removing message handler ");
 
                     }
 
@@ -174,6 +191,7 @@ public abstract class Exchange {
 
                     @Override
                     public void setMaxBinaryMessageBufferSize(int max) {
+                        logger.info("Setting max binary message buffer size to " + max);
 
                     }
 
@@ -194,6 +212,8 @@ public abstract class Exchange {
 
                     @Override
                     public RemoteEndpoint.Basic getBasicRemote() {
+                        logger.info("Getting basic remote endpoint");
+
                         return null;
                     }
 
@@ -277,10 +297,10 @@ public abstract class Exchange {
 
 
                 socket = SocketFactory.getDefault();
+  try {  socket.createSocket(String.valueOf(uri), 8080);
 
-                socket.createSocket(String.valueOf(uri), 8080);
-                try {
-                    socket.wait(10000);
+
+      socket.wait(10000);
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
                 }
@@ -424,5 +444,35 @@ public abstract class Exchange {
     }
 
 
+    private @NotNull ListView<Order> listOrders() {
+        ListView<Order> orders = new ListView<>();
+        orders.setPrefHeight(100);
+        orders.setPrefWidth(100);
+        orders.setCellFactory(param -> new OrderCell());
+        orders.setOnMouseClicked(event -> {
+            if (event.getClickCount() == 2) {
+                Order order = orders.getSelectionModel().getSelectedItem();
+                if (order != null) {
+                    order.showOrderDetails();
+                }
+            }
+        });
+        orders.getItems().addAll(Trade.getOrders());
+        return orders;
+    }
+
+
+    public TreeItem<Order> getTradesList() {
+        TreeItem<Order> tradesList=
+                new TreeItem<>();
+        tradesList.setExpanded(true);
+        tradesList.getChildren().addAll(Trade.getTrades());
+        tradesList.setExpanded(true);
+
+
+
+
+        return tradesList;
+    }
 }
 
