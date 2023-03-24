@@ -3,6 +3,7 @@ package cryptoinvestor.cryptoinvestor;
 
 import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
+import cryptoinvestor.cryptoinvestor.Discord.Discord;
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TreeItem;
@@ -27,49 +28,53 @@ import java.util.concurrent.CompletableFuture;
 public abstract class Exchange {
 
     private static final Logger logger = LoggerFactory.getLogger(Exchange.class);
-    protected static String accountID;
+
     public TelegramClient telegram;
+
+    public String accountId;
     protected String phraseSecret1;
     protected String apiSecret;
     protected String apiKey;
     protected static TradePair tradePair;
     Accounts account;
-    private String resize;
+    private String url;
     private SocketFactory socket;
     private boolean isOpen;
     protected ArrayList<Trade> trades=new ArrayList<>();
+    private double price;
 
 
-    public Exchange(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException {
-        this.resize = ur;
-        this.telegram = new TelegramClient(token);
+    public Exchange(@NotNull TradePair tradePair, String ur, String token, @NotNull String telegramToken) throws TelegramApiException, IOException, InterruptedException {
+        this.url = ur;
+        this.telegram = new TelegramClient(telegramToken);
 
 
-        logger.info("Connected to " + resize);
+        logger.info("Connected to " + url);
         this.socket = SocketFactory.getDefault();
         this.isOpen = true;
         this.account = new Accounts();
-        this.phraseSecret1 = passphrase;
-        this.apiSecret = passphrase;
-        this.apiKey = passphrase;
+
+        this.apiKey = token;
         Exchange.tradePair = tradePair;
-        TelegramClient.connect();
+
+     //   this.discord = new Discord("https://api.discord.com/", apiSecret, "","","","");
 
 
-        logger.info("Connected to " + resize);
+        logger.info("Connected to " + url);
 
     }
 
     public Exchange(String bitter, String token, String s, String s1, String s2, String s3, String s4) throws TelegramApiException, IOException {
-        this.resize = bitter;
+        this.url = bitter;
         this.telegram = new TelegramClient(token);
-        logger.info("Connected to " + resize);
+        logger.info("Connected to " + url);
         this.socket = SocketFactory.getDefault();
         this.isOpen = true;
         this.account = new Accounts();
 
+        this.accountId =account.getAccountID();
 
-        logger.info("Connected to " + resize);
+        logger.info("Connected to " + url);
     }
 
 
@@ -81,9 +86,10 @@ public abstract class Exchange {
         this.isOpen = true;
         this.account = new Accounts();
 
-        logger.info("Connected to " + resize);
 
-        TelegramClient.connect();
+        logger.info("Connected to " + url);
+
+      //  TelegramClient.connect();
     }
 
     public Exchange(String oandaApiKey, String telegramToken) throws TelegramApiException, IOException {
@@ -94,7 +100,28 @@ public abstract class Exchange {
         this.isOpen = true;
         this.account = new Accounts();
 
-        logger.info("Connected to " + resize);
+        logger.info("Connected to " + url);
+    }
+
+    public Exchange(TradePair tradePair,String apiKey, String telegramToken) throws TelegramApiException, IOException {
+
+
+        this.socket = SocketFactory.getDefault();
+        this.isOpen = true;
+        this.account = new Accounts();
+        this.accountId =account.getAccountID();
+        Exchange.tradePair = tradePair;
+        this.apiKey = apiKey;
+        this.accountId =account.getAccountID();
+        logger.info("Connected to " + url);
+        this.url = "ws://api.kucoin.com/market/ticker:all";
+        this.socket = SocketFactory.getDefault();
+        this.isOpen = true;
+        if (telegramToken!= null) {
+            this.telegram = new TelegramClient(telegramToken);
+        }else {
+            logger.error("KuCoin Telegram token is null");
+        }
     }
 
     public abstract String getName();
@@ -109,7 +136,7 @@ public abstract class Exchange {
     public ExchangeWebSocketClient getWebsocketClient() {
 
         return new ExchangeWebSocketClient(
-                URI.create(resize),
+                URI.create(url),
                 new Draft_6455()
         ) {
             @Override
@@ -467,8 +494,11 @@ public abstract class Exchange {
 
 
     public TreeItem<Trade> getTradesList() {
-        TreeItem<Trade> tradesList=
-                new TreeItem<>();
+        TreeItem<Trade> tradesList= new TreeItem<>();
+
+        for (Trade trade : Trade.getTrades()) {
+            tradesList.getChildren().add(new TreeItem<>(trade));
+        }
 
         tradesList.setExpanded(true);
 
@@ -525,9 +555,9 @@ public abstract class Exchange {
         return true;
     }
 
-    public void CloseAll() {
+    public boolean CloseAll() throws IOException, InterruptedException {
         if (this instanceof Coinbase coinbase){
-            coinbase.CloseAll();
+            coinbase.CloseAllOrders();
         }else if (this instanceof BinanceUs binanceUs){
             binanceUs.CloseAll();
 
@@ -542,8 +572,77 @@ public abstract class Exchange {
             bitstamp.CloseAll();
         }
         else if (this instanceof Oanda oanda){
-            oanda.CloseAll();
+           return oanda.CloseAll();
         }
+        return false;
+    }
+
+    public void deposit(Double value) {
+    }
+
+    public void withdraw(Double value) {
+    }
+
+    public String getWithdraw() {
+        return "No withdraw";
+    }
+
+    public String getDeposit() {
+        return "No deposit";
+    }
+
+    public String getTotal() {
+        return "No total";
+    }
+
+    public String getFee() {
+        return "No fee";
+    }
+
+    public String getPending() {
+        return "No pending";
+    }
+
+    public String getAvailable() {
+        return "No available";
+    }
+
+    public String getBalance() {
+        return "No balance";
+    }
+
+    public double getPrice(TradePair tradePair) throws IOException, InterruptedException {
+        if (this instanceof Coinbase coinbase){
+            return coinbase.getPrice(tradePair);
+        }else if (this instanceof BinanceUs binanceUs){
+            return binanceUs.getPrice(tradePair);
+        }
+        else if (this instanceof Bittrex bittrex){
+            return bittrex.getPrice(tradePair);
+        }
+        else if (this instanceof Bitfinex bitfinex){
+            return bitfinex.getPrice(tradePair);
+        }
+        else if (this instanceof Bitstamp bitstamp){
+            return bitstamp.getPrice(tradePair);
+        }
+        else if (this instanceof Oanda oanda){
+            return oanda.getPrice(tradePair);
+        }
+        return 0;
+
+
+
+
+
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public double getPrice() {
+        return price;
     }
 }
 

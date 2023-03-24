@@ -36,6 +36,7 @@ public class CryptoMarketData {
     private String currency;
     private String times;
     private String percentage;
+    private String total_volume_24h;
 
     public CryptoMarketData(String id, String symbol, String name, String image, String currentPrice, String marketCap, String marketCapRank, String fullyDilutedValuation, String totalVolume, String high24h, String low24h, String priceChange24h, String priceChangePercentage24h, String marketCapChange24h, String marketCapChangePercentage24h, String circulatingSupply, String totalSupply, String maxSupply, String ath, String athChangePercentage, String athDate, String atl, String atlChangePercentage, String atlDate, String currency, String times, String percentage, String lastUpdated) {
         this.id = id;
@@ -401,4 +402,7 @@ public class CryptoMarketData {
     }
 
 
+    public String getTotal_volume_24h() {
+        return total_volume_24h;
+    }
 }

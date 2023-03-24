@@ -102,6 +102,9 @@
             <artifactId>aws-java-sdk-marketplacecatalog</artifactId>
             <version>1.12.429</version>
         </dependency>
+
+
+
     </dependencies>
 
     <build>

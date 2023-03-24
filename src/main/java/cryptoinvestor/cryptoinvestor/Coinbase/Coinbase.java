@@ -60,14 +60,14 @@ public class Coinbase extends Exchange {
     protected String PASSPHRASE = "w73hzit0cgl";
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
-    private String telegramToken;
+
     static TelegramClient telegramBot;
     public Coinbase(
-            @NotNull String telegramToken,
+
             @NotNull String apiKey,
-            @NotNull String passphrase
+            @NotNull String passphrase,      @NotNull String telegramToken
     ) throws TelegramApiException, IOException, NoSuchAlgorithmException {
-        super(telegramToken, apiKey, passphrase);
+        super( apiKey, passphrase,telegramToken);
 
 
         requestBuilder.header("CB-ACCESS-KEY", apiKey);
@@ -82,7 +82,7 @@ public class Coinbase extends Exchange {
         requestBuilder.header("Referer", "https://www.coinbase.com/");
         requestBuilder.header("Sec-Fetch-Dest", "empty");
         requestBuilder.header("Sec-Fetch-Mode", "cors");
-        telegramBot=new TelegramClient(telegramToken);
+
 
         logger.info("Coinbase initialized");
 
@@ -106,12 +106,14 @@ public class Coinbase extends Exchange {
                 new CoinbaseCandleDataSupplier(secondsPerCandle, tradePair) {
                     @Override
                     public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-                        return null;
+                        return
+                                CompletableFuture.completedFuture(Optional.empty());
                     }
 
                     @Override
                     public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
-                        return null;
+                        return
+                                CompletableFuture.completedFuture(Collections.emptyList());
                     }
                 };
     }
@@ -323,9 +325,10 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
     }
 
 
-    private @NotNull JSONObject getJSON() {
+    public JSONObject getJSON() {
 
         JSONObject jsonObject = new JSONObject();
+        JSONObject rates = null;
         try {
             URL url = new URL("https://api.coinbase.com/v2/exchange-rates");
             HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
@@ -356,16 +359,6 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
             //Put data into json file
             jsonObject = new JSONObject(response.toString());
             out.println(jsonObject.toString(4));
-
-            String rates;
-            if (jsonObject.has("data")) {
-                JSONObject dat = new JSONObject(jsonObject.getJSONObject("data").toString(4));
-                if (dat.has("rates")) {
-                    rates = dat.getJSONObject("rates").toString(4);
-                    out.println(rates);
-                }
-
-            }
 
 
         } catch (IOException e) {
@@ -410,7 +403,7 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
     }
     HttpClient client = HttpClient.newHttpClient();
 
-    public void createOrder(TradePair tradePair, double price, ENUM_ORDER_TYPE orderType, Side side, double size,
+    public void createOrder(@NotNull TradePair tradePair, double price, ENUM_ORDER_TYPE orderType, Side side, double size,
                             double stopLoss, double takeProfit) throws IOException, InterruptedException {
        // JSONObject jsonObject = getJSON();
      //   System.out.println(jsonObject.toString(4));
@@ -452,7 +445,7 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
 
 
     }
-boolean CloseAllOrders() throws IOException, InterruptedException {
+public void CloseAllOrders() throws IOException, InterruptedException {
         String uriStr = "https://api.pro.coinbase.com/" +
                 "products/" + tradePair.toString('_') + "/orders" +
                 "?side=" + Side.SELL +
@@ -484,10 +477,8 @@ boolean CloseAllOrders() throws IOException, InterruptedException {
 
             telegramBot.sendMessage(jsonObject.toString(4));
             System.out.println(jsonObject.toString(4));
-        return true;
         }
 
-        return false;
 }
 
     public static abstract class CoinbaseCandleDataSupplier extends CandleDataSupplier {

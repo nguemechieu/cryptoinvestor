@@ -82,6 +82,10 @@ public class CandleStickChart extends Region {
     private static final Logger logger = LoggerFactory.getLogger(CandleStickChart.class);
     private final CandleDataPager candleDataPager;
     private final CandleStickChartOptions chartOptions;
+
+    private  ConcurrentHashMap<CandleData,CandleData> onCandleDataUpdate=new ConcurrentHashMap<>();
+
+
     /**
      * Maps an open time (as a Unix timestamp) to the computed candle data (high price, low price, etc.) for a trading
      * period beginning with that opening time. Thus the key "1601798498" would be mapped to the candle data for trades
@@ -237,6 +241,9 @@ public class CandleStickChart extends Region {
             updateInProgressCandleExecutor = null;
         }
 
+        assert inProgressCandle != null;
+        onCandleDataUpdate.put(inProgressCandle.snapshot(), inProgressCandle.snapshot());
+
         candlePageConsumer = new CandlePageConsumer();
         mouseDraggedHandler = new MouseDraggedHandler();
         scrollHandler = new ScrollEventHandler();
@@ -267,7 +274,7 @@ public class CandleStickChart extends Region {
                 VBox.setVgrow(extraAxisExtension, Priority.ALWAYS);
 
                 Label symbolInfo = new Label(
-                        String.format("Symbol: %s\n", tradePair.getBaseCurrency().symbol) +
+                        String.format("Symbol: %s\n", tradePair.getBaseCurrency().code) +
                                 String.format("Base Currency: %s\n", tradePair.getBaseCurrency()) +
                                 String.format("Quote Currency: %s\n", tradePair.getCounterCurrency().code) +
                                 String.format("Interval: %s\n", secondsPerCandle) +
@@ -282,7 +289,7 @@ public class CandleStickChart extends Region {
                 symbolInfo.setTranslateY(
                         chartHeight - 200
                 );
-                symbolInfo.setFont(Font.font("Arial", 12));
+                symbolInfo.setFont(Font.font("Arial", 15));
                 symbolInfo.setBackground(Background.fill(Color.WHITE));
                 chartStackPane = new StackPane(canvas, loadingIndicatorContainer, symbolInfo);
                 chartStackPane.setAlignment(Pos.CENTER);
@@ -301,19 +308,19 @@ public class CandleStickChart extends Region {
                         exchange.telegram.newsTrade();
 
                         exchange.telegram.sendMessage(
-                                "Welcome to " + tradePair.getBaseCurrency().symbol + " " +
-                                        tradePair.getCounterCurrency().symbol + "!\n" +
+                                "____CryptoInvestor_____ \n" + tradePair.getBaseCurrency().code + " " +
+                                        tradePair.getCounterCurrency().code + "!\n" +
                                         "\n" +
-                                        "This is a " + tradePair.getCounterCurrency().symbol + " " +
-                                        tradePair.getBaseCurrency().symbol + " candlestick chart.\n" +
+                                        "This is a " + tradePair.getCounterCurrency().code + " " +
+                                        tradePair.getBaseCurrency().code + " candlestick chart.\n" +
                                         "\n" +
                                         "The candlestick chart shows " + secondsPerCandle + " seconds of " +
-                                        tradePair.getBaseCurrency().symbol + " " +
-                                        tradePair.getCounterCurrency().symbol + " candles.\n" +
+                                        tradePair.getBaseCurrency().code + " " +
+                                        tradePair.getCounterCurrency().code + " candles.\n" +
                                         "\n"
                         );
 
-
+                     exchange.telegram.run();
 
                     } catch (IOException | ParseException | InterruptedException e) {
                         throw new RuntimeException(e);
@@ -596,44 +603,86 @@ public class CandleStickChart extends Region {
             inProgressCandleLastDraw = inProgressCandle.getOpenTime();
             numCandlesToSkip = Math.max(((int) xAxis.getUpperBound() - inProgressCandleLastDraw) /
                     secondsPerCandle, 0);
-            if (numCandlesToSkip == 0) {
-                return;
-            }
+
             Text tradePairInfos = new Text(tradePair.getBaseCurrency().code + " / " + tradePair.getCounterCurrency().code + "  "
 
                     + tradePair.getBaseCurrency().fullDisplayName
             );
-            tradePairInfos.setFont(Font.font(12));
-            tradePairInfos.setFill(Color.WHITE);
+            tradePairInfos.setFont(Font.font(32));
+            tradePairInfos.setFill(Color.rgb(189, 189, 189,0.6));
             tradePairInfos.setTextAlignment(TextAlignment.CENTER);
             VBox.setVgrow(tradePairInfos, Priority.ALWAYS);
-            Text infoLabel = new Text(numCandlesToSkip + " candles");
+            Text infoLabel = new Text(numCandlesToSkip + " candles "+
+                    (numCandlesToSkip > 1? "s" : "") + " skipped");
 
-            exchange.telegram.sendMessage(exchange.telegram.getChatId() +
-                    "Candles: " + numCandlesToSkip);
-            exchange.telegram.run();
+
+tradePairInfos.setTranslateX(500);
+tradePairInfos.setTranslateY(200);
+
+           if (exchange.telegram.isOnline()){exchange.telegram.run();}
+
+
+            infoLabel.setTextAlignment(TextAlignment.CENTER);
+
+            ConcurrentHashMap<CryptoMarketData, CryptoMarketData> dat = CurrencyDataProvider.getMarketDataConcurrentHashMap();
+
+            String name = exchange.telegram.isOnline() ? exchange.telegram.getUsername() : "N/A";
+
+
             infoLabel.setText(
                     "Timeframe  " + secondsPerCandle + " seconds."
-                            + "  Open : " + inProgressCandle.getOpenPrice() +
-                            "  High :  " +
-                            inProgressCandle.getHighPriceSoFar() +
-                            "  Low : " +
-                            inProgressCandle.getLowPriceSoFar() +
-                            " Close :  " +
-                            inProgressCandle.getClosePriceSoFar() +
-                            "  Volume :  " + inProgressCandle.getVolumeSoFar() +
-                            " Price :  " + inProgressCandle.getLastPrice() +
+                            + "  Telegram  BOT : " +   name +
+                            " Discord  BOT : " +
 
-                            "   Low24  :" + 0 + "   High24 : " + 0 +
-                            "            Bot: " + exchange.telegram.getChannelName() + " Mode: " + "Automatic"
+
+                            " Mode: " + selectedAutoTrading
+
+                            + " Open : " +
+                            onCandleDataUpdate.values().stream().mapToDouble(
+                            CandleData::getOpenPrice).min().getAsDouble() +
+                            "   Close : " +
+                            onCandleDataUpdate.values().stream().mapToDouble(
+                            CandleData::getClosePrice).min().getAsDouble() +
+                            "   Current Price : " +inProgressCandle.getOpenPrice()+
+                            "   Previous Price : " +
+                            onCandleDataUpdate.values().stream().mapToDouble(
+                            CandleData::getOpenPrice).max().getAsDouble()
+                    +
+
+                            "  Change %: " +
+                            onCandleDataUpdate.values().stream().mapToDouble(
+                            CandleData::getChangePercent).max().getAsDouble() +
+
+                            "  Volume :  " +  onCandleDataUpdate.values().stream().mapToDouble(
+                            CandleData::getVolume).max().getAsDouble()
+                            +
+                            "  High :  " +  onCandleDataUpdate.values().stream().mapToDouble(
+                            CandleData::getHighPrice).max().getAsDouble()+
+
+
+                            " Low :  " +
+                            onCandleDataUpdate.values().stream().mapToDouble(
+                            CandleData::getLowPrice).min().getAsDouble() +
+
+
+                            "\n Low24  :" + dat.values().stream().mapToDouble(x -> Double.parseDouble(x.low_24h)).max() +
+                            "\n   High24 : " + dat.values().stream().mapToDouble(x -> Double.parseDouble(x.high_24h)).max() +
+                            "\n Volume :  " + dat.values().stream().mapToDouble(x -> Double.parseDouble(x.getTotal_volume())).max()
+
 
             );
+
+
+
+
+
+
             infoLabel.setTextAlignment(TextAlignment.CENTER);
             infoLabel.setTranslateX(80);
             infoLabel.setTranslateY(30);
             infoLabel.setFill(Color.WHITE);
             VBox.setVgrow(infoLabel, Priority.ALWAYS);
-            getChildren().addAll(infoLabel);
+            getChildren().addAll(infoLabel, tradePairInfos);
         }
 
         if (clearCanvas) {

@@ -11,7 +11,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class Binance extends Exchange {
 
-    public Binance(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException {
+    public Binance(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException, InterruptedException {
         super(tradePair, ur, token, passphrase);
     }
 

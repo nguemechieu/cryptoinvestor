@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class Bitstamp extends Exchange {
-    public Bitstamp(TradePair tradePair, String bitstamp_key, String bitstamp_secret, String coinbaseSecret) throws TelegramApiException, IOException {
+    public Bitstamp(TradePair tradePair, String bitstamp_key, String bitstamp_secret, String coinbaseSecret) throws TelegramApiException, IOException, InterruptedException {
 
         super(tradePair, bitstamp_key, bitstamp_secret, coinbaseSecret);
         Exchange.tradePair = tradePair;

@@ -1,5 +1,6 @@
 package cryptoinvestor.cryptoinvestor;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.animation.Animation;
@@ -172,40 +173,40 @@ public class TelegramClient extends ChatEndpoint {
         TelegramClient.token = token;
         TelegramClient.mapper = new ObjectMapper();
 
-//        JsonNode jsonNode = mapper.readTree((JsonParser) Objects.requireNonNull(TelegramClient.connect()));
-//
-//              for (JsonNode node : jsonNode) {
-//
-//                  if (node.has("ok")) {
+        JsonNode jsonNode = mapper.readTree( Objects.requireNonNull(TelegramClient.connect()).toString());
+
+              for (JsonNode node : jsonNode) {
+
+                  if (node.has("ok")) {
 
 
-//                      JSONObject jsonObject = new JSONObject(node);
-//                      if (jsonObject.getBoolean("ok")) {
-//                          TelegramClient.username = jsonObject.getString("username");
-//                          TelegramClient.from_id = jsonObject.getString("id");
-//                          TelegramClient.chat_id = jsonObject.getString("chat_id");
-//                          TelegramClient.chat_last_name = jsonObject.getString("last_name");
-//                          TelegramClient.chat_first_name = jsonObject.getString("first_name");
-//                          TelegramClient.chat_photo_file_id = jsonObject.getString("photo");
-//                          TelegramClient.chat_photo_file_unique_id = jsonObject.getString("photo_file_unique_id");
-//                          TelegramClient.chat_type = jsonObject.getString("type");
-//                          TelegramClient.chat_title = jsonObject.getString("title");
-//                          TelegramClient.chat_username = jsonObject.getString("username");
-//                          TelegramClient.chat_type = jsonObject.getString("type");
-//                          isOnline = true;
-//                      } else {
-//                          networkError = jsonObject.getString("description");
-//                          System.out.println(networkError);
-//                          Alert alert = new Alert(Alert.AlertType.ERROR);
-//                          alert.setTitle("Telegram Error");
-//                          alert.setHeaderText(null);
-//                          alert.setContentText(networkError);
-//                          alert.showAndWait();
-//
-//                      }
-//                  }
+                      JSONObject jsonObject = new JSONObject(node);
+                      if (jsonObject.getBoolean("ok")) {
+                          TelegramClient.username = jsonObject.getString("username");
+                          TelegramClient.from_id = jsonObject.getString("id");
+                          TelegramClient.chat_id = jsonObject.getString("chat_id");
+                          TelegramClient.chat_last_name = jsonObject.getString("last_name");
+                          TelegramClient.chat_first_name = jsonObject.getString("first_name");
+                          TelegramClient.chat_photo_file_id = jsonObject.getString("photo");
+                          TelegramClient.chat_photo_file_unique_id = jsonObject.getString("photo_file_unique_id");
+                          TelegramClient.chat_type = jsonObject.getString("type");
+                          TelegramClient.chat_title = jsonObject.getString("title");
+                          TelegramClient.chat_username = jsonObject.getString("username");
+                          TelegramClient.chat_type = jsonObject.getString("type");
+                          isOnline = true;
+                      } else {
+                          networkError = jsonObject.getString("description");
+                          System.out.println(networkError);
+                          Alert alert = new Alert(Alert.AlertType.ERROR);
+                          alert.setTitle("Telegram Error");
+                          alert.setHeaderText(null);
+                          alert.setContentText(networkError);
+                          alert.showAndWait();
 
-        //           }
+                      }
+                  }
+
+                   }
 
 
         logger.info("Telegram Client Created");
@@ -218,6 +219,13 @@ public class TelegramClient extends ChatEndpoint {
                 apiVersion,
                 clientSecret
         );
+        TelegramClient.token = accessToken;
+
+        TelegramClient.mapper = new ObjectMapper();
+        logger.info("Telegram Client Created");
+        TelegramClient.connect();
+
+
     }
 
     public static int getLength() {

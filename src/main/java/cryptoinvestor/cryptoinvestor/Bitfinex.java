@@ -61,7 +61,7 @@ public class Bitfinex extends Exchange {
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
-    public Bitfinex(TradePair tradePair, String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException {
+    public Bitfinex(TradePair tradePair, String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException, InterruptedException {
         super(tradePair, ur0, telegramToken, binanceUsApiKey);
 
 
@@ -78,8 +78,22 @@ public class Bitfinex extends Exchange {
     }
 
 
-    public Bitfinex(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException {
+    public Bitfinex(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException, InterruptedException {
         super(tradePair, ur, token, passphrase);
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        requestBuilder.header("Origin", "https://api.binance.us");
+        requestBuilder.header("Referer", "https://www.bitfinnex.com");
+        requestBuilder.header("Sec-Fetch-Dest", "empty");
+
+        logger.info("BinanceUs " + nanoTime());
+        requestBuilder.header("Sec-Fetch-Mode", "cors");
+
+        logger.info("BinanceUs " + nanoTime());
+
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", apiKey);
+
     }
 
     public Bitfinex(String bittrex, String token, String s, String s1, String s2, String s3, String s4) throws TelegramApiException, IOException {

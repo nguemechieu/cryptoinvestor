@@ -53,13 +53,13 @@ public class BinanceUs extends Exchange {
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
-    public BinanceUs(TradePair tradePair, String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException {
-        super(tradePair, ur0, telegramToken, binanceUsApiKey);
-
+    public BinanceUs(TradePair tradePair,  String binanceUsApiKey,String telegramToken) throws IOException, TelegramApiException, InterruptedException {
+        super(tradePair, binanceUsApiKey, telegramToken);
+Exchange.tradePair = tradePair;
 
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
-        requestBuilder.header("Origin", "https://api.binance.us");
+        requestBuilder.header(  "Origin", "https://api.binance.us");
         requestBuilder.header("Referer", "https://www.binance.us");
         requestBuilder.header("Sec-Fetch-Dest", "empty");
         requestBuilder.header("Sec-Fetch-Mode", "cors");
@@ -67,6 +67,10 @@ public class BinanceUs extends Exchange {
         requestBuilder.header("Authorization", binanceUsApiKey);
 
         logger.info("BinanceUs " + nanoTime());
+
+
+
+
     }
 
     public void createOrder(double price1, ENUM_ORDER_TYPE type1, Side side1, double quantity1, double stopLoss1, double takeProfit1) {
@@ -81,9 +85,11 @@ public class BinanceUs extends Exchange {
     }
 
     @Override
-    public BinanceUsCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
-        return
-                new BinanceUsCandleDataSupplier(secondsPerCandle, tradePair) {
+    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+        return new BinanceUsCandleDataSupplier(secondsPerCandle, tradePair) {
+            @Override
+            public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+                return new BinanceUsCandleDataSupplier(200, tradePair) {
                     @Override
                     public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
                         return null;
@@ -93,8 +99,16 @@ public class BinanceUs extends Exchange {
                     public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
                         return null;
                     }
-                };
+                }.fetchCandleDataForInProgressCandle(tradePair,Instant.now(),secondsIntoCurrentCandle,secondsPerCandle);
+            }
+
+            @Override
+            public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
+                return null;
+            }
+        };
     }
+
 
 //    private @Nullable String timestampSignature(
 //            String apiKey,
@@ -153,7 +167,7 @@ public class BinanceUs extends Exchange {
                             ,
                             HttpResponse.BodyHandlers.ofString());
 
-                    Log.info("response headers: ", response.headers().toString());
+                    Log.info("response headers-->: ", response.headers().toString());
                     if (response.headers().firstValue("CB-AFTER").isEmpty()) {
                         futureResult.completeExceptionally(new RuntimeException(
                                 "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.Oanda trades response did not contain header \"CB-AFTER\": " + response));
@@ -309,7 +323,7 @@ public class BinanceUs extends Exchange {
 
         JSONObject jsonObject = new JSONObject();
         try {
-            URL url = new URL("https://api.coinbase.com/v2/exchange-rates");
+            URL url = new URL("https://api.binance.us/api/v2/exchange-rates");
             HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");

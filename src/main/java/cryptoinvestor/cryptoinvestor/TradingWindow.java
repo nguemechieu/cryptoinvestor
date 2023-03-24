@@ -10,14 +10,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.Writer;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
+import java.util.Properties;
 
 public class TradingWindow extends AnchorPane {
     private static final Logger logger = LoggerFactory.getLogger(TradingWindow.class);
 
-    public TradingWindow() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException {
+    public TradingWindow() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
         super();
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
@@ -34,7 +38,7 @@ public class TradingWindow extends AnchorPane {
             switch (i) {
 
                 case COINBASE_PRO -> {
-                    Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "BTC");
+                    Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(new TradeView(coinbase));
 
                 }
@@ -42,7 +46,7 @@ public class TradingWindow extends AnchorPane {
                     Bitfinex bitfinex = new Bitfinex(new TradePair("BTC", "USD"),
                             "https://api.bitfinex.com/v1/pubticker/btcusd"
 
-                            , "", "");
+                            , "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(
 
                             new TradeView(bitfinex));
@@ -50,7 +54,7 @@ public class TradingWindow extends AnchorPane {
 
                 }
                 case KRAKEN -> {
-                    Kraken kraken = new Kraken("", "", "");
+                    Kraken kraken = new Kraken("", "", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(
                             new TradeView(kraken));
 
@@ -68,12 +72,12 @@ public class TradingWindow extends AnchorPane {
 
 
                 case KUCOIN -> {
-                    Kucoin kucoin = new Kucoin(new TradePair("BTC", "USD"), "etrytuyi", "trtyuy", "tryu");
+                    Kucoin kucoin = new Kucoin(new TradePair("BTC","USD"), "trtyuy", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(new TradeView(kucoin));// "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "sretry789", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo"));
 
                 }
                 case BINANCE_US -> {
-                    BinanceUs binance = new BinanceUs(new TradePair("BTC", "USD"), "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "");
+                    BinanceUs binance = new BinanceUs(new TradePair("BTC", "USD"), "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(new TradeView(binance));
 
                 }
@@ -115,7 +119,17 @@ public class TradingWindow extends AnchorPane {
 
         getChildren().addAll(getMenuBar(), tabPane);
 
+    Properties properties = new Properties();
+    properties.load(Objects.requireNonNull(getClass().getResourceAsStream("/cryptoinvestor/app.properties")));
 
+
+
+
+
+
+
+
+     logger.debug("Properties loaded");
     }
 
     public MenuBar getMenuBar() {
@@ -239,6 +253,5 @@ public class TradingWindow extends AnchorPane {
         toolsMenu.getItems().add(new MenuItem("Balance Sheet"));
         return menuBar;
     }
-
 
 }

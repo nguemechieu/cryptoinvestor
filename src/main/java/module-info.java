@@ -17,6 +17,6 @@ module cryptoinvestor.cryptoinvestor {
     requires com.google.gson;
     requires com.fasterxml.jackson.datatype.jsr310;
     requires com.fasterxml.jackson.dataformat.csv;
-    opens cryptoinvestor.cryptoinvestor to javafx.fxml;
+    requires java.prefs;
     exports cryptoinvestor.cryptoinvestor;
 }

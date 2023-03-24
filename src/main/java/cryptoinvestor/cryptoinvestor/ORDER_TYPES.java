@@ -10,7 +10,9 @@ public enum ORDER_TYPES {
     MARKET(8),
     STOP_LOSS_LIMIT(9),
     TAKE_PROFIT_LIMIT(10),
-    LIMIT_MAKER(11);
+    LIMIT_MAKER(11),
+    TAKE_PROFIT(12),
+    STOP_LOSS(13);
     private final int i;
 
     ORDER_TYPES(int type) {

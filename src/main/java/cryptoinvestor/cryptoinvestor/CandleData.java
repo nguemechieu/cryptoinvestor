@@ -2,14 +2,14 @@ package cryptoinvestor.cryptoinvestor;
 
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import jakarta.persistence.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.Date;
 import java.util.Objects;
 
 @Entity
-@Table(name = "CandleData")
 @Inheritance(strategy = InheritanceType.JOINED)
 @DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
 @DiscriminatorValue("CandleData")
@@ -21,7 +21,7 @@ public class CandleData extends RecursiveTreeObject<CandleData> implements Seria
     @Serial
     private static final long serialVersionUID = 1L;
 
-
+public static final Logger logger = LoggerFactory.getLogger(CandleData.class);
     private final double averagePrice = -1;
     public int closeTime;
     int openTime;
@@ -51,6 +51,12 @@ public class CandleData extends RecursiveTreeObject<CandleData> implements Seria
         this.highPrice = highPrice;
         this.lowPrice = lowPrice;
         this.volume = volume;
+
+        this.placeHolder = false;
+        this.setId(Math.round(Math.random() * 1000000000));
+        this.volumeWeightedAveragePrice = 0;
+        this.closeTime = -1;
+        logger.info("CandleData created with id: " + this.id);
     }
 
     public CandleData() {
@@ -92,7 +98,14 @@ public class CandleData extends RecursiveTreeObject<CandleData> implements Seria
     }
 
     public double getAveragePrice() {
-        return averagePrice;
+
+        double p = openPrice + closePrice + highPrice + lowPrice;
+        if (p == 0) {
+            return 0;
+        }
+        return p / 4;
+
+
     }
 
     public double getVolumeWeightedAveragePrice() {
@@ -126,10 +139,19 @@ public class CandleData extends RecursiveTreeObject<CandleData> implements Seria
 
     @Override
     public String toString() {
-
-        return String.format("Open = %f, Close= %f, High= %f, Low = %f, " +
-                        "OpenTime = %s, Volume = %f", openPrice, closePrice, highPrice, lowPrice,
-                new Date(openTime), volume);
+        return "CandleData{" +
+                "averagePrice=" + averagePrice +
+                ", closeTime=" + closeTime +
+                ", openTime=" + openTime +
+                ", openPrice=" + openPrice +
+                ", closePrice=" + closePrice +
+                ", highPrice=" + highPrice +
+                ", lowPrice=" + lowPrice +
+                ", volume=" + volume +
+                ", volumeWeightedAveragePrice=" + volumeWeightedAveragePrice +
+                ", placeHolder=" + placeHolder +
+                ", id=" + id +
+                '}';
     }
 
     public Long getId() {
@@ -138,5 +160,9 @@ public class CandleData extends RecursiveTreeObject<CandleData> implements Seria
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public double getChangePercent() {
+        return (closePrice - openPrice) / openPrice * 100;
     }
 }

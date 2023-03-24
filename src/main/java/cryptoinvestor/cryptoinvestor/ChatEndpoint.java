@@ -33,7 +33,7 @@ public class ChatEndpoint {
 
         ChatEndpoint endpoint = new ChatEndpoint(apiUrl, apiVersion, clientSecret);
         chatEndpoints.add(endpoint);
-        users.put(endpoint.session.getId(), endpoint.session.getUserProperties().get("username").toString());
+        users.put(session.getId(), session.getUserProperties().get("username").toString());
 
     }
 

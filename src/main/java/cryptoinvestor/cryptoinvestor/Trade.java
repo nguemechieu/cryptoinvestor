@@ -18,7 +18,13 @@ public class Trade implements Runnable {
 
 
     Side side;
-    Order order;
+    Order order=new Order((long) (Math.random()*100000),
+
+            new TradePair("BTC", "USD"),
+            Instant.now(),
+            ENUM_ORDER_TYPE.BUY,Side.BUY,0,0,price,0,0,0
+            );
+
     ArrayList<Order> orders = new ArrayList<>();
     ConcurrentHashMap<String, Order> orderMap = new ConcurrentHashMap<>();
     ENUM_ORDER_TYPE order_type;
@@ -89,7 +95,7 @@ public class Trade implements Runnable {
 
   }
 
-    List<Trade> trades=new ArrayList<>();
+    static List<Trade> trades=new ArrayList<>();
     ConcurrentHashMap<Long, Trade> tradeMap = new ConcurrentHashMap<>();
 
 
@@ -112,15 +118,15 @@ public class Trade implements Runnable {
     public Trade(TradePair tradePair, double price, Money amount, Side transactionType,
                  long localTradeId, Instant timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException {
 
-        this.tradePair = tradePair;
-        this.price = price;
+        Trade.tradePair = tradePair;
+        Trade.price = price;
 
         this.amount = amount;
         this.transactionType = transactionType;
         this.localTradeId = localTradeId;
         this.timestamp = timestamp;
 
-        this.fee = fee;
+        Trade.fee = fee;
         logger.info("Trade created");
     }
 
@@ -165,26 +171,11 @@ public class Trade implements Runnable {
         return (ArrayList<Order>) orderList;
     }
 
-    public static @NotNull TreeItem<Order> getTrades() {
-        TreeItem<Order> a1=new TreeItem<>();
-            for (Order order : getOrders()) {
+    public static Trade @NotNull [] getTrades() {
 
-                a1.getChildren().add(new TreeItem<>(new Order(
-                        id, order.getTradePair(),
-                    order.getTimestamp(),
-                   order.order_type,
-                    order.getSide(),
-                    order.remaining,
-                    order.fee,
-                        order.getSide().ordinal(),
-                        order.price,order.stopLoss,order.takeProfit
-
-
-            )));
-        }
-        return a1;
-
+        return trades.toArray(new Trade[0]);
     }
+
 
     public  double getRemaining() {
         return remaining;

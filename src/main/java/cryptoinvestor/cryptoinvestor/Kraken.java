@@ -52,7 +52,7 @@ public class Kraken extends Exchange {
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
-    public Kraken(TradePair tradePair, String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException {
+    public Kraken(TradePair tradePair, String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException, InterruptedException {
         super(tradePair, ur0, telegramToken, binanceUsApiKey);
 
 
@@ -68,7 +68,7 @@ public class Kraken extends Exchange {
         logger.info("BinanceUs " + nanoTime());
     }
 
-    public Kraken(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException {
+    public Kraken(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException, InterruptedException {
         super(tradePair, ur, token, passphrase);
     }
 

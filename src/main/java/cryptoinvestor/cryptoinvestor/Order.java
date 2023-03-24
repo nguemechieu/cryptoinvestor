@@ -11,15 +11,15 @@ import java.util.Date;
 public class Order extends RecursiveTreeObject<Order> {
      ArrayList<Order> orders=new ArrayList<>();
     private  TradePair tradePair;
-    Instant timestamp;
-    ENUM_ORDER_TYPE order_type;
-    double remaining;
-    double fee;
-   double lotSize;
-    double price;
-   double stopLoss;
- String symbol;
-   ENUM_ORDER_TYPE type;
+   private Instant timestamp;
+  private   ENUM_ORDER_TYPE order_type;
+    private  double remaining;
+ private    double fee;
+  private double lotSize;
+
+  private double stopLoss;
+private String symbol;
+  private ENUM_ORDER_TYPE type;
 
     private static int lastError;
     private int orderID;
@@ -35,6 +35,7 @@ public class Order extends RecursiveTreeObject<Order> {
     protected String status;
     private Side side;
     private String filled;
+    private String unit;
 
     public int getOrderID() {
         return orderID;
@@ -53,10 +54,39 @@ public class Order extends RecursiveTreeObject<Order> {
         this.filled = filled;
     }
 
+    public ArrayList<Order> getOrders() {
+        return orders;
+    }
+
+    public void setOrders(ArrayList<Order> orders) {
+        this.orders = orders;
+    }
+
+    public ENUM_ORDER_TYPE getOrder_type() {
+        return order_type;
+    }
+
+    public void setOrder_type(ENUM_ORDER_TYPE order_type) {
+        this.order_type = order_type;
+    }
+
+    public double getLotSize() {
+        return lotSize;
+    }
+
+    public void setLotSize(double lotSize) {
+        this.lotSize = lotSize;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
     public Order(Long id, @NotNull TradePair tradePair, Instant timestamp, ENUM_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price
 
     , double stopLoss, double takeProfit
     ) {
+        this.id = id;
         this.timestamp = timestamp;
         this.order_type = order_type;
         this.remaining = remaining;
@@ -284,4 +314,23 @@ public class Order extends RecursiveTreeObject<Order> {
     public String getFilled() {
         return filled;
     }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public String getTimeInForce() {
+        return "GTC";
+    }
+
+    public String getStopPrice() {
+        return String.valueOf(stopLoss);
+    }
+    public void setStopPrice(double stopLoss) {
+        this.stopLoss = stopLoss;
+    }
+
+
+
+  private double  price;
 }

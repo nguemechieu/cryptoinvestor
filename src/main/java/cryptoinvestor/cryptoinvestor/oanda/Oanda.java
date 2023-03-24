@@ -1,7 +1,12 @@
 package cryptoinvestor.cryptoinvestor.oanda;
 
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cryptoinvestor.cryptoinvestor.*;
@@ -30,6 +35,7 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 import static java.lang.System.out;
@@ -38,9 +44,6 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 public class Oanda extends Exchange {
 
 
-
-
-    private static String oandaToken;
     public double dividendAdjustment;
     public double unrealizedPL;
     public double resettablePL;
@@ -48,51 +51,69 @@ public class Oanda extends Exchange {
     public double financing;
     public double guaranteedExecutionFees;
     public double pl;
+    public double margin;
+    public double commission;
+
+    public double marginPercentage;
+    public double commissionAmount;
+
+
+
+    public double getPrice(@NotNull TradePair tradePair) throws IOException, InterruptedException {
+
+
+        //GET	/v3/accounts/{accountID}/pricing
+
+        String url = "https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/pricing?instruments=" + tradePair.toString('_');
+
+
+        requestBuilder.timeout(Duration.ofSeconds(5));
+        requestBuilder.uri(URI.create(url));
+        client = HttpClient.newHttpClient();
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        mapper.registerModule(new JavaTimeModule());
+        JsonNode node = mapper.readTree(response.toString());
+        logger.info("price "+node.toString());
+        return node.get("price").asDouble();
+
+    }
+
     static HttpClient client;
     static HttpRequest.Builder requestBuilder=HttpRequest.newBuilder();
 
-    public static @NotNull ArrayList<String> getInstruments(String apiKey) throws IOException, InterruptedException {
+    public static @NotNull ArrayList<String> getInstruments() throws IOException, InterruptedException {
 
-        requestBuilder.header(
-                "Authorization",
-                "Bearer " + apiKey
-        );
-        requestBuilder.header(
-                "Content-Type",
-                "application/json"
-        );
+        //GET    /v3/accounts/{accountID}/instruments
 
 
-        requestBuilder.uri(URI.create("https://api-fxtrade.oanda.com/v3/accounts/"+accountID+"/instruments/EUR_USD")) ;
+        //requestBuilder.uri(URI.create("https://api-fxtrade.oanda.com/v3/accounts/"+accountID+"/instruments/"+tradePair.toString('_'))); ;
+HttpsURLConnection connection = (HttpsURLConnection) new URL("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/instruments").openConnection();
 
-        requestBuilder.header("Authorization", "Bearer " +  "77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99");
-
-        requestBuilder.timeout(Duration.ofSeconds(1));
-
-
-
-        requestBuilder.header(
-                "User-Agent",
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36"
-        );
-
-        client= HttpClient.newBuilder() .build();
-        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-
-
-        ObjectMapper mapper = new ObjectMapper();
-
-        JsonNode node = mapper.readTree(response.toString());
-
-        logger.info("instruments "+node.toString());
-
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setRequestProperty("Authorization", "Bearer " + getAPI_KEY());
+        connection.setRequestProperty("Content-Type", "application/json");
+        connection.setConnectTimeout(5000);
+        connection.setReadTimeout(5000);
+        connection.connect();
+        BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        String inputLine;
         ArrayList<String> instruments=new ArrayList<>();
-        for (JsonNode instrument : node.get("instruments")) {
+        while ((inputLine = in.readLine())!= null) {
 
-            instruments.add(instrument.get("instrumentId").asText());
-            instruments.add(instrument.get("instrumentName").asText());
-            instruments.add(instrument.get("currency").asText());
-            instruments.add(instrument.get("exchange").asText());
+            out.println(inputLine);
+            instruments.add(inputLine);
+        }
+        in.close();
+
+        JsonNode node=new ObjectMapper().readTree(String.valueOf(instruments));
+        for (JsonNode instrument : node) {
+out.println(instrument.toString());
+            instruments.add(instrument.asText());
+
         }
 
 
@@ -104,9 +125,7 @@ public class Oanda extends Exchange {
         return instruments;
     }
 
-    public static void setOandaToken(String oandaToken) {
-        Oanda.oandaToken = oandaToken;
-    }
+
 
     public double getDividendAdjustment() {
         return dividendAdjustment;
@@ -180,7 +199,7 @@ public class Oanda extends Exchange {
 
 
     private static String accountID;
-    protected String API_KEY;
+    protected static String API_KEY;
 
     //"wss://api-fxtrade.oanda.com/v3/accounts/";
     private static final Accounts accounts = new Accounts();
@@ -190,14 +209,13 @@ public class Oanda extends Exchange {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
 
-    public Oanda(@NotNull TradePair tradePair, String api_key, String accountID, String token) throws IOException, TelegramApiException {
-        super("ws://api-fxtrade.oanda.com", api_key);
-        this.API_KEY = api_key;
+    public Oanda(@NotNull TradePair tradePair, String api_key, String accountID, String token) throws IOException, TelegramApiException, InterruptedException {
+        super("ws://api-fxtrade.oanda.com", api_key, token);
+        API_KEY = api_key;
 
        Exchange. tradePair =tradePair;
+       Oanda.accountID = accountID;
 
-       telegram= new TelegramClient( token);
-       TelegramClient.connect();
         accounts.setAccountID(accountID);
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("Accept", "application/json");
@@ -221,17 +239,10 @@ public class Oanda extends Exchange {
         requestBuilder.header(
                 "Access-Control-Allow-Headers",
                 "Authorization, Content-Type, Accept-Datetime-Format");
-
-        requestBuilder.timeout(Duration.ofMillis(10000));
-        requestBuilder.uri(
-                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/instrument=" + tradePair.toString('_') + "?rel=next"));
-
-
         requestBuilder.header("Access-Control-Allow-Origin", "*");
-
         requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
         //Content-Encoding: gzip
-        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.header("Content-Encoding", "gzip");
 
 logger.info(
         "OANDA_API_KEY: " + API_KEY + "\n" +
@@ -243,9 +254,364 @@ logger.info(
 
     }
 
+
+
+    public void setAccountID(String accountID) {
+        Oanda.accountID = accountID;
+    }
+
+    public static String getAccountID() {
+        return accountID;
+    }
+    public static void setAPI_KEY(String API_KEY) {
+        Oanda.API_KEY = API_KEY;
+    }
+    public static String getAPI_KEY() {
+        return API_KEY;
+    }
+//    Order Endpoints
+//
+//
+//
+//   POST	/v3/accounts/{accountID}/orders
+//    Create an Order for an Account
+
+    public boolean CreateOrder(@NotNull Order order) throws IOException, InterruptedException {
+
+        requestBuilder.header("Authorization", "Bearer " + API_KEY);
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+
+        requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
+        //Content-Encoding: gzip
+        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.timeout(Duration.ofMillis(10000));
+
+        String[] body = new String[]{
+
+                "order{ units:" + order.getUnit() + ", instrument:" + order.getTradePair().toString('_') + ", side:" + order.getSide() +
+                        ", type:" + order.getType() + ", timeInForce:" + order.getTimeInForce() +
+                        ", price:" + order.getPrice() + ", timeInForce:" + order.getTimeInForce() + ", positionFill:" + POSITION_FILL.DEFAULT + " }"
+
+        };
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(body)));
+        requestBuilder.uri(
+                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders"));
+
+       //Content-Encoding: gzip
+        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.timeout(Duration.ofMillis(10000));
+        requestBuilder.uri(
+                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders"));
+
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info(response.toString());
+        if (response.statusCode() == 201||response.statusCode() == 200) {
+
+
+            orderMap.put(order, order);
+            return true;
+        } else {
+
+            Alert alert =new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            return false;
+        }
+    }
+//
+//    GET	/v3/accounts/{accountID}/orders
+//    Get a list of Orders for an Account
+
+    public List<Order> GetOrders() throws IOException, InterruptedException {
+
+           //Content-Encoding: gzip
+        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.timeout(Duration.ofMillis(10000));
+        requestBuilder.uri(
+                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders"));
+
+              HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info(response.toString());
+        if (response.statusCode() == 200) {
+            Object da = OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
+            logger.info(da.toString());
+            return OBJECT_MAPPER.convertValue(da, new TypeReference<>() {
+            });
+        }
+        else {
+            Alert alert =new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            return null;
+        }
+    }
+
+    ConcurrentHashMap<Order,Order> orderMap = new ConcurrentHashMap<>();
+//
+//    GET	/v3/accounts/{accountID}/pendingOrders
+//    List all pending Orders in an Account
+
+    public List<Order> GetPendingOrders() throws IOException, InterruptedException {
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", "Bearer " + API_KEY);
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+
+        requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
+        //Content-Encoding: gzip
+        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.timeout(Duration.ofMillis(10000));
+        requestBuilder.uri(
+                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/pendingOrders"));
+
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info(response.toString());
+        if (response.statusCode() == 200) {
+            Object da = OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
+            logger.info(da.toString());
+            return OBJECT_MAPPER.convertValue(da, new TypeReference<>() {
+            });
+        }
+        else {
+            Alert alert =new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            return null;
+        }
+    }
+
+//
+//    GET	/v3/accounts/{accountID}/orders/{orderSpecifier}
+    //Get details for a single Order in an Account
+
+    public Order GetOrder(String orderSpecifier) throws IOException, InterruptedException {
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", "Bearer " + API_KEY);
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+
+        requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
+        //Content-Encoding: gzip
+        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.timeout(Duration.ofMillis(10000));
+        requestBuilder.uri(
+                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders/" + orderSpecifier));
+
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info(response.toString());
+        if (response.statusCode() == 200) {
+            Object da = OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
+            logger.info(da.toString());
+            return OBJECT_MAPPER.convertValue(da, new TypeReference<>() {
+            });
+        }
+        else {
+            Alert alert =new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            return null;
+        }
+    }
+//
+//
+//    PUT	/v3/accounts/{accountID}/orders/{orderSpecifier}
+//    Replace an Order in an Account by simultaneously cancelling it and creating a replacement Order
+
+    public Order ReplaceOrder(String orderSpecifier,ORDER_TYPES type,long orderId, double price, double takeProfit, double stopLoss) throws IOException, InterruptedException {
+
+
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", "Bearer " + API_KEY);
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+
+        requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
+        //Content-Encoding: gzip
+        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.timeout(Duration.ofMillis(10000));
+        requestBuilder.uri(
+                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders/" + orderSpecifier));
+
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+//
+//        {
+//            "order": {
+//            "timeInForce": "GTC",
+//                    "price": "1.7000",
+//                    "type": "TAKE_PROFIT",
+//                    "tradeID": "6368"
+//        }
+
+
+        String body = "{\n" +
+                "  \"order\": {\n" +
+                "    \"timeInForce\": \"GTC\",\n" +
+                "    \"price\": \""+price+"\",\n" +
+                "    \"type\": \""+type+"\",\n" +
+                "    \"tradeID\": \""+orderId+"\"\n" +
+                "}\n " + "}";
+
+
+
+        requestBuilder.PUT(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(body)));
+
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info(response.toString());
+        if (response.statusCode() == 200) {
+            Object da = OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
+            logger.info(da.toString());
+            return OBJECT_MAPPER.convertValue(da, new TypeReference<>() {
+            });
+        }
+        else {
+            Alert alert =new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            return null;
+        }
+    }
+
+//
+//
+//    PUT	/v3/accounts/{accountID}/orders/{orderSpecifier}/cancel
+//    Cancel a pending Order in an Account
+
+    public Order CancelOrder(long orderID) throws IOException, InterruptedException {
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", "Bearer " + API_KEY);
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+
+        requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
+        //Content-Encoding: gzip
+        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.timeout(Duration.ofMillis(10000));
+        requestBuilder.uri(
+                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders/" + orderID + "/cancel"));
+
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info(response.toString());
+        if (response.statusCode() == 200) {
+            Object da = OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
+            logger.info(da.toString());
+            return OBJECT_MAPPER.convertValue(da, new TypeReference<>() {
+            });
+        }
+        else {
+            Alert alert =new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            return null;
+        }
+    }
+//
+//    PUT	/v3/accounts/{accountID}/orders/{orderSpecifier}/clientExtensions
+//    Update the Client Extensions for an Order in an Account. Do not set, modify, or delete clientExtensions if your account is associated with MT4.
+
+    public Order UpdateClientExtensions(String orderSpecifier) throws IOException, InterruptedException {
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", "Bearer " + API_KEY);
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+
+        requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
+        //Content-Encoding: gzip
+        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.timeout(Duration.ofMillis(10000));
+        requestBuilder.uri(
+                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders/" + orderSpecifier + "/clientExtensions"));
+
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info(response.toString());
+        if (response.statusCode() == 200) {
+            Object da = OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
+            });
+            logger.info(da.toString());
+            return OBJECT_MAPPER.convertValue(da, new TypeReference<>() {
+            });
+        }
+        else {
+            Alert alert =new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            return null;
+        }
+    }
+//
+
+    public boolean CloseAll( )throws IOException, InterruptedException {
+
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", "Bearer " + API_KEY);
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+
+        requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
+        //Content-Encoding: gzip
+        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.timeout(Duration.ofMillis(10000));
+        requestBuilder.uri(
+                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/instrument=" + tradePair.toString('_') + "?rel=next"));
+
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+
+        requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
+        //Content-Encoding: gzip
+        //requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.timeout(Duration.ofMillis(10000));
+        requestBuilder.uri(
+                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/instrument=" + tradePair.toString('_') + "?rel=next"));
+
+   HttpResponse<String>response=client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+
+   if (response.statusCode() != 200) {
+       logger.info("OANDA_API_KEY: " + API_KEY + "\n" +
+                "OANDA_ACCOUNT_ID: " + accountID + "\n" +
+
+                "OANDA_API_URL: " + "https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/instrument="+tradePair.toString('_'));
+
+
+       Alert alert = new Alert(Alert.AlertType.ERROR);
+       alert.setTitle("Close All Error");
+       alert.setHeaderText(null);
+       alert.setContentText(response.body());
+       alert.showAndWait();
+       return false;
+   }
+
+        return true;
+    }
+
+
+
     @Override
     public String getName() {
         return
+
                 "OANDA";
     }
 
@@ -270,8 +636,8 @@ logger.info(
         return accounts.getMarginPercent();
     }
 
-    public static double getBalance() {
-        return accounts.getBalance();
+    public String getBalance() {
+        return String.valueOf(accounts.getBalance());
     }
 
     public static double getOpen() {
@@ -498,7 +864,8 @@ logger.info(
 
 
 
-    private @NotNull JSONObject getJSON(@NotNull TradePair tradePair) {
+    @NotNull
+    public JSONObject getJSON() {
 
         JSONObject jsonObject = new JSONObject();
         try {
@@ -586,7 +953,7 @@ logger.info(
     public void createOrder(@NotNull TradePair tradePair, @NotNull ENUM_ORDER_TYPE orderType, String side, double size, double stoploss, double takeprofit) throws IOException, InterruptedException {
 
 
-        JSONObject jsonObject = getJSON(tradePair);
+        JSONObject jsonObject = getJSON();
 
         String uriStr = "https://api-fxtrade.oanda.com/" +
                 "v3/accounts/"+accountID +"/orders/"+ tradePair.toString('_') +
@@ -830,6 +1197,10 @@ logger.info(
 
                                 trade.setLastTransactionID(res1.get("lastTransactionID").asLong());
                                 endTime.set(startTime);
+
+
+
+
 
                                 candleData = new ArrayList<>();
                                 for (JsonNode candle : res1) {

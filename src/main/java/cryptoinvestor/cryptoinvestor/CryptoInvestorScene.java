@@ -24,7 +24,7 @@ public class CryptoInvestorScene extends TabPane {
 
     private static final Logger logger = LoggerFactory.getLogger(CryptoInvestorScene.class);
 
-    public CryptoInvestorScene() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException {
+    public CryptoInvestorScene() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
         VBox ordersBox = new VBox(listOrders());
         VBox navigator = new VBox(listNavigator());
         ordersBox.setTranslateX(150);

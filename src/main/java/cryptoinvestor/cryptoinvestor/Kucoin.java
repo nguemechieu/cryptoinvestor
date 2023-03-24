@@ -52,45 +52,50 @@ public class Kucoin extends Exchange {
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
-    public Kucoin(TradePair tradePair, String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException {
-        super(tradePair, ur0, telegramToken, binanceUsApiKey);
 
 
-        requestBuilder.header("Content-Type", "application/json");
-        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
-        requestBuilder.header("Origin", "https://api.binance.us");
-        requestBuilder.header("Referer", "https://www.binance.us");
-        requestBuilder.header("Sec-Fetch-Dest", "empty");
-        requestBuilder.header("Sec-Fetch-Mode", "cors");
-        requestBuilder.header("Accept", "application/json");
-        requestBuilder.header("Authorization", binanceUsApiKey);
 
-        logger.info("BinanceUs " + nanoTime());
-    }
+    public Kucoin(@NotNull TradePair tradePair, String token1, @NotNull String token) throws TelegramApiException, IOException {
+        super(tradePair, token1, token);
 
 
-    public Kucoin(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException {
-        super(tradePair, ur, token, passphrase);
+//        Base URL
+//        The REST API has endpoints for account and order management as well as public market data.
+//
+//        The base url is https://api.kucoin.com.
+//
+//        The request URL needs to be determined by BASE and specific endpoint combination.
+//
+//                Endpoint of the Interface
+//        Each interface has its own endpoint, described by field HTTP REQUEST in the docs.
+//
+//        For the GET METHOD API, the endpoint needs to contain the query parameters string.
+//
+//        E.G. For "List Accounts", the default endpoint of this API is /api/v1/accounts. If you pass the "currency" parameter(BTC), the endpoint will become /api/v1/accounts?currency=BTC and the final request URL will be https://api.kucoin.com/api/v1/accounts?currency=BTC.
+//
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
         requestBuilder.header("Origin",
-                "https://api.kucoin.us");
+                "https://api.kucoin.com");
         requestBuilder.header("Referer",
-                "https://www.kucoin.us");
+                "https://www.kucoin.com/");
         requestBuilder.header("Sec-Fetch-Dest", "empty");
+
+
+
     }
 
 
     @Override
     public String getName() {
         return
-                "Kucoin";
+                "KUCOIN";
     }
 
     @Override
-    public BinanceUsCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+    public KuCoinCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
         return
-                new BinanceUsCandleDataSupplier(secondsPerCandle, tradePair) {
+                new KuCoinCandleDataSupplier(secondsPerCandle, tradePair) {
                     @Override
                     public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
                         return null;
@@ -148,8 +153,8 @@ public class Kucoin extends Exchange {
             // burst.
             // We will know if we get rate limited if we get a 429 response code.
             for (int i = 0; !futureResult.isDone(); i++) {
-                String uriStr = "https://api.binance.us/api/v3";
-                uriStr += "trades?symbol=" + tradePair.toString('/') + "/";
+                String uriStr = "https://api.kucoin.us/api/v1";
+                uriStr += "/trades?symbol=" + tradePair.toString('/') + "/";
 
                 if (i != 0) {
                     uriStr += "?after=" + afterCursor.get();
@@ -415,14 +420,14 @@ public class Kucoin extends Exchange {
     }
 
 
-    public static abstract class BinanceUsCandleDataSupplier extends CandleDataSupplier {
+    public static abstract class KuCoinCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
                 .registerModule(new JavaTimeModule())
                 .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
 
-        BinanceUsCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+        KuCoinCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
             super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
         }
 
