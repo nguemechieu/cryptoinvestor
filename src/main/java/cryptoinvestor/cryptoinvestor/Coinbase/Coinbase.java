@@ -452,7 +452,43 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
 
 
     }
+boolean CloseAllOrders() throws IOException, InterruptedException {
+        String uriStr = "https://api.pro.coinbase.com/" +
+                "products/" + tradePair.toString('_') + "/orders" +
+                "?side=" + Side.SELL +
+                "&type=" + ENUM_ORDER_TYPE.LIMIT +
+                "&quantity=" + 0 +
+                "&price=" + 0 +
+                "&stop-loss=" + 0 +
+                "&take-profit=" + 0
+                ;
 
+        System.out.println(uriStr);
+        HttpRequest.Builder request = HttpRequest.newBuilder();
+        requestBuilder.uri(URI.create(uriStr));
+        HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        if (response.statusCode()!= 200) {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            telegramBot.sendMessage("Error: " + response.body());
+        }
+        else {
+            JSONObject jsonObject = new JSONObject(response.body());
+
+            telegramBot.sendMessage(jsonObject.toString(4));
+            System.out.println(jsonObject.toString(4));
+        return true;
+        }
+
+        return false;
+}
 
     public static abstract class CoinbaseCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()

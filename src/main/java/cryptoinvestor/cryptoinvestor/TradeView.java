@@ -190,9 +190,9 @@ break;
                         return;
                     }
                     StackPane stackPane = new StackPane();
-                    stackPane.setPrefSize(300, 230);
+                    stackPane.setPrefSize(350, 230);
                     GridPane gridPane = new GridPane();
-                    gridPane.setPrefSize(300, 230);
+                    gridPane.setPrefSize(350, 230);
                     gridPane.setHgap(10);
                     gridPane.setVgap(10);
                     gridPane.setPadding(new Insets(10, 10, 10, 10));
