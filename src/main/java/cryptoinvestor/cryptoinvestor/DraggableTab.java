@@ -228,10 +228,6 @@ public class DraggableTab extends Tab {
         return xPoint >= lowerBound && xPoint <= upperBound;
     }
 
-    public DoubleProperty prefWidthProperty() {
-        return nameLabel.prefWidthProperty();
-    }
-
 
     record InsertData(int index, TabPane insertPane) {
 

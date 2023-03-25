@@ -159,14 +159,6 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
     }
 
 
-    public abstract CompletableFuture<WebSocket> sendText(CharSequence data, boolean last);
-
-    public abstract CompletableFuture<WebSocket> sendBinary(ByteBuffer data, boolean last);
-
-    public abstract CompletableFuture<WebSocket> sendPing(ByteBuffer message);
-
-    public abstract CompletableFuture<WebSocket> sendPong(ByteBuffer message);
-
     public void request(long n) {
         CompletableFuture.runAsync(() -> {
             try {
@@ -182,6 +174,14 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
         });
     }
 
+
+    public abstract CompletableFuture<WebSocket> sendText(CharSequence data, boolean last);
+
+    public abstract CompletableFuture<WebSocket> sendBinary(ByteBuffer data, boolean last);
+
+    public abstract CompletableFuture<WebSocket> sendPing(ByteBuffer message);
+
+    public abstract CompletableFuture<WebSocket> sendPong(ByteBuffer message);
 
     public abstract CompletableFuture<WebSocket> sendClose(int statusCode, String reason);
 

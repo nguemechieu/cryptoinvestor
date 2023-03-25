@@ -10,18 +10,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.util.Objects;
 import java.util.Properties;
 
 public class TradingWindow extends AnchorPane {
     private static final Logger logger = LoggerFactory.getLogger(TradingWindow.class);
 
-    public TradingWindow() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
+    public TradingWindow() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException, ParseException {
         super();
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
@@ -43,10 +41,7 @@ public class TradingWindow extends AnchorPane {
 
                 }
                 case BITFINEX -> {
-                    Bitfinex bitfinex = new Bitfinex(new TradePair("BTC", "USD"),
-                            "https://api.bitfinex.com/v1/pubticker/btcusd"
-
-                            , "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                    Bitfinex bitfinex = new Bitfinex("String POLONIEX_API_KEY", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(
 
                             new TradeView(bitfinex));
@@ -59,39 +54,33 @@ public class TradingWindow extends AnchorPane {
                             new TradeView(kraken));
 
                 }
-//                case BITSTAMP -> {
-//                    Bitstamp bitstamp = new Bitstamp(new TradePair("BTC", "USD"), "", "", "");
-//                    tab.setContent(new TradeView("ghjk", new TradePair("BTC", "USD"), bitstamp, "", "", ""));
-//                    tab.setContent(
-//
-//                            new TradeView("", new TradePair("BTC", "USD"), bitstamp, "", "", ""));
-//
-//                case POLONIEX-> {
-//                    Poloniex poloniex = new Poloniex(new TradePair("", ""), "", "", "");
-//                    tab.setContent(new TradeView("", new TradePair("BTC", "USD"), poloniex, "", "", ""));
+                case BITSTAMP -> {
+                    Bitstamp bitstamp = new Bitstamp("apibsn","sdd","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
 
+                            new TradeView(bitstamp);
+                }
+                case POLONIEX-> {
+                    Poloniex poloniex = new Poloniex("wer","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                    tab.setContent(new TradeView(poloniex));
+                }
 
                 case KUCOIN -> {
-                    Kucoin kucoin = new Kucoin(new TradePair("BTC","USD"), "trtyuy", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                    Kucoin kucoin = new Kucoin( "trtyuy", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(new TradeView(kucoin));// "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "sretry789", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo"));
 
                 }
                 case BINANCE_US -> {
-                    BinanceUs binance = new BinanceUs(new TradePair("BTC", "USD"), "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                    BinanceUs binance = new BinanceUs( "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(new TradeView(binance));
 
                 }
 //                case BINANCE-> {
-//                    Binance binance = new Binance("", "", "");
-//                    tab.setContent(new TradeView("rtrhyjtu", new TradePair("BTC", "USD"), binance, "rtcghf", "rthyj", "thryjuk"));
-//                    tab.setContent(
+//                    Binance binance = new Binance("YU", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+//                    tab.setContent(new TradeView(binance));
 //
-//                            new TradeView("drgt", new TradePair("BTC", "USD"), binance, "dafgshd", "ffff", "df"));
-//
-//                    tabPane.getTabs().add(tab);
 //             }
                 case OANDA -> {
-                    Oanda oanda = new Oanda(new TradePair("USD","CAD"),
+                    Oanda oanda = new Oanda(
                             "77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99"
 
                             , "001-001-2783446-002",
@@ -121,6 +110,9 @@ public class TradingWindow extends AnchorPane {
 
     Properties properties = new Properties();
     properties.load(Objects.requireNonNull(getClass().getResourceAsStream("/cryptoinvestor/app.properties")));
+    logger.debug("Properties loaded");
+
+    logger.info("properties "+properties.values());
 
 
 

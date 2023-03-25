@@ -61,25 +61,15 @@ public class Bitfinex extends Exchange {
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
-    public Bitfinex(TradePair tradePair, String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException, InterruptedException {
-        super(tradePair, ur0, telegramToken, binanceUsApiKey);
 
 
-        requestBuilder.header("Content-Type", "application/json");
-        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
-        requestBuilder.header("Origin", "https://api.binance.us");
-        requestBuilder.header("Referer", "https://www.binance.us");
-        requestBuilder.header("Sec-Fetch-Dest", "empty");
-        requestBuilder.header("Sec-Fetch-Mode", "cors");
-        requestBuilder.header("Accept", "application/json");
-        requestBuilder.header("Authorization", binanceUsApiKey);
 
-        logger.info("BinanceUs " + nanoTime());
-    }
+    public Bitfinex(  String token, @NotNull String passphrase) throws TelegramApiException, IOException, InterruptedException {
 
 
-    public Bitfinex(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException, InterruptedException {
-        super(tradePair, ur, token, passphrase);
+        super( token, passphrase);
+
+
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
         requestBuilder.header("Origin", "https://api.binance.us");
@@ -96,13 +86,6 @@ public class Bitfinex extends Exchange {
 
     }
 
-    public Bitfinex(String bittrex, String token, String s, String s1, String s2, String s3, String s4) throws TelegramApiException, IOException {
-        super(bittrex, token, s, s1, s2, s3, s4);
-    }
-
-    public Bitfinex(String coinbaseApiKey, String coinbaseSecret, String telegramToken) throws TelegramApiException, IOException {
-        super(coinbaseApiKey, coinbaseSecret, telegramToken);
-    }
 
     @Override
     public String getName() {
@@ -111,20 +94,25 @@ public class Bitfinex extends Exchange {
     }
 
     @Override
-    public cryptoinvestor.cryptoinvestor.Kraken.BinanceUsCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
-        return
-                new cryptoinvestor.cryptoinvestor.Kraken.BinanceUsCandleDataSupplier(secondsPerCandle, tradePair) {
-                    @Override
-                    public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-                        return null;
-                    }
+    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+        return new BitfinexCandleDataSupplier(secondsPerCandle, tradePair) {
+            @Override
+            public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+                return null;
+            }
 
-                    @Override
-                    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
-                        return null;
-                    }
-                };
+            @Override
+            public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+                return null;
+            }
+
+            @Override
+            public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
+                return null;
+            }
+        };
     }
+
 
 //    private @Nullable String timestampSignature(
 //            String apiKey,
@@ -274,11 +262,11 @@ public class Bitfinex extends Exchange {
                         HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenApply(response -> {
-                    Log.info("BinanceUs response: ", response);
+                    Log.info("Bitfinex response: ", response);
                     JsonNode res;
                     try {
                         res = OBJECT_MAPPER.readTree(response);
-                        logger.info("BinanceUs response: ", response);
+                        logger.info("Bitfinex response: ", response);
                     } catch (JsonProcessingException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -437,18 +425,26 @@ public class Bitfinex extends Exchange {
 
     }
 
-    public void createOrder(double price, ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) {
+    public void CancelOrder(long orderID) {
     }
 
 
-    public static abstract class BinanceUsCandleDataSupplier extends CandleDataSupplier {
+
+    public void closeAll() {
+    }
+
+    public void createOrder(TradePair tradePair, Side sell, ENUM_ORDER_TYPE stopLoss, Double quantity, double price, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+    }
+
+
+    public static abstract class BitfinexCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
                 .registerModule(new JavaTimeModule())
                 .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
 
-        BinanceUsCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+        BitfinexCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
             super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
         }
 

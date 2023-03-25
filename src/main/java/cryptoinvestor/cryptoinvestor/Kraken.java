@@ -52,8 +52,8 @@ public class Kraken extends Exchange {
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
-    public Kraken(TradePair tradePair, String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException, InterruptedException {
-        super(tradePair, ur0, telegramToken, binanceUsApiKey);
+    public Kraken( String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException, InterruptedException {
+        super(ur0, telegramToken, binanceUsApiKey);
 
 
         requestBuilder.header("Content-Type", "application/json");
@@ -68,13 +68,6 @@ public class Kraken extends Exchange {
         logger.info("BinanceUs " + nanoTime());
     }
 
-    public Kraken(@NotNull TradePair tradePair, String ur, String token, @NotNull String passphrase) throws TelegramApiException, IOException, InterruptedException {
-        super(tradePair, ur, token, passphrase);
-    }
-
-    public Kraken(String bittrex, String token, String s, String s1, String s2, String s3, String s4) throws TelegramApiException, IOException {
-        super(bittrex, token, s, s1, s2, s3, s4);
-    }
 
     public Kraken(String coinbaseApiKey, String coinbaseSecret, String telegramToken) throws TelegramApiException, IOException {
         super(coinbaseApiKey, coinbaseSecret, telegramToken);
@@ -87,9 +80,9 @@ public class Kraken extends Exchange {
     }
 
     @Override
-    public BinanceUsCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+    public KrakenCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
         return
-                new BinanceUsCandleDataSupplier(secondsPerCandle, tradePair) {
+                new KrakenCandleDataSupplier(secondsPerCandle, tradePair) {
                     @Override
                     public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
                         return null;
@@ -97,6 +90,11 @@ public class Kraken extends Exchange {
 
                     @Override
                     public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
+                        return null;
+                    }
+
+                    @Override
+                    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
                         return null;
                     }
                 };
@@ -413,15 +411,27 @@ public class Kraken extends Exchange {
 
     }
 
+    public void createOrder(TradePair tradePair, Side sell, ENUM_ORDER_TYPE market, double quantity, int i, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+    }
 
-    public static abstract class BinanceUsCandleDataSupplier extends CandleDataSupplier {
+    public void closeAll() {
+    }
+
+    public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE stopLoss, Double quantity, double price, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+    }
+
+    public void CancelOrder(long orderID) {
+    }
+
+
+    public static abstract class KrakenCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
                 .registerModule(new JavaTimeModule())
                 .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
 
-        BinanceUsCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+        KrakenCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
             super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
         }
 

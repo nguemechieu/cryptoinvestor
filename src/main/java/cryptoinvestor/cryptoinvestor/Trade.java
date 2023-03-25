@@ -409,6 +409,14 @@ public class Trade implements Runnable {
     }
 
     public void setTradePair(TradePair tradePair) {
-        this.tradePair = tradePair;
+        Trade.tradePair = tradePair;
+    }
+
+    public void close() {
+        state = "CLOSED";
+        closeTime = Instant.now().getEpochSecond();
+        logger.info("Trade closed");
+        logger.info(tradePair.getCounterCurrency().code);
+        logger.info(tradePair.getBaseCurrency().code);
     }
 }

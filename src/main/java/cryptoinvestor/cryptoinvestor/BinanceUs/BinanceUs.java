@@ -53,9 +53,9 @@ public class BinanceUs extends Exchange {
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
-    public BinanceUs(TradePair tradePair,  String binanceUsApiKey,String telegramToken) throws IOException, TelegramApiException, InterruptedException {
-        super(tradePair, binanceUsApiKey, telegramToken);
-Exchange.tradePair = tradePair;
+    public BinanceUs(  String binanceUsApiKey,String telegramToken) throws IOException, TelegramApiException, InterruptedException {
+        super( binanceUsApiKey, telegramToken);
+
 
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
@@ -82,24 +82,20 @@ Exchange.tradePair = tradePair;
     public String getName() {
         return
                 "BinanceUs";
-    }
+
+        }
 
     @Override
-    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+    public BinanceUsCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
         return new BinanceUsCandleDataSupplier(secondsPerCandle, tradePair) {
             @Override
-            public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-                return new BinanceUsCandleDataSupplier(200, tradePair) {
-                    @Override
-                    public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-                        return null;
-                    }
+            public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+                return null;
+            }
 
-                    @Override
-                    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
-                        return null;
-                    }
-                }.fetchCandleDataForInProgressCandle(tradePair,Instant.now(),secondsIntoCurrentCandle,secondsPerCandle);
+            @Override
+            public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+                return null;
             }
 
             @Override
@@ -107,7 +103,12 @@ Exchange.tradePair = tradePair;
                 return null;
             }
         };
+
+
     }
+
+    ;
+
 
 
 //    private @Nullable String timestampSignature(
@@ -428,6 +429,18 @@ Exchange.tradePair = tradePair;
 
     }
 
+    public void CancelOrder(long orderID) {
+    }
+
+    public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE market, double quantity, int i, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+    }
+
+    public void closeAll() {
+    }
+
+    public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE stopLoss, Double quantity, double price, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+    }
+
 
     public static abstract class BinanceUsCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
@@ -529,9 +542,10 @@ Exchange.tradePair = tradePair;
                     });
         }
 
-        public abstract CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
+            public abstract CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle (TradePair
+            tradePair, Instant currentCandleStartedAt,long secondsIntoCurrentCandle, int secondsPerCandle);
 
-        public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
-    }
+            public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil (TradePair tradePair, Instant stopAt);
+        }
 
 }

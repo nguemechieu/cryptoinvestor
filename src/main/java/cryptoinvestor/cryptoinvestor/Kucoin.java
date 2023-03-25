@@ -32,7 +32,6 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
@@ -55,8 +54,8 @@ public class Kucoin extends Exchange {
 
 
 
-    public Kucoin(@NotNull TradePair tradePair, String token1, @NotNull String token) throws TelegramApiException, IOException {
-        super(tradePair, token1, token);
+    public Kucoin( String token1, @NotNull String token) throws TelegramApiException, IOException {
+        super( token1, token);
 
 
 //        Base URL
@@ -96,6 +95,11 @@ public class Kucoin extends Exchange {
     public KuCoinCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
         return
                 new KuCoinCandleDataSupplier(secondsPerCandle, tradePair) {
+                    @Override
+                    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+                        return null;
+                    }
+
                     @Override
                     public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
                         return null;
@@ -415,6 +419,49 @@ public class Kucoin extends Exchange {
                 "&price=" + jsonObject.getJSONObject("data").getJSONObject("rates").getDouble("USD");
 
         System.out.println(uriStr);
+
+
+    }
+
+    public void CancelOrder(long orderID) {
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
+
+        String uriStr = "https://api.kucoin.com/api/v2/order_id/" + orderID;
+
+
+        System.out.println(uriStr);
+    }
+HttpClient client = HttpClient.newHttpClient();
+    public void createOrder(@NotNull TradePair tradePair, Side buy, ENUM_ORDER_TYPE trailingStopBuy, Double quantity, int i, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
+
+        String uriStr = "https://api.kucoin.com/api/v2/order_id/" + orderID;
+
+        Object body ;
+
+        body =
+                String.format("{\"side\": \"%s\", \"type\": \"%s\", \"quantity\": %f}",
+                        buy.toString(),
+                        trailingStopBuy.toString(),
+                        quantity);
+
+
+        requestBuilder.POST(
+                HttpRequest.BodyPublishers.ofString(body.toString())
+        );
+        requestBuilder.PUT(HttpRequest.BodyPublishers.ofString(jsonObject.toString(4)));
+
+
+        System.out.println(uriStr);
+        String uriStr2 = "https://api.kucoin.com/api" +
+                "api/v3/orders/" + tradePair.toString('/') +
+                "?side=" + buy +
+                "&type=limit" +
+                "&quantity=" + quantity +
+                "&price=" + jsonObject.getJSONObject("data").getJSONObject("rates").getDouble("USD");
+        System.out.println(uriStr2);
 
 
     }

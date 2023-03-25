@@ -3,10 +3,7 @@ package cryptoinvestor.cryptoinvestor;
 
 import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
-import cryptoinvestor.cryptoinvestor.Discord.Discord;
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TreeItem;
 import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
@@ -40,39 +37,18 @@ public abstract class Exchange {
     private String url;
     private SocketFactory socket;
     private boolean isOpen;
-    protected ArrayList<Trade> trades=new ArrayList<>();
+    protected ArrayList<Trade> trades = new ArrayList<>();
     private double price;
 
 
-    public Exchange(@NotNull TradePair tradePair, String ur, String token, @NotNull String telegramToken) throws TelegramApiException, IOException, InterruptedException {
-        this.url = ur;
-        this.telegram = new TelegramClient(telegramToken);
+    public Exchange( String token) throws TelegramApiException, IOException {
 
-
-        logger.info("Connected to " + url);
-        this.socket = SocketFactory.getDefault();
-        this.isOpen = true;
-        this.account = new Accounts();
-
-        this.apiKey = token;
-        Exchange.tradePair = tradePair;
-
-     //   this.discord = new Discord("https://api.discord.com/", apiSecret, "","","","");
-
-
-        logger.info("Connected to " + url);
-
-    }
-
-    public Exchange(String bitter, String token, String s, String s1, String s2, String s3, String s4) throws TelegramApiException, IOException {
-        this.url = bitter;
         this.telegram = new TelegramClient(token);
-        logger.info("Connected to " + url);
         this.socket = SocketFactory.getDefault();
         this.isOpen = true;
         this.account = new Accounts();
 
-        this.accountId =account.getAccountID();
+        this.accountId = account.getAccountID();
 
         logger.info("Connected to " + url);
     }
@@ -85,55 +61,54 @@ public abstract class Exchange {
         this.socket = SocketFactory.getDefault();
         this.isOpen = true;
         this.account = new Accounts();
-
-
-        logger.info("Connected to " + url);
-
-      //  TelegramClient.connect();
-    }
-
-    public Exchange(String oandaApiKey, String telegramToken) throws TelegramApiException, IOException {
-        this.apiKey = oandaApiKey;
-        this.phraseSecret1 = oandaApiKey;
-        this.telegram = new TelegramClient(telegramToken);
-        this.socket = SocketFactory.getDefault();
-        this.isOpen = true;
-        this.account = new Accounts();
+        TelegramClient.connect();
 
         logger.info("Connected to " + url);
+
+
     }
 
-    public Exchange(TradePair tradePair,String apiKey, String telegramToken) throws TelegramApiException, IOException {
 
+    public Exchange(String apiKey, String telegramToken) throws TelegramApiException, IOException {
 
         this.socket = SocketFactory.getDefault();
         this.isOpen = true;
         this.account = new Accounts();
-        this.accountId =account.getAccountID();
-        Exchange.tradePair = tradePair;
+        this.accountId = account.getAccountID();
+
         this.apiKey = apiKey;
-        this.accountId =account.getAccountID();
+        this.accountId = account.getAccountID();
         logger.info("Connected to " + url);
-        this.url = "ws://api.kucoin.com/market/ticker:all";
+
         this.socket = SocketFactory.getDefault();
         this.isOpen = true;
-        if (telegramToken!= null) {
+        if (telegramToken != null) {
             this.telegram = new TelegramClient(telegramToken);
-        }else {
+        } else {
             logger.error("KuCoin Telegram token is null");
         }
     }
 
     public abstract String getName();
 
-    public abstract CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair);
-
-    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
-
-    public abstract CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
-            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
 
     public ExchangeWebSocketClient getWebsocketClient() {
+
+        switch (this) {
+            case Bitfinex bitfinex -> url = "wss://api.bitfinex.com/ws/2";
+            case Coinbase coinbase -> url = "wss://api.coinbase.com/v2/exchange";
+            case BinanceUs binanceUs -> url = "wss://stream.binance.us:9443/ws";
+            case Oanda oanda -> url = "wss://api-fxtrade.oanda.com:443/ws";
+            case Bitstamp bitstamp -> url = "wss://stream.bitstamp.net:9443/ws";
+            case Bittrex bittrex -> url = "wss://stream.bittrex.com:443/ws";
+            case Kucoin kucoin -> url = "wss://stream.kucoin.com:9443/ws";
+            case Kraken kraken -> url = "wss://stream.kraken.com:9443/ws";
+            case Poloniex poloniex -> url = "wss://stream.poloniex.com:9443/ws";
+          //  case Binance binance -> url = "wss://stream.binance.com:9443/ws";
+            case default -> {
+            }
+        }
+
 
         return new ExchangeWebSocketClient(
                 URI.create(url),
@@ -323,20 +298,10 @@ public abstract class Exchange {
             }
 
             @Override
-            public Session connectToServer(Class<? extends Endpoint> aClass, ClientEndpointConfig clientEndpointConfig, URI uri) throws IOException {
-                //Connect to the endpoint
-
-
-                socket = SocketFactory.getDefault();
-  try {  socket.createSocket(String.valueOf(uri), 8080);
-
-
-      socket.wait(10000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+            public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws DeploymentException, IOException {
                 return null;
             }
+
 
             @Override
             public long getDefaultMaxSessionIdleTimeout() {
@@ -453,6 +418,13 @@ public abstract class Exchange {
     }
 
 
+    public abstract CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair);
+
+    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
+
+    public abstract CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
+            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
+
     public abstract void onOpen(ServerHandshake handshake);
 
     public abstract void onMessage(String message);
@@ -474,108 +446,6 @@ public abstract class Exchange {
         return this.getClass().getSimpleName();
     }
 
-
-    private @NotNull ListView<Order> listOrders() {
-        ListView<Order> orders = new ListView<>();
-        orders.setPrefHeight(100);
-        orders.setPrefWidth(100);
-        orders.setCellFactory(param -> new OrderCell());
-        orders.setOnMouseClicked(event -> {
-            if (event.getClickCount() == 2) {
-                Order order = orders.getSelectionModel().getSelectedItem();
-                if (order != null) {
-                    order.showOrderDetails();
-                }
-            }
-        });
-        orders.getItems().addAll(Trade.getOrders());
-        return orders;
-    }
-
-
-    public TreeItem<Trade> getTradesList() {
-        TreeItem<Trade> tradesList= new TreeItem<>();
-
-        for (Trade trade : Trade.getTrades()) {
-            tradesList.getChildren().add(new TreeItem<>(trade));
-        }
-
-        tradesList.setExpanded(true);
-
-
-
-
-        return tradesList;
-    }
-
-    public boolean createOrder(
-            @NotNull TradePair symbol,
-            @NotNull Side side,
-            ENUM_ORDER_TYPE type,
-            double quantity,
-            double price,
-            @NotNull Instant time,
-            @NotNull Long id,
-            double stopLoss,
-            double takeProfit
-    ) throws IOException, InterruptedException {
-        Order order = new Order(id,
-                symbol,
-                time,
-                type,
-                side,
-                0,
-                0,
-                quantity,
-                price,
-                stopLoss,
-                takeProfit
-        );
-        order.showOrderDetails();
-
-        if (this instanceof Coinbase coinbase){
-            coinbase.createOrder(tradePair,price,type,side,quantity,stopLoss,takeProfit);
-        }else if (this instanceof BinanceUs binanceUs){
-            binanceUs .createOrder(price,type,side,quantity,stopLoss,takeProfit);
-
-        }
-        else if (this instanceof Bittrex bittrex){
-            bittrex.createOrder(price,type,side,quantity,stopLoss,takeProfit);
-        }
-        else if (this instanceof Bitfinex bitfinex){
-            bitfinex.createOrder(price,type,side,quantity,stopLoss,takeProfit);
-        }
-        else if (this instanceof Bitstamp bitstamp){
-            bitstamp.createOrder(price,type,side,quantity,stopLoss,takeProfit);
-        }
-        else if (this instanceof Oanda oanda){
-            oanda.createOrder(tradePair,price,type,side,quantity,stopLoss,takeProfit);
-        }
-
-        return true;
-    }
-
-    public boolean CloseAll() throws IOException, InterruptedException {
-        if (this instanceof Coinbase coinbase){
-            coinbase.CloseAllOrders();
-        }else if (this instanceof BinanceUs binanceUs){
-            binanceUs.CloseAll();
-
-        }
-        else if (this instanceof Bittrex bittrex){
-            bittrex.CloseAll();
-        }
-        else if (this instanceof Bitfinex bitfinex){
-            bitfinex.CloseAll();
-        }
-        else if (this instanceof Bitstamp bitstamp){
-            bitstamp.CloseAll();
-        }
-        else if (this instanceof Oanda oanda){
-           return oanda.CloseAll();
-        }
-        return false;
-    }
 
     public void deposit(Double value) {
     }
@@ -612,27 +482,20 @@ public abstract class Exchange {
     }
 
     public double getPrice(TradePair tradePair) throws IOException, InterruptedException {
-        if (this instanceof Coinbase coinbase){
+        if (this instanceof Coinbase coinbase) {
             return coinbase.getPrice(tradePair);
-        }else if (this instanceof BinanceUs binanceUs){
+        } else if (this instanceof BinanceUs binanceUs) {
             return binanceUs.getPrice(tradePair);
-        }
-        else if (this instanceof Bittrex bittrex){
+        } else if (this instanceof Bittrex bittrex) {
             return bittrex.getPrice(tradePair);
-        }
-        else if (this instanceof Bitfinex bitfinex){
+        } else if (this instanceof Bitfinex bitfinex) {
             return bitfinex.getPrice(tradePair);
-        }
-        else if (this instanceof Bitstamp bitstamp){
+        } else if (this instanceof Bitstamp bitstamp) {
             return bitstamp.getPrice(tradePair);
-        }
-        else if (this instanceof Oanda oanda){
+        } else if (this instanceof Oanda oanda) {
             return oanda.getPrice(tradePair);
         }
         return 0;
-
-
-
 
 
     }
@@ -644,5 +507,6 @@ public abstract class Exchange {
     public double getPrice() {
         return price;
     }
+
 }
 

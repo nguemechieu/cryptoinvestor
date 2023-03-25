@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cryptoinvestor.cryptoinvestor.*;
+
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.Alert;
@@ -28,6 +29,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -40,6 +42,7 @@ import java.util.concurrent.Future;
 
 import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
+import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 public class Oanda extends Exchange {
 
@@ -52,10 +55,8 @@ public class Oanda extends Exchange {
     public double guaranteedExecutionFees;
     public double pl;
     public double margin;
-    public double commission;
 
-    public double marginPercentage;
-    public double commissionAmount;
+
 
 
 
@@ -66,15 +67,12 @@ public class Oanda extends Exchange {
 
         String url = "https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/pricing?instruments=" + tradePair.toString('_');
 
-
         requestBuilder.timeout(Duration.ofSeconds(5));
         requestBuilder.uri(URI.create(url));
         client = HttpClient.newHttpClient();
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-        mapper.registerModule(new JavaTimeModule());
+
         JsonNode node = mapper.readTree(response.toString());
         logger.info("price "+node.toString());
         return node.get("price").asDouble();
@@ -209,11 +207,11 @@ out.println(instrument.toString());
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
 
-    public Oanda(@NotNull TradePair tradePair, String api_key, String accountID, String token) throws IOException, TelegramApiException, InterruptedException {
+    public Oanda(@NotNull  String api_key, String accountID, String token) throws IOException, TelegramApiException, InterruptedException {
         super("ws://api-fxtrade.oanda.com", api_key, token);
         API_KEY = api_key;
 
-       Exchange. tradePair =tradePair;
+
        Oanda.accountID = accountID;
 
         accounts.setAccountID(accountID);
@@ -236,23 +234,24 @@ out.println(instrument.toString());
 //        Access-Control-Allow-Methods: PUT, PATCH, POST, GET, OPTIONS, DELETE
 //        Content-Type: application/json
         //Access-Control-Max-Age: 3600
-        requestBuilder.header(
-                "Access-Control-Allow-Headers",
-                "Authorization, Content-Type, Accept-Datetime-Format");
+         //Content-Encoding: gzip
+        requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.header("Transfer-Encoding", "chunked");
+        requestBuilder.header("Server", "openresty/1.7.0.1");
+        requestBuilder.header("Access-Control-Max-Age", "3600");
+        requestBuilder.header("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept-Datetime-Format");
         requestBuilder.header("Access-Control-Allow-Origin", "*");
         requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
         //Content-Encoding: gzip
         requestBuilder.header("Content-Encoding", "gzip");
+        requestBuilder.header("Transfer-Encoding", "chunked");
+
 
 logger.info(
-        "OANDA_API_KEY: " + API_KEY + "\n" +
-                "OANDA_ACCOUNT_ID: " + accountID + "\n" +
-                "OANDA_TOKEN: " + token + "\n" +
-                "OANDA_API_URL: " + "https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/instrument="+tradePair.toString('_')
-);
-
-
-    }
+        "OANDA API KEY: " + API_KEY + "\n" +
+                "OANDA ACCOUNT ID: " + accountID + "\n" +
+                "OANDA TOKEN: " + token + "\n"
+);}
 
 
 
@@ -276,51 +275,6 @@ logger.info(
 //   POST	/v3/accounts/{accountID}/orders
 //    Create an Order for an Account
 
-    public boolean CreateOrder(@NotNull Order order) throws IOException, InterruptedException {
-
-        requestBuilder.header("Authorization", "Bearer " + API_KEY);
-        requestBuilder.header("Access-Control-Allow-Origin", "*");
-
-        requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
-        //Content-Encoding: gzip
-        //requestBuilder.header("Content-Encoding", "gzip");
-        requestBuilder.timeout(Duration.ofMillis(10000));
-
-        String[] body = new String[]{
-
-                "order{ units:" + order.getUnit() + ", instrument:" + order.getTradePair().toString('_') + ", side:" + order.getSide() +
-                        ", type:" + order.getType() + ", timeInForce:" + order.getTimeInForce() +
-                        ", price:" + order.getPrice() + ", timeInForce:" + order.getTimeInForce() + ", positionFill:" + POSITION_FILL.DEFAULT + " }"
-
-        };
-        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(OBJECT_MAPPER.writeValueAsString(body)));
-        requestBuilder.uri(
-                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders"));
-
-       //Content-Encoding: gzip
-        //requestBuilder.header("Content-Encoding", "gzip");
-        requestBuilder.timeout(Duration.ofMillis(10000));
-        requestBuilder.uri(
-                URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders"));
-
-        requestBuilder.header("Access-Control-Allow-Origin", "*");
-        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        logger.info(response.toString());
-        if (response.statusCode() == 201||response.statusCode() == 200) {
-
-
-            orderMap.put(order, order);
-            return true;
-        } else {
-
-            Alert alert =new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText(response.body());
-            alert.showAndWait();
-            return false;
-        }
-    }
 //
 //    GET	/v3/accounts/{accountID}/orders
 //    Get a list of Orders for an Account
@@ -503,6 +457,8 @@ logger.info(
         //Content-Encoding: gzip
         //requestBuilder.header("Content-Encoding", "gzip");
         requestBuilder.timeout(Duration.ofMillis(10000));
+
+        requestBuilder.DELETE();
         requestBuilder.uri(
                 URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders/" + orderID + "/cancel"));
 
@@ -530,27 +486,21 @@ logger.info(
 //    Update the Client Extensions for an Order in an Account. Do not set, modify, or delete clientExtensions if your account is associated with MT4.
 
     public Order UpdateClientExtensions(String orderSpecifier) throws IOException, InterruptedException {
-        requestBuilder.header("Content-Type", "application/json");
-        requestBuilder.header("Accept", "application/json");
-        requestBuilder.header("Authorization", "Bearer " + API_KEY);
-        requestBuilder.header("Access-Control-Allow-Origin", "*");
 
-        requestBuilder.header("Access-Control-Allow-Methods", "PUT, PATCH, POST, GET, OPTIONS, DELETE");
-        //Content-Encoding: gzip
-        //requestBuilder.header("Content-Encoding", "gzip");
         requestBuilder.timeout(Duration.ofMillis(10000));
         requestBuilder.uri(
                 URI.create("https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders/" + orderSpecifier + "/clientExtensions"));
 
-        requestBuilder.header("Access-Control-Allow-Origin", "*");
+
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         logger.info(response.toString());
         if (response.statusCode() == 200) {
-            Object da = OBJECT_MAPPER.readValue(response.body(), new TypeReference<>() {
-            });
-            logger.info(da.toString());
-            return OBJECT_MAPPER.convertValue(da, new TypeReference<>() {
-            });
+
+            logger.info(response.body());
+                    Alert alert =new Alert(Alert.AlertType.INFORMATION);
+                    alert.setTitle("Information");
+                    alert.setHeaderText(null);
+                    alert.setContentText(response.body());
         }
         else {
             Alert alert =new Alert(Alert.AlertType.ERROR);
@@ -560,6 +510,7 @@ logger.info(
             alert.showAndWait();
             return null;
         }
+        return null;
     }
 //
 
@@ -615,21 +566,32 @@ logger.info(
                 "OANDA";
     }
 
-    @Override
-    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
-        return new OandaCandleDataSupplier(200,tradePair) {
-            @Override
-            public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-                return
-                        CompletableFuture.completedFuture(Optional.empty());
-            }
+    public OandaCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+        return
+                new OandaCandleDataSupplier(secondsPerCandle, tradePair) {
+                    @Override
+                    public List<CandleData> getCandleData() {
+                        return
+                                Collections.emptyList();
+                    }
 
-            @Override
-            public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
-                return
-                        CompletableFuture.completedFuture(Collections.emptyList());
-            }
-        };
+                    @Override
+                    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+                        return null;
+                    }
+
+                    @Override
+                    public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+                        return
+                                CompletableFuture.completedFuture(Optional.empty());
+                    }
+
+                    @Override
+                    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
+                        return
+                                CompletableFuture.completedFuture(Collections.emptyList());
+                    }
+                };
     }
 
     public static double getMarginPercent() {
@@ -750,115 +712,6 @@ logger.info(
     /**
      * This method only needs to be implemented to support live syncing.
      */
-    @Override
-    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
-            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-        String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
-                currentCandleStartedAt, ZoneOffset.UTC));
-        long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
-        // Get the closest supported granularity to the ideal granularity.
-        int actualGranularity = getCandleDataSupplier(secondsPerCandle, tradePair).getSupportedGranularities().stream()
-                .min(Comparator.comparingInt(i -> (int) Math.abs(i - idealGranularity)))
-                .orElseThrow(() -> new NoSuchElementException("Supported granularities was empty!"));
-        // TODO: If actualGranularity = secondsPerCandle there are no sub-candles to fetch and we must get all the
-        //  data for the current live syncing candle from the raw trades method.
-
-
-        String x;
-        String str;
-        if (secondsPerCandle < 3600) {
-            x = String.valueOf(secondsPerCandle / 60);
-            str = "M";
-        } else if (secondsPerCandle < 86400) {
-            x = String.valueOf((secondsPerCandle / 3600));
-            str = "H";
-        } else if (secondsPerCandle < 604800) {
-            x = "";//String.valueOf(secondsPerCandle / 86400);
-            str = "D";
-        } else if (secondsPerCandle < 2592000) {
-            x = String.valueOf((secondsPerCandle / 604800));
-            str = "W";
-        } else {
-            x = String.valueOf((secondsPerCandle * 7 / 2592000 / 7));
-            str = "M";
-        }
-
-
-        String granularity = str + x;
-        HttpRequest.Builder re = HttpRequest.newBuilder().uri(URI.create(
-                        "https://api-fxtrade.oanda.com/v3/accounts/" +
-                                        accountID + "instruments/" + tradePair.toString('_') +
-                                        "/candles?price=BA&from=2016-10-17T15%3A00%3A00.000000000Z&granularity=" +
-                                        granularity
-
-                                ));
-
-        re.header("Authorization", "Bearer " + apiKey);
-        re.header("Content-Type", "application/json");
-        re.header("Accept", "application/json");
-        return HttpClient.newHttpClient().sendAsync(
-                       re.build(), HttpResponse.BodyHandlers.ofString())
-
-                .thenApply(HttpResponse::body)
-                .thenApply(response -> {
-                    Log.info("Oanda Candles response 0 got : " , response);
-                    JsonNode res;
-                    try {
-                        res = OBJECT_MAPPER.readTree(response);
-                    } catch (JsonProcessingException ex) {
-                        throw new RuntimeException(ex);
-                    }
-
-                    if (res.isEmpty()) {
-                        return Optional.empty();
-                    }
-
-                    JsonNode currCandle;
-                    Iterator<JsonNode> candleItr = res.iterator();
-                    int currentTill = -1;
-                    double openPrice = -1;
-                    double highSoFar = -1;
-                    double lowSoFar = Double.MAX_VALUE;
-                    double volumeSoFar = 0;
-                    double lastTradePrice = -1;
-                    boolean foundFirst = false;
-                    while (candleItr.hasNext()) {
-                        currCandle = candleItr.next();
-                        if (currCandle.get(0).asInt() < currentCandleStartedAt.getEpochSecond() ||
-                                currCandle.get(0).asInt() >= currentCandleStartedAt.getEpochSecond() +
-                                        secondsPerCandle) {
-                            // skip this sub-candle if it is not in the parent candle's duration (this is just a
-                            //  Coinbase is  not respecting start/end times
-                            continue;
-
-                        } else {
-                            if (!foundFirst) {
-                                // FIXME: Why are we only using the first sub-candle here?
-                                currentTill = currCandle.get(0).asInt();
-                                lastTradePrice = currCandle.get(4).asDouble();
-                                foundFirst = true;
-                            }
-                        }
-
-                        openPrice = currCandle.get(3).asDouble();
-
-                        if (currCandle.get(2).asDouble() > highSoFar) {
-                            highSoFar = currCandle.get(2).asDouble();
-                        }
-
-                        if (currCandle.get(1).asDouble() < lowSoFar) {
-                            lowSoFar = currCandle.get(1).asDouble();
-                        }
-
-                        volumeSoFar += currCandle.get(5).asDouble();
-                    }
-
-                    int openTime = (int) (currentCandleStartedAt.toEpochMilli() / 1000L);
-
-                    return Optional.of(new InProgressCandleData(openTime, openPrice, highSoFar, lowSoFar,
-                            currentTill, lastTradePrice, volumeSoFar));
-                });
-    }
 
 
 
@@ -950,7 +803,7 @@ logger.info(
 
     }
 
-    public void createOrder(@NotNull TradePair tradePair, @NotNull ENUM_ORDER_TYPE orderType, String side, double size, double stoploss, double takeprofit) throws IOException, InterruptedException {
+    public void createOrder(@NotNull TradePair tradePair, Side side, @NotNull ENUM_ORDER_TYPE orderType, double size, double stoploss, @NotNull Instant timestamp, double takeprofit, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException {
 
 
         JSONObject jsonObject = getJSON();
@@ -1077,6 +930,18 @@ logger.info(
 
     }
 
+    public void closeAll() throws IOException, InterruptedException {
+        for (Trade trade : trades) {
+            trade.close();
+        }
+        trades.clear();
+       requestBuilder.uri(URI.create("https://api-fxtrade.oanda.com/v3/accounts/"+accountID+"/orders"));
+       requestBuilder.DELETE();
+       HttpResponse<String> response =
+               client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+       System.out.println(response.statusCode());
+       System.out.println(response.body());
+    }
 
     public static abstract class OandaCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
@@ -1085,24 +950,14 @@ logger.info(
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
 
-
         OandaCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
             super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
         }
 
 
-        @Override
-        public List<CandleData> getCandleData() {
-            return new ArrayList<>();
-        }
 
         @Override
         public Future<List<CandleData>> get() {
-            String uriStr;
-            //uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/trades?beforeID=6397&instruments=" + tradePair.toString('_');
-            // requestBuilder.header("Link", "<https://api-fxtrade.oanda.com/v3/accounts/" + accountID
-             //       + "/trades?beforeID=6397&instrument="+ tradePair.toString('_')+"&rel=next");
-
             if (endTime.get() == -1) {
                 endTime.set((int) (Instant.now().toEpochMilli() / 1000L));
             }
@@ -1113,127 +968,116 @@ logger.info(
             int startTime = Math.max(endTime.get() - (numCandles * secondsPerCandle), EARLIEST_DATA);
             String startDateString = DateTimeFormatter.ISO_LOCAL_DATE_TIME
                     .format(LocalDateTime.ofEpochSecond(startTime, 0, ZoneOffset.UTC));
+            String x;
+            String str;
+            if (secondsPerCandle < 3600) {
+                x = String.valueOf(secondsPerCandle / 60);
+                str = "M";
+            } else if (secondsPerCandle < 86400) {
+                x = String.valueOf((secondsPerCandle / 3600));
+                str = "H";
+            } else if (secondsPerCandle < 604800) {
+                x = "";//String.valueOf(secondsPerCandle / 86400);
+                str = "D";
+            } else if (secondsPerCandle < 2592000) {
+                x = String.valueOf((secondsPerCandle / 604800));
+                str = "W";
+            } else {
+                x = String.valueOf((secondsPerCandle * 7 / 2592000 / 7));
+                str = "M";
+            }
+
+
+            String granularity = str + x;
+
+
+            String uriStr1 = "https://api-fxtrade.oanda.com/v3/instruments/"+tradePair.toString('_')+"/candles?count=10&price=A&granularity="+granularity+"&to="+new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'").format(
+                    new Date()
+            );
+
             if (startTime == EARLIEST_DATA) {
                 // signal more data is false
                 return CompletableFuture.completedFuture(Collections.emptyList());
             }
-            String uriStr1 = "https://api-fxtrade.oanda.com/v3/accounts/" + accounts.getAccountID() + "/trades?instruments=" + tradePair.toString('_');
             requestBuilder.uri(URI.create(uriStr1));
-            requestBuilder.header("CB-BEFORE", startDateString);
-            requestBuilder.header("CB-AFTER", endDateString);
-            //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
+            requestBuilder.header("CB-AFTER", String.valueOf(
+                    startTime
+            ));
+
+
             return HttpClient.newHttpClient().sendAsync(
                             requestBuilder.build(),
                             HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
                     .thenApply(response -> {
-                          JsonNode res;
-                        try {
-                            res = OBJECT_MAPPER.readTree(response);
-                        } catch (JsonProcessingException ex) {
-                            throw new RuntimeException(ex);
-                        }
-
-                        Log.info("Oanda trade2 response got -->: " , res.toString());
-
-                        JsonNode res1 = res;
-                        if (!res.isEmpty()) {
-                            try {
-                                JsonNode trad = OBJECT_MAPPER.readTree(res.get("trades").toString());
-                                logger.info("Got " + res.size() + " candles" + res);
-                                List<CandleData> candleData;
-                                Trade trade =        new Trade();
-                                for (JsonNode tr : trad) {
-                                    //   {"trades":[{"id":"142950","instrument":"EUR_USD","price":"1.07669","openTime":"2023-03-21T16:56:10.786314295Z","initialUnits":"-1700","initialMarginRequired":"36.6098","state":"OPEN","currentUnits":"-1700","realizedPL":"0.0000","financing":"0.1828","dividendAdjustment":"0.0000","clientExtensions":{"id":"140660466","tag":"0"},"unrealizedPL":"-21.6750","marginUsed":"37.0382"},{"id":"124829","instrument":"USD_CAD","price":"1.38016","openTime":"2023-03-15T14:46:04.088679752Z","initialUnits":"4000","initialMarginRequired":"80.0000","state":"OPEN","currentUnits":"4000","realizedPL":"0.0000","financing":"-0.7802","dividendAdjustment":"0.0000","clientExtensions":{"id":"140494560","tag":"0"},"unrealizedPL":"-45.2400","marginUsed":"80.0000"}],"lastTransactionID":"142955"}
-                                    res = tr;
-                                    trade.setTradePair(tradePair);
-                                    trade.setAccountID(accountID);
-                                    trade.setTradeID(res.get("id").asLong());
-                                    trade.setInstrument(tradePair.toString('_'));
-                                    trade.setPrice(res.get("price").asDouble());
-                                    trade.setOpenTime(res.get("openTime").asInt());
-                                    if (res.has("closeTime")) {
-                                        trade.setCloseTime(res.get("closeTime").asInt());
-                                    }
-                                    trade.setVolume(res.get("currentUnits").asDouble());
-                                    if (res.has("openTime")) {
-                                        trade.setOpenTime(res.get("openTime").asInt());
-                                    }
-
-                                    trade.setInstrument(res.get("instrument").asText());
-                                    trade.setFinancing(res.get("financing").asDouble());
-                                    trade.setRealizedPL(res.get("realizedPL").asDouble());
-                                    trade.setMarginUsed(res.get("marginUsed").asDouble());
-                                    trade.setInitialUnits(res.get("initialUnits").asDouble());
-                                    trade.setInitialMarginRequired(res.get("initialMarginRequired").asDouble());
-                                    trade.setState(res.get("state").asText());
-                                    trade.setCurrentUnits(res.get("currentUnits").asDouble());
-                                    trade.setUnrealizedPL(res.get("unrealizedPL").asDouble());
-                                    trade.setDividendAdjustment(res.get("dividendAdjustment").asDouble());
-                                    trade.setClientExtensions(res.get("clientExtensions").get("id").asText());
+                                Log.info(response,"Oanda response2  : ");
+                                JsonNode res;
+                                try {
+                                    res = OBJECT_MAPPER.readTree(response);
 
 
-                                    logger.info(trade.toString());
+                                } catch (JsonProcessingException ex) {
+                                    throw new RuntimeException(ex);
+                                }
 
-                                    trades.add(trade);
+                                if (res.isEmpty()) {
+                                        Alert alert = new Alert(Alert.AlertType.WARNING);
+                                        alert.setTitle("Oanda Error");
+                                        alert.setHeaderText("Oanda Error");
+                                        alert.setContentText(res.get("message").asText());
 
-
-                                    logger.info("Got " + res.size() + " candles" + res);
-                                    // Remove the current in-progress candle
-
-                                    try {
-                                        if (res1.has("openTime")) {
-
-                                            if (Date.from(Instant.parse(res1.get("trades").get("openTime").asText())).getTime() + secondsPerCandle > endTime.get()) {
-
-                                                ((ArrayNode) res1).remove(0);
-                                            }
-                                        }
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
+                                        logger.info(
+                                                "Oanda Error: " + res.get("message").asText()
+                                        );
+                                        alert.showAndWait();
 
                                 }
 
-                                trade.setLastTransactionID(res1.get("lastTransactionID").asLong());
+
+                        //  {"instrument":"EUR_USD","granularity":"M3",
+                        //  "candles":[{"complete":true,"volume":6,"time":"2016-01-03T22:00:00.000000000Z",
+                        //  "ask":{"o":"1.08787","h":"1.08796","l":"1.08774","c":"1.08776"}},{"complete":true,"volume":2,"time":"2016-01-03T22:03:00.000000000Z","ask":{"o":"1.08758","h":"1.08759","l":"1.08758","c":"1.08759"}},{"complete":true,"volume":23,"time":"2016-01-03T22:06:00.000000000Z","ask":{"o":"1.08748","h":"1.08767","l":"1.08747","c":"1.08755"}},{"complete":true,"volume":25,"time":"2016-01-03T22:09:00.000000000Z","ask":{"o":"1.08743","h":"1.08745","l":"1.08707","c":"1.08708"}},{"complete":true,"volume":3,"time":"2016-01-03T22:12:00.000000000Z","ask":{"o":"1.08707","h":"1.08716","l":"1.08707","c":"1.08708"}},{"complete":true,"volume":14,"time":"2016-01-03T22:15:00.000000000Z","ask":{"o":"1.08704","h":"1.08725","l":"1.08696","c":"1.08724"}},{"complete":true,"volume":10,"time":"2016-01-03T22:18:00.000000000Z","ask":{"o":"1.08723","h":"1.08724","l":"1.08698","c":"1.08705"}},{"complete":true,"volume":34,"time":"2016-01-03T22:21:00.000000000Z","ask":{"o":"1.08716","h":"1.08743","l":"1.08709","c":"1.08731"}},{"complete":true,"volume":39,"time":"2016-01-03T22:24:00.000000000Z","ask":{"o":"1.08736","h":"1.08736","l":"1.08684","c":"1.08711"}},{"complete":true,"volume":9,"time":"2016-01-03T22:27:00.000000000Z","ask":{"o":"1.08702","h":"1.08709","l":"1.08700","c":"1.08709"}}]}
+
+                        // Remove the current in-progress candle
+
+                        int time= (int) res.get("candles").get(0).get("time").asLong();
+                                logger.info("time: " + time);
+                        JsonNode candles = res.get("candles");
+
+
+
+
+                                if (time+ secondsPerCandle > endTime.get()) {
+                                    ((ArrayNode) res).remove(0);
+                                }
                                 endTime.set(startTime);
 
 
+    List<CandleData> candleData = new ArrayList<>();
+                        if ( candles.has("ask")) {
 
 
+                            JsonNode ask = candles.get("ask");
+    for (JsonNode candle : ask) {
+        candleData.add(new CandleData(
+                candle.get("o").asDouble(),  // open price
+                candle.get("c").asDouble(),  // close price
+                candle.get("h").asDouble(),  // high price
+                candle.get("l").asDouble(),  // low price
+                candle.get("o").asInt(),     // open time
+                candles.get("volume").asDouble()   // volume
+        ));
+logger.info("CandleData "+candleData);
 
-                                candleData = new ArrayList<>();
-                                for (JsonNode candle : res1) {
-                                    try {
+    }
+    }else {
+                            candleData.add(new CandleData(0, 0, 0, 0, 0, 0));
+                            logger.info("no ask");
+                        }
 
-                                 if (candle.has("openTime")) {
-                                     int time = candle.get("openTime").asInt();
-                                     candleData.add(new CandleData(0.1, 0, 0, 0,
-//                                                candle.get("candles").get("bid").get("o").asDouble(),  // open price
-//                                                candle.get("candles").get("bid").get("c").asDouble(),  // close price
-//                                                candle.get("candles").get("bid").get("h").asDouble(),  // high price
-//                                                candle.get("candles").get("bid").get("l").asDouble(),  // low price
+                            candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
+                            return candleData;
 
-                                             time,     // open time
-
-                                             candle.get("volume").asDouble()  // volume
-                                     ));
-                                 }
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-
-                                }
-
-                                candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
-                                return candleData;
-                            }
-                            catch (Exception e) {
-                                e.printStackTrace();
-
-                            return Collections.emptyList();
-                        }}
-                        return null;
                     });
         }
 
@@ -1242,4 +1086,124 @@ logger.info(
         public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
     }
 
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
+            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+        String startDateString1 = ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
+                currentCandleStartedAt, ZoneOffset.UTC));
+        long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
+        // Get the closest supported granularity to the ideal granularity.
+        int actualGranularity = getCandleDataSupplier(secondsPerCandle, tradePair).getSupportedGranularities().stream()
+                .min(Comparator.comparingInt(i -> (int) Math.abs(i - idealGranularity)))
+                .orElseThrow(() -> new NoSuchElementException("Supported granularities was empty!"));
+
+        String x;
+        String str;
+        if (secondsPerCandle < 3600) {
+            x = String.valueOf(secondsPerCandle / 60);
+            str = "M";
+        } else if (secondsPerCandle < 86400) {
+            x = String.valueOf((secondsPerCandle / 3600));
+            str = "H";
+        } else if (secondsPerCandle < 604800) {
+            x = "";//String.valueOf(secondsPerCandle / 86400);
+            str = "D";
+        } else if (secondsPerCandle < 2592000) {
+            x = String.valueOf((secondsPerCandle / 604800));
+            str = "W";
+        } else {
+            x = String.valueOf((secondsPerCandle * 7 / 2592000 / 7));
+            str = "M";
+        }
+
+        String granularity= str +x;
+
+        return HttpClient.newHttpClient().sendAsync(
+                        HttpRequest.newBuilder()
+                                .uri(URI.create(  "https://api-fxtrade.oanda.com/v3/instruments/"+tradePair.toString('_')+"/candles?count=6&price=M&granularity="+granularity))
+                                .GET().build(),
+                        HttpResponse.BodyHandlers.ofString())
+                .thenApply(HttpResponse::body)
+                .thenApply(response -> {
+                    Log.info("Oanda response1: ", response);
+                    JsonNode res;
+                    try {
+                        res = OBJECT_MAPPER.readTree(response);
+                        if (res.has("message")) {
+
+
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setTitle("Oanda Error");
+                            alert.setHeaderText("Oanda Error");
+                            alert.setContentText(res.get("message").asText());
+                            alert.showAndWait();
+
+
+                        }
+
+                    } catch (JsonProcessingException ex) {
+                        throw new RuntimeException(ex);
+                    }
+
+                    if (res.isEmpty()) {logger.info("no candles");
+                        return Optional.empty();
+                    }
+
+                    JsonNode currCandle;
+
+JsonNode candles = null;
+                    JsonNode res2 =null;
+                    if (res.has("candles")) {
+                        candles = res.get("candles");
+                        if (candles.has("mid")) {
+                            res2 = candles.get("mid");
+                        }
+                    }
+
+
+                    assert res2 != null;
+                    Iterator<JsonNode> candleItr = res2.iterator();
+                    int currentTill = -1;
+                    double openPrice = -1;
+                    double highSoFar = -1;
+                    double lowSoFar = Double.MAX_VALUE;
+                    double volumeSoFar = 0;
+                    double lastTradePrice = -1;
+                    boolean foundFirst = false;
+                    while (candleItr.hasNext()) {
+                        currCandle = candleItr.next();
+                        if (candles.get("time").asInt() < currentCandleStartedAt.getEpochSecond() ||
+                        candles.get("time").asInt() >= currentCandleStartedAt.getEpochSecond() +
+                                        secondsPerCandle) {
+                            // skip this sub-candle if it is not in the parent candle's duration (this is just a
+                            //  Oanda is  not respecting start/end times
+                            continue;
+
+                        } else {
+                            if (!foundFirst) {
+
+                                currentTill = candles.get("time").asInt();
+                                lastTradePrice = currCandle.get(4).asDouble();
+                                foundFirst = true;
+                            }
+                        }
+
+                        openPrice = currCandle.get(3).asDouble();
+
+                        if (currCandle.get(2).asDouble() > highSoFar) {
+                            highSoFar = currCandle.get(2).asDouble();
+                        }
+
+                        if (currCandle.get(1).asDouble() < lowSoFar) {
+                            lowSoFar = currCandle.get(1).asDouble();
+                        }
+
+                        volumeSoFar += currCandle.get(5).asDouble();
+                    }
+
+                    int openTime = (int) (currentCandleStartedAt.toEpochMilli() / 1000L);
+
+                    return Optional.of(new InProgressCandleData(openTime, openPrice, highSoFar, lowSoFar,
+                            currentTill, lastTradePrice, volumeSoFar));
+                });
+    }
 }

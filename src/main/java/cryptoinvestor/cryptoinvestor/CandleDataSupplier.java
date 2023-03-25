@@ -104,6 +104,8 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
     public abstract List<CandleData> getCandleData();
 
 
+    public abstract CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair);
+
     public abstract CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(
             TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
 

@@ -11,15 +11,9 @@ import java.util.concurrent.CompletableFuture;
 public class Bittrex extends Exchange {
     TradePair tradePair;
 
-    public Bittrex() throws TelegramApiException, IOException {
+    public Bittrex(String apikey) throws TelegramApiException, IOException {
         super(
-                "Bittrex",
-                "https://bittrex.com/api/v1.1/public/getmarketsummaries",
-                "https://bittrex.com/api/v1.1/public/getcurrencies",
-                "https://bittrex.com/api/v1.1/public/getorderbook",
-                "https://bittrex.com/api/v1.1/public/getticker",
-                "https://bittrex.com/api/v1.1/public/getticker24hr",
-                "https://bittrex.com/api/v1.1/public/gettradehistory"
+                apikey
         );
     }
 
@@ -32,36 +26,6 @@ public class Bittrex extends Exchange {
 //             "https://bittrex.com/api/v1.1/public/getticker",
 //             "https://bittrex.com/api/v1.1/public/getticker24hr",
 //             "https://bittrex.com/api/v1.1/public/gettradehistory",
-    public Bittrex(TradePair tradePair, String ApiKey, String apiSecret, String phraseSecret1) throws TelegramApiException, IOException {
-        super(
-                "Bittrex",
-                "https://bittrex.com/api/v1.1/public/getmarketsummaries",
-                "https://bittrex.com/api/v1.1/public/getcurrencies",
-                "https://bittrex.com/api/v1.1/public/getorderbook",
-                "https://bittrex.com/api/v1.1/public/getticker",
-                "https://bittrex.com/api/v1.1/public/getticker24hr",
-                "https://bittrex.com/api/v1.1/public/gettradehistory"
-
-
-        );
-        this.apiKey = ApiKey;
-        this.apiSecret = apiSecret;
-        this.phraseSecret1 = phraseSecret1;
-        this.tradePair = tradePair;
-    }
-
-    public Bittrex(String s, String s1, String s2) throws TelegramApiException, IOException {
-        super(
-                "Bittrex",
-                "https://bittrex.com/api/v1.1/public/getmarketsummaries",
-                "https://bittrex.com/api/v1.1/public/getcurrencies",
-                "https://bittrex.com/api/v1.1/public/getorderbook",
-                "https://bittrex.com/api/v1.1/public/getticker",
-                "https://bittrex.com/api/v1.1/public/getticker24hr",
-                "https://bittrex.com/api/v1.1/public/gettradehistory"
-        );
-
-    }
 
     @Override
     public String getName() {
@@ -106,5 +70,19 @@ public class Bittrex extends Exchange {
     }
 
     public void createOrder(double price, ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) {
+    }
+
+    public void CancelOrder(long orderID) {
+        System.out.println(orderID);
+
+    }
+
+    public void createOrder(TradePair tradePair, Side sell, ENUM_ORDER_TYPE market, double quantity, int i, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+    }
+
+    public void closeAll() {
+    }
+
+    public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE stopLoss, Double quantity, double price, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
     }
 }
