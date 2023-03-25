@@ -160,11 +160,7 @@ public class TelegramClient extends ChatEndpoint {
 
 
         if (token == null) {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText("Telegram token can't be null ");
-            alert.showAndWait();
+
             throw new TelegramApiException("Telegram token can't be  null ");
             //  throw new TelegramApiException("Telegram token can't be  null ");
 

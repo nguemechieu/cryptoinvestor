@@ -23,14 +23,14 @@ public class Wallet extends Parent {
 
         gridPane.setAlignment(javafx.geometry.Pos.CENTER);
 
-        gridPane.add(new Label("Balance: " + exchange.getBalance()), 0, 0);
-        gridPane.add(new Label("Available : " + exchange.getAvailable()), 0, 1);
-        gridPane.add(new Label("Pending : " + exchange.getPending()), 0, 2);
-        gridPane.add(new Label("Total : " + exchange.getTotal()), 0, 3);
-        gridPane.add(new Label("Fee : " + exchange.getFee()), 0, 4);
-        gridPane.add(new Label("Total : " + exchange.getTotal()), 0, 5);
-        gridPane.add(new Label("Deposit : " + exchange.getDeposit()), 0, 6);
-        gridPane.add(new Label("Withdraw : " + exchange.getWithdraw()), 0, 7);
+//        gridPane.add(new Label("Balance: " + exchange.getBalance()), 0, 0);
+//        gridPane.add(new Label("Available : " + exchange.getAvailable()), 0, 1);
+//        gridPane.add(new Label("Pending : " + exchange.getPending()), 0, 2);
+//        gridPane.add(new Label("Total : " + exchange.getTotal()), 0, 3);
+//        gridPane.add(new Label("Fee : " + exchange.getFee()), 0, 4);
+//        gridPane.add(new Label("Total : " + exchange.getTotal()), 0, 5);
+//        gridPane.add(new Label("Deposit : " + exchange.getDeposit()), 0, 6);
+//        gridPane.add(new Label("Withdraw : " + exchange.getWithdraw()), 0, 7);
 
 
         Spinner<Double> spinner=new Spinner<>();
@@ -40,10 +40,10 @@ public class Wallet extends Parent {
         ));
         gridPane.add(spinner, 5,8);
         Button depositBtn=new Button("Deposit");
-        depositBtn.setOnAction(e -> exchange.deposit(spinner.getValue()));
+        //depositBtn.setOnAction(e -> exchange.deposit(spinner.getValue()));
         gridPane.add(depositBtn ,0, 8);
         Button withdrawBtn=new Button("Withdraw");
-        withdrawBtn.setOnAction(e -> exchange.withdraw(spinner.getValue()));
+       // withdrawBtn.setOnAction(e -> exchange.withdraw(spinner.getValue()));
 
 
 

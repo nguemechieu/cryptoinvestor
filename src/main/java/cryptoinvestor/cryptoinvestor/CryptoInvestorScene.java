@@ -24,7 +24,7 @@ public class CryptoInvestorScene extends TabPane {
 
     private static final Logger logger = LoggerFactory.getLogger(CryptoInvestorScene.class);
 
-    public CryptoInvestorScene() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException {
+    public CryptoInvestorScene() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException, ParseException, InterruptedException {
         VBox ordersBox = new VBox(listOrders());
         VBox navigator = new VBox(listNavigator());
         ordersBox.setTranslateX(150);
@@ -32,12 +32,10 @@ public class CryptoInvestorScene extends TabPane {
         ordersBox.setPrefSize(1300, 350);
         navigator.setPrefSize(1300, 350);
         setPrefSize(1530, 780);
-        Coinbase exchange = new Coinbase("23456jhg", "erythematic90", "erythematic90");
+        Coinbase exchange = new Coinbase();
         setBorder(stroke(Color.rgb((int) (Math.random() * 255), (int) (Math.random() * 255), (int) (Math.random() * 255), 1)));
         getStylesheets().setAll(Objects.requireNonNull(getClass().getResource("/app.css")).toExternalForm());
         setPadding(new Insets(20));
-
-        String accountId = "";
 
         for (int i = 0; i < getTabs().size(); i++) {
             TradeView tradeView = new TradeView(exchange);

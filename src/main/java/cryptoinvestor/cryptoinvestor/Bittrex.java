@@ -13,7 +13,7 @@ public class Bittrex extends Exchange {
 
     public Bittrex(String apikey) throws TelegramApiException, IOException {
         super(
-                apikey
+                null
         );
     }
 

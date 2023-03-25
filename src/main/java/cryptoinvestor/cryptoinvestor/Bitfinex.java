@@ -57,6 +57,7 @@ public class Bitfinex extends Exchange {
     private static final String ur4 =
             "https://api.bitfinex.com/v1/candles/";
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+    private String apiKey;
     protected String PASSPHRASE = "w73hzit0cgl";
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
@@ -67,7 +68,7 @@ public class Bitfinex extends Exchange {
     public Bitfinex(  String token, @NotNull String passphrase) throws TelegramApiException, IOException, InterruptedException {
 
 
-        super( token, passphrase);
+        super( null);
 
 
         requestBuilder.header("Content-Type", "application/json");
@@ -82,7 +83,7 @@ public class Bitfinex extends Exchange {
         logger.info("BinanceUs " + nanoTime());
 
         requestBuilder.header("Accept", "application/json");
-        requestBuilder.header("Authorization", apiKey);
+        requestBuilder.header("Authorization", token);
 
     }
 

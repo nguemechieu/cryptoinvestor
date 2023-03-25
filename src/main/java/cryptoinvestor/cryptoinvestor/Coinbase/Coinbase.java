@@ -11,6 +11,7 @@ import cryptoinvestor.cryptoinvestor.*;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.Alert;
+
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +31,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -45,7 +47,6 @@ import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 public class Coinbase extends Exchange {
     public static final Logger logger = LoggerFactory.getLogger(Coinbase.class);
-    public static final String API_URL = "https://api.coinbase.com/v2/exchange-rates?currency=BTC";
     public static final String API_VERSION = "v2";
 
 
@@ -54,9 +55,31 @@ public class Coinbase extends Exchange {
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    private static final String ur0 = "wss://ws-direct.exchange.coinbase.com";
-    private static final String ur1 = "wss://ws-api.exchange.coinbase.com";
+    private static final Set<TradePair> tradePair=
+            new HashSet<>() {{
+                add(new TradePair("BTC", "USD"));
+                add(new TradePair("BTC", "EUR"));
+                add(new TradePair("ETH", "USD"));
+                add(new TradePair("ETH", "EUR"));
+                add(new TradePair("LTC", "USD"));
+                add(new TradePair("LTC", "EUR"));
+                add(new TradePair("BCH", "USD"));
+                add(new TradePair("BCH", "EUR"));
+                add(new TradePair("XRP", "USD"));
+                add(new TradePair("XRP", "EUR"));
+                add(new TradePair("ZEC", "USD"));
+                add(new TradePair("ZEC", "EUR"));
+                add(new TradePair("DASH", "USD"));
+                add(new TradePair("DASH", "EUR"));
+                add(new TradePair("ETC", "USD"));
+                add(new TradePair("ETC", "EUR"));
+                add(new TradePair("XMR", "USD"));
+            }};
+    private static final ExchangeWebSocketClient websocket = new CoinbaseWebSocketClient(tradePair);
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+
+    String apiKey;
+
     protected String PASSPHRASE = "w73hzit0cgl";
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
@@ -64,16 +87,17 @@ public class Coinbase extends Exchange {
     static TelegramClient telegramBot;
     public Coinbase(
 
-            @NotNull String apiKey,
-            @NotNull String passphrase,      @NotNull String telegramToken
     ) throws TelegramApiException, IOException, NoSuchAlgorithmException {
-        super( apiKey, passphrase,telegramToken);
+        super(
+                websocket
+        );
 
+        this.apiKey = API_KEY0;
 
         requestBuilder.header("CB-ACCESS-KEY", apiKey);
         requestBuilder.header("CB-ACCESS-PASSPHRASE", PASSPHRASE);
         requestBuilder.header("CB-ACCESS-SIGNATURE", timestampSignature(apiKey, PASSPHRASE));
-        requestBuilder.header("CB-ACCESS-TIMESTAMP", Date.from(Instant.now()).toString());
+        requestBuilder.header("CB-ACCESS-TIMESTAMP", new Date().toString());
         requestBuilder.header("CB-ACCESS-VERSION", API_VERSION);
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("Accept", "application/json");
@@ -87,6 +111,7 @@ public class Coinbase extends Exchange {
         logger.info("Coinbase initialized");
 
     }
+    static HttpClient client =  HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
 
     @Contract(pure = true)
     public static @NotNull String getCoinbaseMessage() {
@@ -101,28 +126,25 @@ public class Coinbase extends Exchange {
     }
 
     @Override
-    public CoinbaseCandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
-        return
-                new CoinbaseCandleDataSupplier(secondsPerCandle, tradePair) {
-                    @Override
-                    public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-                        return null;
-                    }
+    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+        return new CoinbaseCandleDataSupplier(secondsPerCandle, tradePair) {
+            @Override
+            public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+                return null;
+            }
 
-                    @Override
-                    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
-                        return null;
-                    }
+            @Override
+            public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
+                return null;
+            }
 
-                    @Override
-                    public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
-                        return
-                                null;
-                    }
-                };
+            @Override
+            public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
+                return null;
+            }
+        };
+        }
 
-
-    }
 
 
     private @Nullable String timestampSignature(
@@ -251,7 +273,7 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
                 .min(Comparator.comparingInt(i -> (int) Math.abs(i - idealGranularity)))
                 .orElseThrow(() -> new NoSuchElementException("Supported granularities was empty!"));
 
-        return HttpClient.newHttpClient().sendAsync(
+        return client.sendAsync(
                         HttpRequest.newBuilder()
                                 .uri(URI.create(String.format(
                                         "https://api.pro.coinbase.com/products/%s/candles?granularity=%s&start=%s",
@@ -264,17 +286,7 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
                     JsonNode res;
                     try {
                         res = OBJECT_MAPPER.readTree(response);
-                        if (res.has("message")) {
 
-
-                            Alert alert = new Alert(Alert.AlertType.WARNING);
-                            alert.setTitle("Coinbase Error");
-                            alert.setHeaderText("Coinbase Error");
-                            alert.setContentText(res.get("message").asText());
-                            alert.showAndWait();
-
-
-                        }
 
                     } catch (JsonProcessingException ex) {
                         throw new RuntimeException(ex);
@@ -407,7 +419,7 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
         System.out.println(jsonObject.toString(4));
 
     }
-    HttpClient client =  HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
+
    // Get all orders
      //       GET
     //https://api.exchange.coinbase.com/orders
@@ -458,7 +470,7 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
      //       DELETE
     //https://api.exchange.coinbase.com/orders/{order_id}
 
-    public void cancelOrder(String orderId) throws IOException, InterruptedException {
+    public  void cancelOrder(long orderId) throws IOException, InterruptedException {
 
         String uriStr = "https://api.exchange.coinbase.com/orders/" + orderId;
         requestBuilder.DELETE();
@@ -476,7 +488,6 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
         }
     }
     private void  getOrderHistory(@NotNull TradePair tradePair) throws IOException, InterruptedException {
-        String symbol = tradePair.toString('-');
 
         String uriStr = "https://api.coinbase.com/api/v3/brokerage/orders";
 
@@ -508,8 +519,8 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
         String data=
                 String.format(
                         "{\"product_id\": \"%s\", \"side\": \"%s\", \"type\": \"%s\", \"quantity\": %f, \"price\": %f, \"stop-loss\": %f, \"take-profit\": %f, \"take-profit-price\": %f, \"timestamp\": \"%s\"}",
-                        symbol, side.toString(), orderType.toString(), size, price, stopLoss, takeProfit, takeProfitPrice,
-                        timestamp.toEpochMilli() / 1000L);
+                        symbol, side, orderType, size, price, stopLoss, takeProfit, takeProfitPrice,
+                        new Date());
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         data = String.format(data, orderType, side, price);
@@ -574,15 +585,6 @@ public void CloseAllOrders() throws IOException, InterruptedException {
 
 }
 
-    public void CancelOrder(long orderID) throws IOException, InterruptedException {
-        String uriStr = "https://api.exchange.coinbase.com/orders/"+orderID;
-
-        System.out.println(uriStr);
-        requestBuilder.DELETE();
-        HttpResponse<String> response = client.send(requestBuilder.uri(URI.create(uriStr)).build(), HttpResponse.BodyHandlers.ofString());
-        System.out.println(response.statusCode());
-        System.out.println(response.body());
-    }
 
     public void createOrder(@NotNull TradePair tradePair, Side buy, ENUM_ORDER_TYPE trailingStopSell, double quantity, int i, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException {
         JSONObject jsonObject = getJSON();
@@ -604,7 +606,7 @@ public void CloseAllOrders() throws IOException, InterruptedException {
         System.out.println(response.body());
     }
 
-    public static abstract class CoinbaseCandleDataSupplier extends CandleDataSupplier {
+    static abstract class CoinbaseCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
                 .registerModule(new JavaTimeModule())
                 .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -612,7 +614,7 @@ public void CloseAllOrders() throws IOException, InterruptedException {
         private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
 
         CoinbaseCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
-            super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
+            super(300, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
         }
 
 
@@ -645,8 +647,8 @@ public void CloseAllOrders() throws IOException, InterruptedException {
                 return CompletableFuture.completedFuture(Collections.emptyList());
             }
             requestBuilder.uri(URI.create(uriStr));
-            //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
-            return HttpClient.newHttpClient().sendAsync(
+             //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
+            return client.sendAsync(
                             requestBuilder.build(),
                             HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
@@ -656,7 +658,14 @@ public void CloseAllOrders() throws IOException, InterruptedException {
                         try {
                             res = OBJECT_MAPPER.readTree(response);
 
+if (res.has("message")) {
 
+    Alert alert = new Alert(Alert.AlertType.ERROR);
+    alert.setTitle("Error");
+    alert.setHeaderText(null);
+    alert.setContentText(res.get("message").asText());
+    alert.showAndWait();
+}
 
 
                         } catch (JsonProcessingException ex) {
@@ -665,23 +674,6 @@ public void CloseAllOrders() throws IOException, InterruptedException {
 
                         if (!res.isEmpty()) {
 
-
-
-                            if (res.has("message")) {
-                                Alert alert = new Alert(Alert.AlertType.WARNING);
-                                alert.setTitle("Coinbase Error");
-                                alert.setHeaderText("Coinbase Error");
-                                alert.setContentText(res.get("message").asText());
-                                alert.showAndWait();
-
-
-                                try {
-                                    telegramBot.sendMessage("Coinbase Error: " + res.get("message").asText());
-                                } catch (IOException | InterruptedException e) {
-                                    throw new RuntimeException(e);
-                                }
-                                return Collections.emptyList();
-                            }
                             // Remove the current in-progress candle
                             if (res.get(0).get(0).asInt() + secondsPerCandle > endTime.get()) {
                                 ((ArrayNode) res).remove(0);
@@ -698,10 +690,15 @@ public void CloseAllOrders() throws IOException, InterruptedException {
                                         candle.get(0).asInt(),     // open time
                                         candle.get(5).asDouble()   // volume
                                 ));
+                                logger.info(
+                                        "CandleData: " + candleData
+                                );
                             }
+
                             candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
                             return candleData;
                         } else {
+                            logger.info("Coinbase Empty response");
                             return Collections.emptyList();
                         }
                     });

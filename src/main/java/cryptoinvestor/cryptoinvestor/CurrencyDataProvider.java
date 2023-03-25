@@ -46,6 +46,9 @@ public class CurrencyDataProvider {
     private static final ConcurrentHashMap<SymmetricPair<String, CurrencyType>, Currency> CURRENCIES = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<CryptoMarketData, CryptoMarketData> MARKET_DATA_CONCURRENT_HASH_MAP = new ConcurrentHashMap<>();
     private static Roi roi;
+    private static final TradePair tradePairs
+            = new TradePair("BTC", "USD");
+
 
     public static ConcurrentHashMap<CryptoMarketData, CryptoMarketData> getMarketDataConcurrentHashMap() {
 
@@ -330,6 +333,10 @@ public class CurrencyDataProvider {
 
     public static void setRoi(Roi roi) {
         CurrencyDataProvider.roi = roi;
+    }
+
+    public static TradePair getTradePairs() {
+        return tradePairs;
     }
 
     public enum OANDA_ACCESS_TOKEN {

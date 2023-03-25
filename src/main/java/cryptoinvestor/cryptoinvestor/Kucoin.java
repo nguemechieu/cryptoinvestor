@@ -55,7 +55,7 @@ public class Kucoin extends Exchange {
 
 
     public Kucoin( String token1, @NotNull String token) throws TelegramApiException, IOException {
-        super( token1, token);
+        super( null);
 
 
 //        Base URL

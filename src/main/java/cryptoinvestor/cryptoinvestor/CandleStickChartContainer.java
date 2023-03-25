@@ -1,5 +1,4 @@
 package cryptoinvestor.cryptoinvestor;
-
 import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.layout.AnchorPane;
@@ -38,11 +37,12 @@ public class CandleStickChartContainer extends Region {
     TradePair tradePair;
     SimpleIntegerProperty secondsPerCandle;
     private CandleStickChart candleStickChart;
+    private final String telegramToken;
 
-    public CandleStickChartContainer(Exchange exchange, TradePair tradePair, boolean liveSyncing) throws URISyntaxException, IOException {
+    public CandleStickChartContainer(Exchange exchange, TradePair tradePair, String telegramToken, boolean liveSyncing) throws URISyntaxException, IOException {
         Objects.requireNonNull(exchange, "exchange must not be null");
         Objects.requireNonNull(tradePair, "tradePair must not be null");
-
+this.telegramToken=telegramToken;
 
         this.tradePair = tradePair;
         this.liveSyncing = liveSyncing;
@@ -90,6 +90,7 @@ public class CandleStickChartContainer extends Region {
 
     }
 
+
     private void createNewChart(Exchange exchange, int secondsPerCandle, boolean liveSyncing) throws ParseException, TelegramApiException, IOException, InterruptedException, URISyntaxException {
         if (secondsPerCandle <= 0) {
             throw new IllegalArgumentException("secondsPerCandle must be positive but was: " + secondsPerCandle);
@@ -97,7 +98,7 @@ public class CandleStickChartContainer extends Region {
 
 
         candleStickChart = new CandleStickChart(exchange, exchange.getCandleDataSupplier(secondsPerCandle, tradePair),
-                tradePair, liveSyncing, secondsPerCandle, widthProperty(), heightProperty());
+                tradePair, liveSyncing, secondsPerCandle, widthProperty(), heightProperty(),telegramToken);
 
 
         candleChartContainer.getChildren().setAll(candleStickChart);

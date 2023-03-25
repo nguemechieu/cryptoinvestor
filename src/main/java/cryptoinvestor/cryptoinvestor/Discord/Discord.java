@@ -4,11 +4,12 @@ package cryptoinvestor.cryptoinvestor.Discord;
 import cryptoinvestor.cryptoinvestor.Chat;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import cryptoinvestor.cryptoinvestor.TelegramClient;
+import cryptoinvestor.cryptoinvestor.oanda.OandaWebSocket;
 
 import java.io.IOException;
 
 
-public class Discord extends TelegramClient {
+public class Discord extends TelegramClient   {
     private String url = "https://discord.com/api/oauth2/authorize?client_id=1087210119097499751&permissions=0&scope=bot";
 
    private String discordToken = "MTA4NzIxMDExOTA5NzQ5OTc1MQ.GTPtoi.IoKi82j9vnTZAe1VG8LHO60aFUGJzgfYG5blYo";
@@ -65,8 +66,8 @@ public class Discord extends TelegramClient {
                 accessToken,
                 refreshToken
         );
-        this.apiUrl = apiUrl;
-        this.apiVersion = apiVersion;
+        Discord.apiUrl = apiUrl;
+        Discord.apiVersion = apiVersion;
         this.clientSecret = clientSecret;
         this.clientId = clientId;
         this.accessToken = accessToken;

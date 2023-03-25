@@ -1,11 +1,16 @@
 package cryptoinvestor.cryptoinvestor;
 
+import com.jfoenix.controls.RecursiveTreeItem;
+import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
+import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,8 +18,11 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
+
+import static cryptoinvestor.cryptoinvestor.NewsManager.getNewsList;
 
 public class TradingWindow extends AnchorPane {
     private static final Logger logger = LoggerFactory.getLogger(TradingWindow.class);
@@ -36,7 +44,7 @@ public class TradingWindow extends AnchorPane {
             switch (i) {
 
                 case COINBASE_PRO -> {
-                    Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                    Coinbase coinbase = new Coinbase();//"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(new TradeView(coinbase));
 
                 }
@@ -49,7 +57,7 @@ public class TradingWindow extends AnchorPane {
 
                 }
                 case KRAKEN -> {
-                    Kraken kraken = new Kraken("", "", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                    Kraken kraken = new Kraken("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(
                             new TradeView(kraken));
 
@@ -70,21 +78,20 @@ public class TradingWindow extends AnchorPane {
 
                 }
                 case BINANCE_US -> {
-                    BinanceUs binance = new BinanceUs( "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                    BinanceUs binance = new BinanceUs( "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(new TradeView(binance));
 
                 }
-//                case BINANCE-> {
-//                    Binance binance = new Binance("YU", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
-//                    tab.setContent(new TradeView(binance));
-//
-//             }
+                case BINANCE-> {
+                   Binance binance = new Binance("YU");
+                    tab.setContent(new TradeView(binance));
+
+            }
                 case OANDA -> {
                     Oanda oanda = new Oanda(
                             "77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99"
 
-                            , "001-001-2783446-002",
-                            "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo"
+                            , "001-001-2783446-002"
                     );
 
 
@@ -95,7 +102,7 @@ public class TradingWindow extends AnchorPane {
             }
             tabPane.getTabs().add(tab);
         }
-
+tabPane.getTabs().addAll(getNewsTab(),browserTab());
 
 //        setPrefSize(1530, 680);
         getStyleClass().add("trading-window");
@@ -122,6 +129,60 @@ public class TradingWindow extends AnchorPane {
 
 
      logger.debug("Properties loaded");
+    }
+
+    private @NotNull Tab browserTab() {
+
+        DraggableTab browserTab = new DraggableTab("Browser", "");
+        browserTab.setContent(new Browser());
+        return browserTab;
+    }
+
+    private @NotNull Tab getNewsTab() throws ParseException {
+        Tab newsTab = new Tab("News");
+        TreeTableView<News>tree = new TreeTableView<>();
+
+        this.setPrefHeight(780);
+        this.setPrefWidth(1530);
+
+
+        setPrefSize(1530, 780);
+        TreeTableColumn<News,String> titleColumn = new TreeTableColumn<>("Title");
+        titleColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getTitle()));
+
+        TreeTableColumn<News,String> dateColumn = new TreeTableColumn<>("Date");
+        dateColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getDate().toString()));
+        TreeTableColumn<News,String> impactColumn = new TreeTableColumn<>("Impact");
+        impactColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getImpact()));
+        TreeTableColumn<News,String>  forecastColumn = new TreeTableColumn<>("Forecast");
+        forecastColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getForecast()));
+        TreeTableColumn<News,String> previousColumn = new TreeTableColumn<>("Previous");
+        previousColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getPrevious()));
+        TreeTableColumn<News,String> countryColumn = new TreeTableColumn<>("Country");
+        countryColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getCountry()));
+        TreeItem<News> root = new TreeItem<>();
+        root.setExpanded(true);
+for (News news : getNewsList()) {
+    root.getChildren().add(news);
+}
+        root.setValue(new News(
+                        "Crypto Investor",
+                        "2020-01-,","",
+                        new Date(),
+                        "Crypto Investor is a cryptocurrency investment platform based on blockchain technology.",
+                        "https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
+
+      tree.getColumns().add(titleColumn);
+      tree.getColumns().add(dateColumn);
+      tree.getColumns().add(impactColumn);
+      tree.getColumns().add(forecastColumn);
+      tree.getColumns().add(previousColumn);
+
+
+
+newsTab.setContent(tree);
+
+        return newsTab;
     }
 
     public MenuBar getMenuBar() {

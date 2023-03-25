@@ -83,7 +83,7 @@ public class CandleStickChart extends Region {
     private final CandleDataPager candleDataPager;
     private final CandleStickChartOptions chartOptions;
 
-    private  ConcurrentHashMap<CandleData,CandleData> onCandleDataUpdate=new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<CandleData,CandleData> onCandleDataUpdate=new ConcurrentHashMap<>();
 
 
     /**
@@ -123,6 +123,7 @@ public class CandleStickChart extends Region {
     private volatile boolean paging;
     private StackPane chartStackPane;
     boolean selectedAutoTrading;
+    private TelegramClient telegram;
 
     /**
      * Creates a new {@code CandleStickChart}. This constructor is package-private because it should only
@@ -138,10 +139,11 @@ public class CandleStickChart extends Region {
      * @param secondsPerCandle   the duration in seconds each candle represents
      * @param containerWidth     the width property of the parent node that contains the chart
      * @param containerHeight    the height property of the parent node that contains the chart
+     * @param token
      */
     CandleStickChart(Exchange exchange, CandleDataSupplier candleDataSupplier, TradePair tradePair,
                      boolean liveSyncing, int secondsPerCandle, ObservableNumberValue containerWidth,
-                     ObservableNumberValue containerHeight) {
+                     ObservableNumberValue containerHeight, String token) {
         Objects.requireNonNull(exchange);
         Objects.requireNonNull(candleDataSupplier);
         Objects.requireNonNull(tradePair);
@@ -159,7 +161,7 @@ public class CandleStickChart extends Region {
         candleDataPager = new CandleDataPager(this, candleDataSupplier);
         data = Collections.synchronizedNavigableMap(new TreeMap<>(Integer::compare));
         chartOptions = new CandleStickChartOptions();
-        canvasNumberFont = Font.font(FXUtils.getMonospacedFont(), 9);
+        canvasNumberFont = Font.font(FXUtils.getMonospacedFont(), 12);
         progressIndicator = new ProgressIndicator(-1);
         getStyleClass().add("candle-chart");
         xAxis = new StableTicksAxis();
@@ -181,7 +183,7 @@ public class CandleStickChart extends Region {
         )));
         yAxis.setTickLabelFormatter(new MoneyAxisFormatter(tradePair.getCounterCurrency()));
         extraAxis.setTickLabelFormatter(new MoneyAxisFormatter(tradePair.getBaseCurrency()));
-        Font axisFont = Font.font(FXUtils.getMonospacedFont(), 10);
+        Font axisFont = Font.font(FXUtils.getMonospacedFont(), 15);
         yAxis.setTickLabelFont(axisFont);
         xAxis.setTickLabelFont(axisFont);
         extraAxis.setTickLabelFont(axisFont);
@@ -273,6 +275,12 @@ public class CandleStickChart extends Region {
                 VBox.setVgrow(extraAxis, Priority.ALWAYS);
                 VBox.setVgrow(extraAxisExtension, Priority.ALWAYS);
 
+
+                try {
+                    telegram= new TelegramClient("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                } catch (IOException | TelegramApiException e) {
+                    throw new RuntimeException(e);
+                }
                 Label symbolInfo = new Label(
                         String.format("Symbol: %s\n", tradePair.getBaseCurrency().code) +
                                 String.format("Base Currency: %s\n", tradePair.getBaseCurrency()) +
@@ -281,15 +289,12 @@ public class CandleStickChart extends Region {
                                 String.format("Start: %s\n", tradePair.getStartTime()));
 
 
-                if (tradePair.getCounterCurrency().getImage() != null) {
-                    setStyle("-fx-background-image: url('" + tradePair.getCounterCurrency().getImage() + "')");
 
-                }
                 symbolInfo.setTranslateX(100);
                 symbolInfo.setTranslateY(
                         chartHeight - 200
                 );
-                symbolInfo.setFont(Font.font("Arial", 15));
+                symbolInfo.setFont(Font.font("Arial", 17));
                 symbolInfo.setBackground(Background.fill(Color.WHITE));
                 chartStackPane = new StackPane(canvas, loadingIndicatorContainer, symbolInfo);
                 chartStackPane.setAlignment(Pos.CENTER);
@@ -298,16 +303,17 @@ public class CandleStickChart extends Region {
                 Text infoLabel = new Text();
                 infoLabel.setTextAlignment(TextAlignment.CENTER);
                 VBox.setVgrow(infoLabel, Priority.ALWAYS);
-                Circle status0 = new Circle(5);
+                Circle status0 = new Circle(6);
+
                 status0.setTranslateX(1350);
                 status0.setTranslateY(20);
                 status0.setFill(Color.RED);
-                if (exchange.telegram.isOnline()) {
+                if ( telegram.isOnline()) {
                     status0.setFill(Color.GREEN);
                     try {
-                        exchange.telegram.newsTrade();
+                        telegram.newsTrade();
 
-                        exchange.telegram.sendMessage(
+                        telegram.sendMessage(
                                 "____CryptoInvestor_____ \n" + tradePair.getBaseCurrency().code + " " +
                                         tradePair.getCounterCurrency().code + "!\n" +
                                         "\n" +
@@ -319,8 +325,7 @@ public class CandleStickChart extends Region {
                                         tradePair.getCounterCurrency().code + " candles.\n" +
                                         "\n"
                         );
-
-                     exchange.telegram.run();
+                        telegram.run();
 
                     } catch (IOException | ParseException | InterruptedException e) {
                         throw new RuntimeException(e);
@@ -619,55 +624,53 @@ public class CandleStickChart extends Region {
 tradePairInfos.setTranslateX(500);
 tradePairInfos.setTranslateY(200);
 
-           if (exchange.telegram.isOnline()){exchange.telegram.run();}
+           if (telegram.isOnline()){telegram.run();}
 
 
             infoLabel.setTextAlignment(TextAlignment.CENTER);
 
             ConcurrentHashMap<CryptoMarketData, CryptoMarketData> dat = CurrencyDataProvider.getMarketDataConcurrentHashMap();
 
-            String name = exchange.telegram.isOnline() ? exchange.telegram.getUsername() : "N/A";
+            String name = telegram.getUsername();
 
 
             infoLabel.setText(
-                    "Timeframe  " + secondsPerCandle + " seconds."
-                            + "  Telegram  BOT : " +   name +
-                            " Discord  BOT : " +
+                    "Timeframe  " + secondsPerCandle + "  seconds."
+                            + "  Telegram  BOT : " +   name+
 
 
-                            " Mode: " + selectedAutoTrading
+                            "   Mode: " + selectedAutoTrading
 
-                            + " Open : " +
-                            onCandleDataUpdate.values().stream().mapToDouble(
-                            CandleData::getOpenPrice).min().getAsDouble() +
+                            + "   Open : " +
+                            inProgressCandle.getOpenPrice()+
                             "   Close : " +
                             onCandleDataUpdate.values().stream().mapToDouble(
                             CandleData::getClosePrice).min().getAsDouble() +
-                            "   Current Price : " +inProgressCandle.getOpenPrice()+
-                            "   Previous Price : " +
+                            "    Current Price : " +inProgressCandle.getOpenPrice()+
+                            "    Previous Price : " +
                             onCandleDataUpdate.values().stream().mapToDouble(
                             CandleData::getOpenPrice).max().getAsDouble()
                     +
 
-                            "  Change %: " +
+                            "   Change %: " +
                             onCandleDataUpdate.values().stream().mapToDouble(
                             CandleData::getChangePercent).max().getAsDouble() +
 
-                            "  Volume :  " +  onCandleDataUpdate.values().stream().mapToDouble(
+                            "   Volume :  " +  onCandleDataUpdate.values().stream().mapToDouble(
                             CandleData::getVolume).max().getAsDouble()
                             +
-                            "  High :  " +  onCandleDataUpdate.values().stream().mapToDouble(
+                            "   High :  " +  onCandleDataUpdate.values().stream().mapToDouble(
                             CandleData::getHighPrice).max().getAsDouble()+
 
 
-                            " Low :  " +
+                            "  Low :  " +
                             onCandleDataUpdate.values().stream().mapToDouble(
                             CandleData::getLowPrice).min().getAsDouble() +
 
 
-                            "\n Low24  :" + dat.values().stream().mapToDouble(x -> Double.parseDouble(x.low_24h)).max() +
-                            "\n   High24 : " + dat.values().stream().mapToDouble(x -> Double.parseDouble(x.high_24h)).max() +
-                            "\n Volume :  " + dat.values().stream().mapToDouble(x -> Double.parseDouble(x.getTotal_volume())).max()
+                            "  Low24  :" + dat.values().stream().mapToDouble(x -> Double.parseDouble(x.low_24h)).max().getAsDouble() +
+                            "   High24 : " + dat.values().stream().mapToDouble(x -> Double.parseDouble(x.high_24h)).max().getAsDouble() +
+                            "   Volume :  " + dat.values().stream().mapToDouble(x -> Double.parseDouble(x.getTotal_volume())).max().getAsDouble()
 
 
             );
@@ -681,6 +684,7 @@ tradePairInfos.setTranslateY(200);
             infoLabel.setTranslateX(80);
             infoLabel.setTranslateY(30);
             infoLabel.setFill(Color.WHITE);
+            infoLabel.setFont(Font.font(16));
             VBox.setVgrow(infoLabel, Priority.ALWAYS);
             getChildren().addAll(infoLabel, tradePairInfos);
         }
@@ -1337,10 +1341,15 @@ tradePairInfos.setTranslateY(200);
                     // limit of candles per page). This would give us 9 second candles that we can then sum. This will
                     // catch the data up to within 9 seconds of current time (or in this case roughly within 0.25% of
                     // current time).
-                    CompletableFuture<Optional<InProgressCandleData>> inProgressCandleDataOptionalFuture = exchange
-                            .fetchCandleDataForInProgressCandle(tradePair, Instant.ofEpochSecond(
-                                            candleData.get(candleData.size() - 1).getOpenTime() + secondsPerCandle),
-                                    secondsIntoCurrentCandle, secondsPerCandle);
+                    CompletableFuture<Optional<InProgressCandleData>> inProgressCandleDataOptionalFuture = null;
+                    try {
+                        inProgressCandleDataOptionalFuture = exchange
+                                .fetchCandleDataForInProgressCandle(tradePair, Instant.ofEpochSecond(
+                                                candleData.get(candleData.size() - 1).getOpenTime() + secondsPerCandle),
+                                        secondsIntoCurrentCandle, secondsPerCandle);
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                     inProgressCandleDataOptionalFuture.whenComplete((inProgressCandleDataOptional, throwable) -> {
                         if (throwable == null) {
                             if (inProgressCandleDataOptional.isPresent()) {

@@ -1,6 +1,7 @@
 package cryptoinvestor.cryptoinvestor;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
@@ -50,6 +51,8 @@ public class CryptoInvestor extends Application {
 
     @Override
     public void start(@NotNull Stage primaryStage) throws Exception {
+        Platform.setImplicitExit(false);
+        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> logger.error("[" + thread + "]: ", exception));
 
 
         primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("cryptoinvestor"))))
@@ -62,7 +65,7 @@ public class CryptoInvestor extends Application {
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
-        primaryStage.setTitle("CryptoInvestor  ->             Best Investment Software Date: " + new java.util.Date() + "         version :" + 0.01);
+        primaryStage.setTitle("CryptoInvestor                    " + new java.util.Date() + "         version :" + 0.01);
         primaryStage.setScene(new Scene(tradingWindow, 1530, 780));
         primaryStage.setResizable(true);
         primaryStage.sizeToScene();

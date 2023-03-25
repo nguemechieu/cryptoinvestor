@@ -20,6 +20,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -40,13 +41,14 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 public class Poloniex extends Exchange {
+
+
     String host = "https://poloniex.com";
     String url = "https://poloniex.com/public?command=returnTicker";
+    private String apiKey;
 
     public Poloniex(String POLONIEX_API_KEY,String telegramApiKey ) throws TelegramApiException, IOException, ParseException, InterruptedException {
-        super(
-
-                POLONIEX_API_KEY,telegramApiKey);
+        super(null);
     }
 
     @Override
@@ -59,7 +61,7 @@ public class Poloniex extends Exchange {
 
 
 
-    public void createOrder(double price,ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) {
+    public void createOrder(TradePair tradePair,double price,ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) {
         try {
             String url = "https://api.bitstamp.net/v2/order/new";
             String payload = String.format("{\"pair\": \"%s\", \"type\": \"%s\", \"side\": \"%s\", \"price\": %f, \"quantity\": %f, \"stop_loss\": %f, \"take_profit\": %f}",

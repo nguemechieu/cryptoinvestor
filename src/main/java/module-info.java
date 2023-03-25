@@ -18,5 +18,6 @@ module cryptoinvestor.cryptoinvestor {
     requires com.fasterxml.jackson.datatype.jsr310;
     requires com.fasterxml.jackson.dataformat.csv;
     requires java.prefs;
+    requires java.scripting;
     exports cryptoinvestor.cryptoinvestor;
 }

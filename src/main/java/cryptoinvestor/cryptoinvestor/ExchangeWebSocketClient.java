@@ -17,9 +17,12 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.logging.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class ExchangeWebSocketClient implements javax.websocket.WebSocketContainer {
+    private static final Logger logger = LoggerFactory.getLogger(ExchangeWebSocketClient.class);
     protected final BooleanProperty connectionEstablished;
     protected final Map<TradePair, LiveTradesConsumer> liveTradeConsumers = new ConcurrentHashMap<TradePair, LiveTradesConsumer>();
 
@@ -62,7 +65,6 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
             public void onMessage(String s) {
                 TradePair.logger.info("Received message: " + s);
 
-                org.slf4j.Logger logger = (org.slf4j.Logger) Logger.getLogger(s);
                 logger.info("Received message: " + s);
 
             }
@@ -112,6 +114,8 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
         return webSocketInitializedLatch;
     }
 
+    public abstract void onMessage(String message) throws TelegramApiException, IOException, InterruptedException;
+
     public void streamLiveTrades(TradePair tradePair, LiveTradesConsumer liveTradesConsumer) throws IOException, InterruptedException, ParseException {
         liveTradeConsumers.put(tradePair, liveTradesConsumer);
         if (connectionEstablished.get()) {
@@ -144,6 +148,8 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
 
     }
 
+
+    public abstract void stopStreamLiveTrades(TradePair tradePair);
 
     public boolean supportsStreamingTrades(TradePair tradePair) {
 
@@ -192,4 +198,8 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
     public abstract boolean isInputClosed();
 
     public abstract void abort();
+
+    public abstract void onClose(int code, String reason, boolean remote);
+
+    public abstract void onOpen(ServerHandshake serverHandshake);
 }

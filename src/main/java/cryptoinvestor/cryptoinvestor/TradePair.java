@@ -270,4 +270,12 @@ public class TradePair extends Pair<Currency, Currency> {
     public Date getStartTime() {
         return new Date();
     }
+
+    public static <U, T> U getInstrument(T t) {
+        return (U) t;
+    }
+
+    public static <K, T> K getPair(T t) {
+        return (K) t;
+    }
 }

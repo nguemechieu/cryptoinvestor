@@ -48,13 +48,13 @@ public class BinanceUs extends Exchange {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static final String ur0 = "wss://stream.binance.us:9443";
+    private static Set<TradePair> tradePairs;
+    private static final ExchangeWebSocketClient binanceUsWebSocket = new BinanceUsWebSocket(tradePairs);
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-    protected String PASSPHRASE = "w73hzit0cgl";
-    protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
 
-    public BinanceUs(  String binanceUsApiKey,String telegramToken) throws IOException, TelegramApiException, InterruptedException {
-        super( binanceUsApiKey, telegramToken);
+    public BinanceUs(  String binanceUsApiKey) {
+        super( binanceUsWebSocket);
 
 
         requestBuilder.header("Content-Type", "application/json");
@@ -439,6 +439,27 @@ public class BinanceUs extends Exchange {
     }
 
     public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE stopLoss, Double quantity, double price, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
+
+        String uriStr = "https://api.binance.us/" +
+                "api/v3/orders/" + tradePair.toString('/') +
+                "?side=" + buy +
+                "&type=" + stopLoss +
+                "&quantity=" + quantity +
+                "&price=" + price +
+                "&stopLoss=" + stopPrice +
+                "&takeProfit=" + takeProfitPrice;
+
+        System.out.println(uriStr);
+
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
+                uriStr
+
+        ));
+
+
     }
 
 
@@ -501,7 +522,7 @@ public class BinanceUs extends Exchange {
                             HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
                     .thenApply(response -> {
-                        Log.info("Binance Us response: -->", response);
+                        Log.info("Binance Us response: -->{}", response);
                         JsonNode res;
                         try {
                             res = OBJECT_MAPPER.readTree(response);
@@ -518,6 +539,9 @@ public class BinanceUs extends Exchange {
                                         Collections.emptyList();
                             }
                             // Remove the current in-progress candle
+
+
+                            logger.info("Binance Us response: --> {}", res);
                             if (res.get(0).get(0).asInt() + secondsPerCandle > endTime.get()) {
                                 ((ArrayNode) res).remove(0);
                             }
@@ -534,6 +558,10 @@ public class BinanceUs extends Exchange {
                                         candle.get(5).asDouble()   // volume
                                 ));
                             }
+                            logger.info(
+                                    "Fetched candle data for " + tradePair.toString('/') + " from " + startTime + " to " + endTime.get() + " in " + secondsPerCandle + " seconds"
+                            );
+                            logger.info(candleData.toString());
                             candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
                             return candleData;
                         } else {

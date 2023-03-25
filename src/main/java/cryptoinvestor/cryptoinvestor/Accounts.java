@@ -1,8 +1,6 @@
 package cryptoinvestor.cryptoinvestor;
 
 
-import java.util.ArrayList;
-
 public class Accounts {
     double balance;
     private String tags;

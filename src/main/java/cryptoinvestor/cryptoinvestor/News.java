@@ -3,6 +3,7 @@ package cryptoinvestor.cryptoinvestor;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import javafx.geometry.Insets;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.TreeItem;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Paint;
@@ -22,7 +23,7 @@ import java.util.HashMap;
 
 import static java.lang.System.out;
 
-class News extends RecursiveTreeObject<News> {
+class News extends TreeItem<News> {
     int hours;
     int seconds;
     String url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=1bed8a31256f1525dbb0b6daf6898823";

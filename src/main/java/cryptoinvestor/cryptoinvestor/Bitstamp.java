@@ -40,9 +40,11 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 public class Bitstamp extends Exchange {
-    public Bitstamp( String bitstamp_key, String bitstamp_secret, String coinbaseSecret) throws TelegramApiException, IOException, InterruptedException {
+    private String apiKey;
 
-        super( bitstamp_key, bitstamp_secret, coinbaseSecret);
+    public Bitstamp(String bitstamp_key, String bitstamp_secret, String coinbaseSecret) throws TelegramApiException, IOException, InterruptedException {
+
+        super( null);
 
 
 
@@ -58,11 +60,11 @@ public class Bitstamp extends Exchange {
 
 
 
-    public void createOrder(double price,ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) {
+    public void createOrder( TradePair tradePair,double price,ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) {
         try {
             String url = "https://api.bitstamp.net/v2/order/new";
             String payload = String.format("{\"pair\": \"%s\", \"type\": \"%s\", \"side\": \"%s\", \"price\": %f, \"quantity\": %f, \"stop_loss\": %f, \"take_profit\": %f}",
-                    tradePair.toString('_'),
+
                     type.toString(),
                     side.toString(),
                     price,

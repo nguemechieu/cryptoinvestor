@@ -3,15 +3,15 @@ package cryptoinvestor.cryptoinvestor;
 import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
+import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.StackPane;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -19,18 +19,20 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.time.Instant;
 
 
 public class TradeView extends StackPane {
     private static final Logger logger = LoggerFactory.getLogger(TradeView.class);
+     double price;
 
 
     private TradePair tradePair;
 
     private Exchange exchange;
 
-    public TradeView(Exchange exchange) throws URISyntaxException, IOException {
+    public TradeView(Exchange exchange) throws URISyntaxException, IOException, ParseException, InterruptedException {
 
         super();
 //
@@ -59,7 +61,7 @@ public class TradeView extends StackPane {
                 new ChoiceBox<>();
 
 
-        tradePair = new TradePair("EUR", "GBP");
+        tradePair = new TradePair("BTC", "USD");
 
         ChoiceBox<String> counterChoicebox = new ChoiceBox<>();
 
@@ -157,7 +159,35 @@ public class TradeView extends StackPane {
                 event -> tabPane.getTabs().remove(tabPane.getSelectionModel().getSelectedItem())
         );
 
-        Button AddBtn = new Button("Load new chart");
+
+        for (Tab  container : tabPane.getTabs()) {
+            Label lab = new Label(tradePair.getBaseCurrency().code + " - " + "USD");
+            if (tradePair.getImage() != null && !tradePair.getImage().isEmpty()) {
+                container.setStyle("-fx-background-image: url(" + tradePair.getImage() + ");");
+                container.setStyle("-fx-background-repeat: no-repeat;");
+                container.setStyle("-fx-background-position: center center;");
+                container.setStyle("-fx-background-size: 100% 100%;");
+                lab.setStyle("-fx-font-weight: bold;");
+                lab.setPadding(new Insets(10, 10, 10, 10));
+
+
+                lab.setGraphic(new ImageView(tradePair.getBaseCurrency().getImage()));
+                container.setGraphic(lab);
+                container.setGraphic(new ImageView(tradePair.getBaseCurrency().getImage()));
+                container.setStyle("-fx-background-image: url(" + tradePair.getBaseCurrency().getImage() + ");");
+            } else {
+
+                anchorPane.setStyle("-fx-background-size: 100% 100%;");
+                anchorPane.setStyle("-fx-background-color: #000000;");
+                lab.setStyle("-fx-font-weight: bold;");
+                setTradePair(tradePair);
+                container.setGraphic(lab);
+                setBorder(Border.stroke(Color.web("#000000")));
+            }
+            logger.info(tradePair.getBaseCurrency().code + " - " + "USD");
+        }Button AddBtn = new Button("Load new chart");
+
+        String telegramToken="9q3vfhm7l33rus21toc8fndupq76itje";
         AddBtn.setOnAction(
                 event -> {
 
@@ -191,7 +221,7 @@ public class TradeView extends StackPane {
                     CandleStickChartContainer container2;
                     try {
                         TradePair tradePair3 = new TradePair(baseCurrency, counterCurrency);
-                        container2 = new CandleStickChartContainer(exchange, tradePair3, true
+                        container2 = new CandleStickChartContainer(exchange, tradePair3, telegramToken, true
                         );
                     } catch (URISyntaxException | IOException e) {
                         throw new RuntimeException(e);
@@ -246,12 +276,24 @@ public class TradeView extends StackPane {
                                 @NotNull Instant timestamp=
                                         Instant.now();
 
-                                try {
 
-                                  if (exchange instanceof Oanda oanda){
+                                double price = Double.parseDouble(baseCurrency + counterCurrency);
+                                if (exchange instanceof Oanda oanda){
 
-                                    oanda.createOrder(
-                                            new TradePair(baseCurrency,counterCurrency), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                  oanda.createOrder(
+                                          new TradePair(baseCurrency,counterCurrency),
+                                          POSITION_FILL.DEFAULT_FILL,
+                                          price,
+                                          ENUM_ORDER_TYPE.MARKET
+                                          , cryptoinvestor.cryptoinvestor.Side.BUY,
+                                          quantity,
+                                          stopPrice,
+                                          takeProfitPrice
+
+                                  );}else  if (exchange instanceof Bitfinex coinbase){
+
+                                    coinbase.createOrder(
+                                            new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                             ENUM_ORDER_TYPE.MARKET,
                                             quantity,
                                             0,
@@ -260,35 +302,20 @@ public class TradeView extends StackPane {
                                             stopPrice,
                                             takeProfitPrice
 
-                                    );}else  if (exchange instanceof Bitfinex coinbase){
+                                    );
 
-                                      coinbase.createOrder(
-                                              new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
-                                              ENUM_ORDER_TYPE.MARKET,
-                                              quantity,
-                                              0,
-                                              timestamp,
-                                              orderID,
-                                              stopPrice,
-                                              takeProfitPrice
+                                }else if (exchange instanceof BinanceUs binanceUs){
+                                    binanceUs.createOrder(
+                                            new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                            ENUM_ORDER_TYPE.MARKET,
+                                            quantity,
+                                            0,
+                                            timestamp,
+                                            orderID,
+                                            stopPrice,
+                                            takeProfitPrice
 
-                                      );
-
-                                  }else if (exchange instanceof BinanceUs binanceUs){
-                                      binanceUs.createOrder(
-                                              new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
-                                              ENUM_ORDER_TYPE.MARKET,
-                                              quantity,
-                                              0,
-                                              timestamp,
-                                              orderID,
-                                              stopPrice,
-                                              takeProfitPrice
-
-                                      );
-                                  }
-                                } catch (IOException | InterruptedException e) {
-                                    throw new RuntimeException(e);
+                                    );
                                 }
 
                             }
@@ -308,25 +335,20 @@ public class TradeView extends StackPane {
 
                                 if (exchange instanceof Oanda oanda){
 
-                                    try {
+
+                                    oanda.createOrder(
+                                            new TradePair(baseCurrency,counterCurrency),
+                                            POSITION_FILL.DEFAULT_FILL,
+                                            price,
+                                            ENUM_ORDER_TYPE.MARKET
+                                           , cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            quantity,
+                                            stopPrice,
+                                            takeProfitPrice
 
 
 
-                                        oanda.createOrder(
-
-                                                new TradePair(baseCurrency,counterCurrency), cryptoinvestor.cryptoinvestor.Side.SELL,
-                                                ENUM_ORDER_TYPE.MARKET,
-                                                quantity,
-                                                0,
-                                                timestamp,
-                                                orderID,
-                                                stopPrice,
-                                                takeProfitPrice
-
-                                        );
-                                    } catch (IOException | InterruptedException e) {
-                                        throw new RuntimeException(e);
-                                    }
+                                    );
                                 }else if (exchange instanceof Coinbase coinbase){
                                     try {
 
@@ -464,11 +486,7 @@ public class TradeView extends StackPane {
                            }
 
                        }else if (exchange instanceof Oanda oanda){
-                        try {
-                            oanda.closeAll();
-                        } catch (IOException | InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
+                        oanda.closeAll();
                     }
                     });
                     gridPane.add(closeAll ,3,0);
@@ -576,20 +594,15 @@ public class TradeView extends StackPane {
                                             throw new RuntimeException(e);
                                         }
                                     }else if (exchange instanceof Oanda oanda){
-                                        try {
-                                            oanda.createOrder(
-                                                    new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
-                                                    ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
-                                                    quantity,
-                                                    0,
-                                                    timestamp,
-                                                    orderID,
-                                                    stopPrice,
-                                                    takeProfitPrice
-                                            );
-                                        } catch (IOException | InterruptedException e) {
-                                            throw new RuntimeException(e);
-                                        }
+                                        oanda.createOrder(
+                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()),
+                                            POSITION_FILL.DEFAULT_FILL,price,
+                                                ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
+                                                cryptoinvestor.cryptoinvestor.Side.SELL,
+                                                quantity,
+                                                stopPrice,
+                                                takeProfitPrice
+                                        );
 
                                     }
                                 });
@@ -689,17 +702,15 @@ public class TradeView extends StackPane {
                                                             takeProfitPrice
                                                     );
                                                 } else if (exchange instanceof Oanda oanda) {
-                                                    oanda.createOrder(
-                                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
-                                                            ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
-                                                            quantity,
-                                                            price,
-                                                            timestamp,
-                                                            orderID,
-                                                            stopPrice,
-                                                            takeProfitPrice
-                                                    );
-
+                                                   oanda.createOrder(
+                                                           new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()),
+                                                           POSITION_FILL.DEFAULT_FILL,price,
+                                                           ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
+                                                           cryptoinvestor.cryptoinvestor.Side.SELL,
+                                                           quantity,
+                                                           stopPrice,
+                                                           takeProfitPrice
+                                                   );
 
                                                 }
                                             }
@@ -735,12 +746,11 @@ public class TradeView extends StackPane {
 
                                     if (exchange instanceof Oanda oanda){
                                         oanda.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()),
+                                                POSITION_FILL.DEFAULT_FILL,price,
                                                 ENUM_ORDER_TYPE.STOP_LOSS,
+                                                cryptoinvestor.cryptoinvestor.Side.SELL,
                                                 quantity,
-                                                price,
-                                                timestamp,
-                                                orderID,
                                                 stopPrice,
                                                 takeProfitPrice
                                         );
@@ -895,13 +905,13 @@ public class TradeView extends StackPane {
                                             stopPrice,
                                             takeProfitPrice
                                     );
-                                }else if (exchange instanceof Oanda oanda){oanda.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                }else if (exchange instanceof Oanda oanda){
+                                    oanda.createOrder(
+                                            new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()),
+                                            POSITION_FILL.DEFAULT_FILL,price,
                                             ENUM_ORDER_TYPE.STOP_LOSS,
+                                            cryptoinvestor.cryptoinvestor.Side.SELL,
                                             quantity,
-                                            price,
-                                            timestamp,
-                                            orderID,
                                             stopPrice,
                                             takeProfitPrice
                                     );
@@ -917,7 +927,7 @@ public class TradeView extends StackPane {
                                     long orderID=
                                             Math.round(Instant.now().getEpochSecond() * 1000000);
                                     if (exchange instanceof Coinbase coinbase){
-                                        coinbase.CancelOrder(orderID);
+                                        coinbase.cancelOrder(orderID);
                                     }else if (exchange instanceof Bittrex bittrex){
                                         bittrex.CancelOrder(orderID);
                                     }
@@ -960,7 +970,7 @@ public class TradeView extends StackPane {
                                     }else if (exchange instanceof Bitstamp bitstamp){
                                         bitstamp.CancelOrder(orderID);
                                     }else if (exchange instanceof Coinbase coinbase){
-                                        coinbase.CancelOrder(orderID);
+                                        coinbase.cancelOrder(orderID);
                                     }else if (exchange instanceof BinanceUs binanceUs){
                                         binanceUs.CancelOrder(orderID);
                                     }else if (exchange instanceof Kucoin kucoin){
@@ -1107,7 +1117,7 @@ public class TradeView extends StackPane {
         tabPane.setSide(Side.BOTTOM);
 
         CandleStickChartContainer container =
-                new CandleStickChartContainer(exchange, new TradePair("USD","CAD"), true
+                new CandleStickChartContainer(exchange, new TradePair("BTC","USD"), telegramToken, true
                 );
 
         anchorPane.setPadding(new Insets(10, 10, 10, 10));
@@ -1122,7 +1132,7 @@ public class TradeView extends StackPane {
 
 
         tradeTab.setContent(new
-                CandleStickChartContainer(exchange, new TradePair(baseCurrency,counterCurrency), true));
+                CandleStickChartContainer(exchange, new TradePair(baseCurrency,counterCurrency), telegramToken, true));
 
         tabPane.getTabs().add(tradeTab);
 

@@ -72,12 +72,12 @@ public class TradeViewImpl extends Region {
             container.setStyle("-fx-background-size: 100% 100%;");
             container.setPrefSize(1500,500
             );
-            Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+            Coinbase coinbase = new Coinbase();//"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
 if (index>2){
     break;
 }
             tradePair= new TradePair("BTC", "USD");
-            CandleStickChartContainer candleStickChartContainer = new CandleStickChartContainer(coinbase,tradePair,true);
+            CandleStickChartContainer candleStickChartContainer = new CandleStickChartContainer(coinbase,tradePair, "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", true);
             candleStickChartContainer.setPrefSize(1000,400);
             candleStickChartContainer.setBorder(Border.stroke(Color.rgb(25, 195, 255, 0.5)));
 

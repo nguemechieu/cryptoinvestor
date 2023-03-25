@@ -51,9 +51,10 @@ public class Kraken extends Exchange {
     protected String PASSPHRASE = "w73hzit0cgl";
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
+    private final HttpClient client=HttpClient.newHttpClient();
 
     public Kraken( String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException, InterruptedException {
-        super(ur0, telegramToken, binanceUsApiKey);
+        super(null);
 
 
         requestBuilder.header("Content-Type", "application/json");
@@ -70,7 +71,7 @@ public class Kraken extends Exchange {
 
 
     public Kraken(String coinbaseApiKey, String coinbaseSecret, String telegramToken) throws TelegramApiException, IOException {
-        super(coinbaseApiKey, coinbaseSecret, telegramToken);
+        super(null);
     }
 
     @Override
@@ -420,7 +421,24 @@ public class Kraken extends Exchange {
     public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE stopLoss, Double quantity, double price, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
     }
 
-    public void CancelOrder(long orderID) {
+    public void CancelOrder(long orderID) throws IOException, InterruptedException {
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
+
+        String uriStr = "https://api.kraken.com/" +
+                "api/v3/orders/" + orderID;
+
+        requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.header("Accept", "application/json");
+
+        requestBuilder.method("DELETE",
+                HttpRequest.BodyPublishers.noBody());
+
+        HttpResponse<String> response= client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+
+        System.out.println(response.statusCode());
+
+        System.out.println(uriStr);
     }
 
 

@@ -3,27 +3,20 @@ package cryptoinvestor.cryptoinvestor;
 import javafx.collections.ListChangeListener;
 import javafx.concurrent.Worker;
 import javafx.geometry.Pos;
-import javafx.scene.Group;
 import javafx.scene.Node;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Hyperlink;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Paint;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
 import netscape.javascript.JSObject;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
 import java.util.Date;
-import java.util.Objects;
 
 public class Browser extends Region {
     static final String[] urls = new String[]{
@@ -34,16 +27,20 @@ public class Browser extends Region {
     };
 
     static String[] imageFiles = new String[]{
-            "7123025_logo_google_g_icon.png",
+           "7123025_logo_google_g_icon.png",
             "8377-ebay_102466 (1).png",
             "amazon.png",
             "Facebook-PNG-Photos (1).png"};
+
+
+
+
     static ImageView selectedImage = new ImageView();
-    static WebView smallView = new WebView();
+
     static
     WebView webView = new WebView();
-    final Image[] images = new Image[imageFiles.length];
-    final Button showPrevDoc = new Button("Toggle Previous Docs");
+
+
     WebEngine webEngine = webView.getEngine();
     String[] captions = new String[]{
             "Google",
@@ -57,51 +54,15 @@ public class Browser extends Region {
     ComboBox<String> comboBox = new ComboBox<>();
     boolean needDocumentationButton = false;
     TabPane tabPane = new TabPane();
-    private ENUM_EXCHANGE_LIST i;
-    private final DraggableTab tab = new DraggableTab(new Date().toString(), i.getIcon());
 
 
     public Browser() {
         //apply the styles'
-        //pane.getStyleClass().add("app.css");
-        for (int i = 0; i < captions.length; i++) {
-            // create hyperlinks
-            Hyperlink hpl = pls[i] = new Hyperlink(captions[i]);
-            Image image = images[i] = new Image(Objects.requireNonNull(getClass().getResourceAsStream(imageFiles[i])));
-            hpl.setGraphic(new ImageView(image));
-            String url = urls[i];
 
-
-            boolean addButton = (hpl.getText().equals("Documentation"));
-            // process event
-            hpl.setOnAction(e -> {
-                needDocumentationButton = addButton;
-                webEngine.load(Objects.requireNonNull(getClass().getResourceAsStream(imageFiles[1])).toString());
-            });
-        }
-        // create the toolbar
-        toolBar = new HBox();
-        toolBar.setAlignment(Pos.CENTER);
-        toolBar.getStyleClass().add("browser-toolbar");
-        toolBar.getChildren().add(comboBox);
-        toolBar.getChildren().addAll(pls);
-        toolBar.getChildren().add(createSpacer());
-
-        //set action for the button
-        showPrevDoc.setOnAction(t -> webEngine.executeScript("toggleDisplay('PrevRel')"));
-
-        smallView.setPrefSize(120, 80);
-        //handle popup windows
-        webEngine.setCreatePopupHandler(
-                config -> {
-                    smallView.setFontScale(0.8);
-                    if (!toolBar.getChildren().contains(smallView)) {
-                        toolBar.getChildren().add(smallView);
-                    }
-                    return smallView.getEngine();
-                }
-        );
-
+        getStyleClass().add("browser");
+        HBox hbox=new HBox();
+        hbox.setAlignment(Pos.CENTER);
+        hbox.setSpacing(10);
         //process history
         WebHistory history = webEngine.getHistory();
         history.getEntries().addListener((ListChangeListener<WebHistory.Entry>) c -> {
@@ -125,76 +86,89 @@ public class Browser extends Region {
             }
         });
         // process page loading
-        webEngine.getLoadWorker().stateProperty().addListener(
-                (ov, oldState, newState) -> {
-                    toolBar.getChildren().remove(showPrevDoc);
-                    if (newState == Worker.State.SUCCEEDED) {
-                        JSObject win = (JSObject) webEngine.executeScript("window");
-                        win.setMember("app", new JavaApp());
-                        win.setMember("showPrevDoc", showPrevDoc);
-                        win.setMember("selectedImage", selectedImage);
-                        if (needDocumentationButton) {
-                            toolBar.getChildren().add(showPrevDoc);
-                        }
-                    }
-                });
+
 
         // load the home pag
-        webEngine.load("https://www.google.com");
+
+        DraggableTab tab = new DraggableTab(new Date().toString(), "");
+        WebView webView1 = new WebView();
+        webView1.getEngine().load("https://www.google.com");
+        tab.setContent(webView1);
+        tabPane.getTabs().add(tab);
+
+         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
+        Button addButton = new Button("+");
+        tabPane.setTranslateY(25);
+
+        tabPane.setPrefSize(1530, 780);
+        VBox  h1box=new VBox();
+        h1box.setAlignment(Pos.CENTER);
+        h1box.setSpacing(5);
+
+        h1box.getChildren().addAll(new HBox(removeButton(),addButton,refreshButton(),screenShotButton(),goBack(),goForward(),downloadButton()),tabPane);
 
 
-        getChildren().add(toolBar);
-        getChildren().add(smallView);
-        getChildren().add(tabPane);
+        TextField label=new TextField();
 
-    }
+        label.setBackground(
+               Background.fill(
+                       Paint.valueOf(
+                               "rgba(25, 189, 189, 1)"
 
-    @Contract(" -> new")
-    public @NotNull Group start() throws Exception {
-
-        DraggableTab tab1 = new DraggableTab("Google", i.getIcon());
-        TabPane tabPane = new TabPane();
-        tabPane.getTabs().add(tab1);
-
-
-        tab1.setClosable(true);
-        WebView webWiew1 = new WebView();
-        webWiew1.getEngine().load("https://www.google.com/search?q");
-        tab1.setContent(webWiew1);
-        tab1.setGraphic(new ImageView(selectedImage.getImage()));
-        webWiew1.setPrefSize(1500, 780);
-
-
-        DraggableTab tab2 = new DraggableTab("Amazon", i.getIcon());
-        tab2.setClosable(true);
-        WebView webWiew2 = new WebView();
-        webWiew2.getEngine().load("https://www.amazon.com");
-        webWiew2.setPrefSize(1500, 780);
-
-
-        tab.setGraphic(new ImageView(selectedImage.getImage()));
-        WebView web3 = new WebView();
-        web3.setPrefSize(1500, 780);
-
-
-        tabPane.getTabs().addAll(tab1);
-        Pane pane = new Pane();
-        HBox btn = new HBox(removeButton(), addButton());
-        btn.setAlignment(Pos.CENTER);
-        btn.setTranslateX(
-                (tabPane.getTabs().size() - 1) * 100 + 100
+                       )
+               )
         );
-        pane.getChildren().addAll(smallView, btn, tabPane);
-        pane.setPrefSize(1530, 780);
+        addButton.setOnAction(e ->{   DraggableTab tab1 = new DraggableTab(captions[0], "");
+            label.setPromptText("  Enter a keyword to search for");
+            label.setOnAction(ev -> {
+                String keyword = label.getText();
+                if (keyword!= null &&!keyword.isEmpty()) {
+                    WebView webView3 = new WebView();
+                    webView3.getEngine().load("https://www.google.com/search?q=" + keyword);
 
-        return new Group(pane);
+                    tabPane.getSelectionModel().getSelectedItem().setContent(webView3);
+                }
+            });
+
+            WebView webView4 = new WebView();
+            webView4.getEngine().load("https://www.google.com");
+            tab1.setContent(webView4);
+            tabPane.getTabs().add(tab1);
+        });
+
+        label.setPrefWidth(800);
+        label.setMaxHeight(100);
+        label.setPromptText("Enter a keyword to search for");
+        HBox searchBox = new HBox(comboBox,label);
+        getChildren().addAll(new VBox(hbox,new Separator(), searchBox, h1box));
+        label.setOnAction(ev -> {
+            String keyword = label.getText();
+            if (keyword!= null &&!keyword.isEmpty()) {
+                WebView webView0= new WebView();
+                webView0.getEngine().load("https://www.google.com/search?q=" + keyword);
+
+                tabPane.getSelectionModel().getSelectedItem().setContent(webView0);
+                label.setText("");
+                tabPane.getTabs().add(
+                        new DraggableTab(captions[0], "")
+                );
+            }
+        });
+
+
+
+
     }
 
-    private @NotNull Button addButton() {
-        Button button = new Button("+");
-        button.setOnAction(e -> tabPane.getTabs().add(tab));
+
+
+
+private @NotNull Button downloadButton(){
+        Button button = new Button("Download");
+        button.setOnAction(e -> webEngine.executeScript("window.print()"));
         return button;
-    }
+
+}
 
     private @NotNull Button removeButton() {
         Button button = new Button("-");
@@ -203,6 +177,43 @@ public class Browser extends Region {
         return button;
     }
 
+    private @NotNull Button refreshButton() {
+        Button button = new Button("Refresh");
+        button.setOnAction(e -> webEngine.reload());
+        return button;
+    }
+
+    private @NotNull Node createImage(String url) {
+        Image image = new Image(url);
+        selectedImage.setImage(image);
+        return selectedImage;
+    }
+    private @NotNull Node createLink(String url) {
+        Hyperlink link = new Hyperlink(url);
+        link.setOnAction(e -> webEngine.load(url));
+        return link;
+    }
+    private @NotNull  Button goBack () {
+        Button button = new Button("Go Back");
+        button.setOnAction(e -> webEngine.getHistory().go(-1));
+        return button;
+    }
+    private @NotNull  Button goForward () {
+        Button button = new Button("Go Forward");
+        button.setOnAction(e -> webEngine.getHistory().go(1));
+        return button;
+    }
+
+    private @NotNull Button screenShotButton() {
+        Button button = new Button("Screen Shot");
+        button.setOnAction(e -> {
+            webEngine.executeScript("window.print()");
+            webEngine.getDocument().createElement("img");
+            Screenshot.capture(new File("screenshot.png"));
+
+        });
+        return button;
+    }
     private @NotNull Node createSpacer() {
         Region region = new Region();
         region.getStyleClass().add("app");
