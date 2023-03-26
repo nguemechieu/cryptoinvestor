@@ -26,7 +26,6 @@ public final class FastMoney implements Money, Comparable<FastMoney> {
     private final long amount;
     private final int precision;
     private final Currency currency;
-
     private FastMoney(long amount, Currency currency) {
         this(amount, currency, currency.getFractionalDigits());
     }

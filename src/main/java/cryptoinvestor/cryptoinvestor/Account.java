@@ -5,11 +5,174 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 
 import java.io.Serializable;
+import java.util.Date;
 
 
 @Entity
 
 public class Account implements Serializable {
+
+String          uuid;
+//    string
+//    Unique identifier for account.
+String           name;
+    private double available;
+
+    public String getUuid() {
+        return uuid;
+    }
+
+    public void setUuid(String uuid) {
+        this.uuid = uuid;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getSymbol() {
+        return symbol;
+    }
+
+    public void setSymbol(String symbol) {
+        this.symbol = symbol;
+    }
+
+    public Object getAvailable_balance() {
+        return available_balance;
+    }
+
+    public void setAvailable_balance(Object available_balance) {
+        this.available_balance = available_balance;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    public void setValue(Object value) {
+        this.value = value;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public Date getCreated_at() {
+        return created_at;
+    }
+
+    public void setCreated_at(Date created_at) {
+        this.created_at = created_at;
+    }
+
+    public Date getUpdated_at() {
+        return updated_at;
+    }
+
+    public void setUpdated_at(Date updated_at) {
+        this.updated_at = updated_at;
+    }
+
+    public Date getDeleted_at() {
+        return deleted_at;
+    }
+
+    public void setDeleted_at(Date deleted_at) {
+        this.deleted_at = deleted_at;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public Object getPossible_values() {
+        return Possible_values;
+    }
+
+    public void setPossible_values(Object possible_values) {
+        Possible_values = possible_values;
+    }
+
+    public boolean isReady() {
+        return ready;
+    }
+
+    public void setReady(boolean ready) {
+        this.ready = ready;
+    }
+
+    public Object getHold() {
+        return hold;
+    }
+
+    public void setHold(Object hold) {
+        this.hold = hold;
+    }
+
+    public Object getExchange() {
+        return exchange;
+    }
+
+    public void setExchange(Object exchange) {
+        this.exchange = exchange;
+    }
+
+    //            string
+//    Name for the account.
+String   currency;
+//            string
+   String symbol;// for the account.
+Object    available_balance;
+//            object
+//    required
+Object          value;
+//    string
+//    Amount of currency that this object represents.
+//    currency
+//            string
+//    Denomination of the currency.
+//    default
+//    boolean
+//    Whether or not this account is the user's primary account
+boolean   active;
+//    boolean
+//    Whether or not this account is active and okay to use.
+Date           created_at;
+//   date_time;
+//    Time at which this account was created.
+Date updated_at;
+//    date-time
+//    Time at which this account was updated.
+Date            deleted_at;
+//    date-time
+//    Time at which this account was deleted.
+String            type;
+//            string
+  Object Possible_values;//: //[ACCOUNT_TYPE_UNSPECIFIED, ACCOUNT_TYPE_CRYPTO, ACCOUNT_TYPE_FIAT, ACCOUNT_TYPE_VAULT]
+  boolean  ready;
+//    boolean
+//    Whether or not this account is ready to trade.
+Object           hold;
+//            object
+//    required
+
+//    string
+//    Amount of currency that this object represents.
+//            string
+//    Denomination of the currency.
     @JsonProperty("createdByUserID")
     public int createdByUserID;
     @JsonProperty("NAV")
@@ -27,7 +190,7 @@ public class Account implements Serializable {
     public double financing;
     public String createdTime;
     public String alias;
-    public String currency;
+
     public double commission;
     public double marginCloseoutPercent;
     @Id
@@ -361,5 +524,13 @@ public class Account implements Serializable {
 
     public void setId(Long id) {
         this.id = String.valueOf(id);
+    }
+
+    public double getAvailable() {
+        return available;
+    }
+
+    public void setAvailable(double available) {
+        this.available = available;
     }
 }

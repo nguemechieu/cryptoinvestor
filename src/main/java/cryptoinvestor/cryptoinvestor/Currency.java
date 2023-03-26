@@ -125,6 +125,10 @@ public abstract class Currency {
         this.image = image;
     }
 
+    public short getIsoCode() {
+        return this.currencyType.getIsoCode();
+    }
+
     private static class NullCryptoCurrency extends CryptoCurrency {
         protected NullCryptoCurrency(CurrencyType crypto, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {
             super(crypto,

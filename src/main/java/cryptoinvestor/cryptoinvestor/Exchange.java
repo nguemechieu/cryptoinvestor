@@ -59,4 +59,52 @@ public abstract class Exchange {
     public abstract void onClose(int code, String reason, boolean remote);
 
     public abstract void onError(Exception ex);
+
+    public abstract String getSymbol();
+
+    public abstract String getPrice();
+
+    public abstract String getVolume();
+
+    public abstract String getOpen();
+
+    public abstract String getHigh();
+
+    public abstract String getLow();
+
+    public abstract String getClose();
+
+    public abstract String getTimestamp();
+
+    public abstract String getTradeId();
+
+    public abstract String getOrderId();
+
+    public abstract String getTradeType();
+
+    public abstract String getSide();
+
+    public abstract String getExchange();
+
+    public abstract String getCurrency();
+
+    public abstract String getAmount();
+
+    public abstract String getFee();
+
+    public abstract String getAvailable();
+
+    public abstract String getBalance();
+
+    public abstract String getPending();
+
+    public abstract String getTotal();
+
+    public abstract String getDeposit();
+
+    public abstract String getWithdraw();
+
+    public abstract void deposit(Double value);
+
+    public abstract void withdraw(Double value);
 }

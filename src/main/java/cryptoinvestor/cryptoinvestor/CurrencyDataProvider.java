@@ -1193,7 +1193,6 @@ public class CurrencyDataProvider {
 //            this.id = o.toString();
 //        }
 //    }
+    }
 }
-}
- 
 

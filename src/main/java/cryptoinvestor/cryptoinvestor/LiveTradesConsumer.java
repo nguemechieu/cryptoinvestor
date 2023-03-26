@@ -1,6 +1,7 @@
 package cryptoinvestor.cryptoinvestor;
 
 import java.io.IOException;
+import java.net.http.WebSocket;
 import java.text.ParseException;
 import java.util.List;
 
@@ -13,4 +14,6 @@ public interface LiveTradesConsumer {
     void onConnectionFailed() throws IOException, InterruptedException;
 
     void onMessage(String message) throws IOException, InterruptedException;
+
+
 }

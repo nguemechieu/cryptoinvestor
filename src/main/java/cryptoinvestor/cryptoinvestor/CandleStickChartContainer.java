@@ -42,7 +42,7 @@ public class CandleStickChartContainer extends Region {
     public CandleStickChartContainer(Exchange exchange, TradePair tradePair, String telegramToken, boolean liveSyncing) throws URISyntaxException, IOException {
         Objects.requireNonNull(exchange, "exchange must not be null");
         Objects.requireNonNull(tradePair, "tradePair must not be null");
-this.telegramToken=telegramToken;
+        this.telegramToken=telegramToken;
 
         this.tradePair = tradePair;
         this.liveSyncing = liveSyncing;

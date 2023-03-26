@@ -49,9 +49,12 @@ public class BinanceUs extends Exchange {
 
     private static final String ur0 = "wss://stream.binance.us:9443";
     private static Set<TradePair> tradePairs;
-    private static final ExchangeWebSocketClient binanceUsWebSocket = new BinanceUsWebSocket(tradePairs);
+    private static final ExchangeWebSocketClient binanceUsWebSocket = new BinanceUsWebSocket();
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-    String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
+    private final String api_key;
+
+    private final HttpClient client=HttpClient.newHttpClient(
+    );
 
     public BinanceUs(  String binanceUsApiKey) {
         super( binanceUsWebSocket);
@@ -64,12 +67,14 @@ public class BinanceUs extends Exchange {
         requestBuilder.header("Sec-Fetch-Dest", "empty");
         requestBuilder.header("Sec-Fetch-Mode", "cors");
         requestBuilder.header("Accept", "application/json");
-        requestBuilder.header("Authorization", binanceUsApiKey);
+        requestBuilder.header("Authorization",
+                "Bearer " + binanceUsApiKey
+                );
 
         logger.info("BinanceUs " + nanoTime());
 
 
-
+this .api_key = binanceUsApiKey;
 
     }
 
@@ -164,7 +169,7 @@ public class BinanceUs extends Exchange {
                 }
                 requestBuilder.uri(URI.create(uriStr));
                 try {
-                    HttpResponse<String> response = HttpClient.newHttpClient().send(requestBuilder.build()
+                    HttpResponse<String> response = client.send(requestBuilder.build()
                             ,
                             HttpResponse.BodyHandlers.ofString());
 
@@ -250,8 +255,8 @@ public class BinanceUs extends Exchange {
         }
         String timeFrame = x + str;
 
-        return HttpClient.newHttpClient().sendAsync(
-                        HttpRequest.newBuilder()
+        return client.sendAsync(
+                        requestBuilder
                                 .uri(URI.create(
                                         "https://api.binance.us/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame
                                 ))
@@ -331,7 +336,7 @@ public class BinanceUs extends Exchange {
             conn.setRequestProperty("charset", "utf-8");
             conn.setRequestProperty("Accept-Charset", "utf-8");
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10)");
-            conn.setRequestProperty("CB-ACCESS-KEY", API_KEY0);//    API key as a string
+            conn.setRequestProperty("CB-ACCESS-KEY", api_key);//    API key as a string
             String timestamp = new Date().toString();
 
             conn.setRequestProperty("CB-ACCESS-SIGN", timestamp + "GET" + url);
@@ -406,6 +411,126 @@ public class BinanceUs extends Exchange {
 
     }
 
+    @Override
+    public String getSymbol() {
+        return null;
+    }
+
+    @Override
+    public String getPrice() {
+        return null;
+    }
+
+    @Override
+    public String getVolume() {
+        return null;
+    }
+
+    @Override
+    public String getOpen() {
+        return null;
+    }
+
+    @Override
+    public String getHigh() {
+        return null;
+    }
+
+    @Override
+    public String getLow() {
+        return null;
+    }
+
+    @Override
+    public String getClose() {
+        return null;
+    }
+
+    @Override
+    public String getTimestamp() {
+        return null;
+    }
+
+    @Override
+    public String getTradeId() {
+        return null;
+    }
+
+    @Override
+    public String getOrderId() {
+        return null;
+    }
+
+    @Override
+    public String getTradeType() {
+        return null;
+    }
+
+    @Override
+    public String getSide() {
+        return null;
+    }
+
+    @Override
+    public String getExchange() {
+        return null;
+    }
+
+    @Override
+    public String getCurrency() {
+        return null;
+    }
+
+    @Override
+    public String getAmount() {
+        return null;
+    }
+
+    @Override
+    public String getFee() {
+        return null;
+    }
+
+    @Override
+    public String getAvailable() {
+        return null;
+    }
+
+    @Override
+    public String getBalance() {
+        return null;
+    }
+
+    @Override
+    public String getPending() {
+        return null;
+    }
+
+    @Override
+    public String getTotal() {
+        return null;
+    }
+
+    @Override
+    public String getDeposit() {
+        return null;
+    }
+
+    @Override
+    public String getWithdraw() {
+        return null;
+    }
+
+    @Override
+    public void deposit(Double value) {
+
+    }
+
+    @Override
+    public void withdraw(Double value) {
+
+    }
+
     public void createOrder(
             @NotNull TradePair tradePair, TRADE_ORDER_TYPE orderType,
             Side side,
@@ -460,6 +585,10 @@ public class BinanceUs extends Exchange {
         ));
 
 
+    }
+
+    public String getApi_key() {
+        return api_key;
     }
 
 
@@ -557,11 +686,12 @@ public class BinanceUs extends Exchange {
                                         candle.get(0).asInt(),     // open time
                                         candle.get(5).asDouble()   // volume
                                 ));
+                                logger.info(candleData.toString());
                             }
                             logger.info(
                                     "Fetched candle data for " + tradePair.toString('/') + " from " + startTime + " to " + endTime.get() + " in " + secondsPerCandle + " seconds"
                             );
-                            logger.info(candleData.toString());
+
                             candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
                             return candleData;
                         } else {

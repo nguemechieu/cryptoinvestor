@@ -45,7 +45,7 @@ import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 public class Oanda extends Exchange {
     public static final Logger logger = LoggerFactory.getLogger(Oanda.class);
-    public static final String API_VERSION = "v2";
+
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -93,11 +93,30 @@ public class Oanda extends Exchange {
 requestBuilder.header("Authorization", "Bearer " + apiKey);
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("Accept", "application/json");
-        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
         requestBuilder.header("Origin", "https://api-fxtrade.oanda.com");
         requestBuilder.header("Referer", "https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/");
         requestBuilder.header("Sec-Fetch-Dest", "empty");
         requestBuilder.header("Sec-Fetch-Mode", "cors");
+        requestBuilder.header("Sec-Fetch-Site", "same-origin");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+
+
+        requestBuilder.header(
+                "Access-Control-Allow-Credentials",
+                "true"
+        );
+        requestBuilder.header(
+                "Access-Control-Allow-Headers",
+                "Origin, X-Requested-With, Content-Type, Accept"
+        );
+        requestBuilder.header(
+                "Access-Control-Allow-Methods",
+                "GET, POST, PUT, DELETE, OPTIONS"
+        );
+
+
+
+
 
 
         logger.info("Oanda initialized");
@@ -418,6 +437,126 @@ requestBuilder.header("Authorization", "Bearer " + apiKey);
 
     }
 
+    @Override
+    public String getSymbol() {
+        return null;
+    }
+
+    @Override
+    public String getPrice() {
+        return null;
+    }
+
+    @Override
+    public String getVolume() {
+        return null;
+    }
+
+    @Override
+    public String getOpen() {
+        return null;
+    }
+
+    @Override
+    public String getHigh() {
+        return null;
+    }
+
+    @Override
+    public String getLow() {
+        return null;
+    }
+
+    @Override
+    public String getClose() {
+        return null;
+    }
+
+    @Override
+    public String getTimestamp() {
+        return null;
+    }
+
+    @Override
+    public String getTradeId() {
+        return null;
+    }
+
+    @Override
+    public String getOrderId() {
+        return null;
+    }
+
+    @Override
+    public String getTradeType() {
+        return null;
+    }
+
+    @Override
+    public String getSide() {
+        return null;
+    }
+
+    @Override
+    public String getExchange() {
+        return null;
+    }
+
+    @Override
+    public String getCurrency() {
+        return null;
+    }
+
+    @Override
+    public String getAmount() {
+        return null;
+    }
+
+    @Override
+    public String getFee() {
+        return null;
+    }
+
+    @Override
+    public String getAvailable() {
+        return null;
+    }
+
+    @Override
+    public String getBalance() {
+        return null;
+    }
+
+    @Override
+    public String getPending() {
+        return null;
+    }
+
+    @Override
+    public String getTotal() {
+        return null;
+    }
+
+    @Override
+    public String getDeposit() {
+        return null;
+    }
+
+    @Override
+    public String getWithdraw() {
+        return null;
+    }
+
+    @Override
+    public void deposit(Double value) {
+
+    }
+
+    @Override
+    public void withdraw(Double value) {
+
+    }
+
     // Get all orders
     //       GET
     //https://api.exchange.coinbase.com/orders
@@ -651,11 +790,11 @@ requestBuilder.header("Authorization", "Bearer " + apiKey);
                     .format(LocalDateTime.ofEpochSecond(startTime, 0, ZoneOffset.UTC));
 
             String uriStr ="https://api-fxtrade.oanda.com/v3/instruments/"+tradePair.toString('_')+"/candles?count=6&price=M&granularity=M30";
-
-            if (startTime == EARLIEST_DATA) {
-                // signal more data is false
-                return CompletableFuture.completedFuture(Collections.emptyList());
-            }
+//
+//            if (startTime == EARLIEST_DATA) {
+//                // signal more data is false
+//                return CompletableFuture.completedFuture(Collections.emptyList());
+//            }
             requestBuilder.uri(URI.create(uriStr));
             //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
             return client.sendAsync(
@@ -667,6 +806,9 @@ requestBuilder.header("Authorization", "Bearer " + apiKey);
                         JsonNode res;
                         try {
                             res = OBJECT_MAPPER.readTree(response);
+                            logger.info(
+                                    "Oanda response f: " + res.toString()
+                            );
 
 
                         } catch (JsonProcessingException ex) {
@@ -674,21 +816,13 @@ requestBuilder.header("Authorization", "Bearer " + apiKey);
                         }
                         try {
                             if (!res.isEmpty()) {
-
-
                                 // Remove the current in-progress candle
-
                                 int time=0;
 
-                                if (res.has("time")) {
                                     logger.debug("time: " + time + ", endTime: " + endTime.get()
                                     );
                                     time = (int) Date.from(Instant.parse(res.get("time").asText())).getTime();
-                                }else {logger.debug(
-                                        "No time in response"
-                                );
-                                    return Collections.emptyList();
-                                }
+
 //                                    time = (int) Date.from(Instant.parse(res.get(i).get("time").asText())).getTime();
 //                                }
 

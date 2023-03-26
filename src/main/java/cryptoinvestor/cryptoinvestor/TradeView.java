@@ -9,9 +9,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -19,22 +17,24 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.text.ParseException;
 import java.time.Instant;
+import java.util.Date;
 
 
-public class TradeView extends StackPane {
+public class TradeView extends Region  {
     private static final Logger logger = LoggerFactory.getLogger(TradeView.class);
-     double price;
+    double price;
 
 
     private TradePair tradePair;
 
-    private Exchange exchange;
-
-    public TradeView(Exchange exchange) throws URISyntaxException, IOException, ParseException, InterruptedException {
+    public TradeView(Exchange exchange, String telegramToken) throws URISyntaxException, IOException {
 
         super();
+        TabPane tradingTabPane = new TabPane();
+        tradingTabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
+        tradingTabPane.setSide(Side.TOP);
+
 //
 //        28,326.39 USD
 //        Last trade price
@@ -60,12 +60,7 @@ public class TradeView extends StackPane {
         ChoiceBox<String> symbolChoicebox =
                 new ChoiceBox<>();
 
-
-        tradePair = new TradePair("BTC", "USD");
-
         ChoiceBox<String> counterChoicebox = new ChoiceBox<>();
-
-
         symbolChoicebox.getItems().addAll(
                 "USD",
                 "EUR",
@@ -133,15 +128,7 @@ public class TradeView extends StackPane {
         );
 
                 for (Currency symbol : CurrencyDataProvider.getInstance()) {
-
-
-
-
                     if (symbol.currencyType.equals(CurrencyType.CRYPTO)) {
-
-
-
-
                         symbolChoicebox.getItems().addAll(
                                 symbol.code
                         );
@@ -152,42 +139,15 @@ public class TradeView extends StackPane {
 
         symbolChoicebox.setValue("SELECT A BASE CURRENCY");
         counterChoicebox.setValue("USD");
-
-
         Button removeBtn = new Button("Remove");
         removeBtn.setOnAction(
-                event -> tabPane.getTabs().remove(tabPane.getSelectionModel().getSelectedItem())
+                event -> tradingTabPane.getTabs().remove(tradingTabPane.getSelectionModel().getSelectedItem())
         );
 
 
-        for (Tab  container : tabPane.getTabs()) {
-            Label lab = new Label(tradePair.getBaseCurrency().code + " - " + "USD");
-            if (tradePair.getImage() != null && !tradePair.getImage().isEmpty()) {
-                container.setStyle("-fx-background-image: url(" + tradePair.getImage() + ");");
-                container.setStyle("-fx-background-repeat: no-repeat;");
-                container.setStyle("-fx-background-position: center center;");
-                container.setStyle("-fx-background-size: 100% 100%;");
-                lab.setStyle("-fx-font-weight: bold;");
-                lab.setPadding(new Insets(10, 10, 10, 10));
+     Button AddBtn = new Button("Load new chart");
 
 
-                lab.setGraphic(new ImageView(tradePair.getBaseCurrency().getImage()));
-                container.setGraphic(lab);
-                container.setGraphic(new ImageView(tradePair.getBaseCurrency().getImage()));
-                container.setStyle("-fx-background-image: url(" + tradePair.getBaseCurrency().getImage() + ");");
-            } else {
-
-                anchorPane.setStyle("-fx-background-size: 100% 100%;");
-                anchorPane.setStyle("-fx-background-color: #000000;");
-                lab.setStyle("-fx-font-weight: bold;");
-                setTradePair(tradePair);
-                container.setGraphic(lab);
-                setBorder(Border.stroke(Color.web("#000000")));
-            }
-            logger.info(tradePair.getBaseCurrency().code + " - " + "USD");
-        }Button AddBtn = new Button("Load new chart");
-
-        String telegramToken="9q3vfhm7l33rus21toc8fndupq76itje";
         AddBtn.setOnAction(
                 event -> {
 
@@ -211,7 +171,6 @@ public class TradeView extends StackPane {
                         alert.setHeaderText(null);
                         alert.setContentText("Please select a counter currency");
                         alert.showAndWait();
-
                         return;
                     }
 
@@ -221,19 +180,26 @@ public class TradeView extends StackPane {
                     CandleStickChartContainer container2;
                     try {
                         TradePair tradePair3 = new TradePair(baseCurrency, counterCurrency);
-                        container2 = new CandleStickChartContainer(exchange, tradePair3, telegramToken, true
+                        container2 = new CandleStickChartContainer(exchange,  tradePair3,telegramToken,true
                         );
+
+                        tradeTab2.setContent(
+                                container2
+                        );
+                        tradingTabPane.getTabs().add(tradeTab2);tradingTabPane.getSelectionModel().select(tradeTab2);
+
                     } catch (URISyntaxException | IOException e) {
                         throw new RuntimeException(e);
                     }
-                    tradeTab2.setContent(
-                            container2
-                    );
-                    tabPane.getTabs().add(tradeTab2);
-                    tabPane.getSelectionModel().select(tradeTab2);
-
                 });
-        Button tradingBtn = new Button("Trade Buttons");
+
+
+
+
+
+
+
+        Button tradingBtn = new Button("Trading Buttons");
         tradingBtn.setOnAction(
                 event -> {
                     String baseCurrency = symbolChoicebox.getValue();
@@ -258,7 +224,7 @@ public class TradeView extends StackPane {
                         return;
                     }
                     StackPane stackPane = new StackPane();
-                    stackPane.setPrefSize(390, 230);
+                    stackPane.setPrefSize(400, 230);
                     GridPane gridPane = new GridPane();
                     gridPane.setPrefSize(350, 230);
                     gridPane.setHgap(10);
@@ -266,7 +232,7 @@ public class TradeView extends StackPane {
                     gridPane.setPadding(new Insets(10, 10, 10, 10));
                     Spinner<Double> spinner = new Spinner<>(0.01, 100000, 0);
                     gridPane.add(spinner, 1, 0);
-                    Button btnBuy = new Button("Buy");
+                    Button btnBuy = new Button("BUY");
                     btnBuy.setOnAction(
                             event1 -> {
                                 double quantity = spinner.getValue();
@@ -323,7 +289,7 @@ public class TradeView extends StackPane {
 
 
                     gridPane.add(btnBuy, 0, 1);
-                    Button btnSell = new Button("Sell");
+                    Button btnSell = new Button("SELL");
                     btnSell.setOnAction(
                             event1 -> {
                                 double quantity = spinner.getValue();
@@ -358,7 +324,7 @@ public class TradeView extends StackPane {
                                                 ENUM_ORDER_TYPE.MARKET,
                                                 0,
                                                 0,
-                                                timestamp, stopPrice,
+                                                new Date(), stopPrice,
                                                 takeProfitPrice,
 
                                                 takeProfitPrice);
@@ -463,7 +429,7 @@ public class TradeView extends StackPane {
                             });
                     gridPane.add(btnSell, 1, 1);
 
-                    Button closeAll = new Button("Close All");
+                    Button closeAll = new Button("CLOSE ALL");
                     closeAll.setOnAction(event1 -> {
                     if (exchange instanceof Bittrex bittrex){
                            bittrex.closeAll();
@@ -585,7 +551,7 @@ public class TradeView extends StackPane {
                                                     ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                                     quantity,
                                                     0,
-                                                    timestamp,
+                                                    Date.from(timestamp),
                                                     orderID,
                                                     stopPrice,
                                                     takeProfitPrice
@@ -696,7 +662,7 @@ public class TradeView extends StackPane {
                                                             ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                                             quantity,
                                                             price,
-                                                            timestamp,
+                                                            Date.from(timestamp),
                                                             orderID,
                                                             stopPrice,
                                                             takeProfitPrice
@@ -760,7 +726,7 @@ public class TradeView extends StackPane {
                                                 ENUM_ORDER_TYPE.STOP_LOSS,
                                                 quantity,
                                                 price,
-                                                timestamp,
+                                                Date.from(timestamp),
                                                 orderID,
                                                 stopPrice,
                                                 takeProfitPrice
@@ -844,7 +810,7 @@ public class TradeView extends StackPane {
                                             ENUM_ORDER_TYPE.STOP_LOSS,
                                             quantity,
                                             price,
-                                            timestamp,
+                                            Date.from(timestamp),
                                             orderID,
                                             stopPrice,
                                             takeProfitPrice
@@ -1038,8 +1004,8 @@ public class TradeView extends StackPane {
                             param -> new ReadOnlyStringWrapper(tradePair.getCounterCurrency().code) //new ReadOnlyStringWrapper(param.getValue().getValue().order.symbol)
                     );
                     TreeTableColumn <Trade, String> priceColumn = new TreeTableColumn<>("Price");
-                  //  priceColumn.setCellValueFactory(
-                       //     param -> new ReadOnlyStringWrapper(String.valueOf(param.getValue().getValue().getPrice())));
+                    priceColumn.setCellValueFactory(
+                            param -> new ReadOnlyStringWrapper(String.valueOf(param.getValue().getValue().getPrice())));
 
                     TreeTableColumn <Trade, String> amountColumn = new TreeTableColumn<>("Amount");
                    amountColumn.setCellValueFactory(
@@ -1091,8 +1057,10 @@ public class TradeView extends StackPane {
 
 
                     orders.getColumns().addAll(symbolColumn, priceColumn, amountColumn, sideColumn,
+
+
                     typeColumn, timeColumn, idColumn, orderIdColumn, statusColumn, filledColumn, remainingColumn);
-                    Scene scene = new Scene(orders,1000,200);
+                    Scene scene = new Scene(orders,800,200);
                     Stage stage = new Stage();
                     stage.setScene(scene);
                     stage.show();
@@ -1111,69 +1079,47 @@ public class TradeView extends StackPane {
 
         hBox.setPrefSize(1500,20);
 
-        anchorPane.setPrefSize(1230, 630);
+        anchorPane.setPrefSize(1230, 780);
         tabPane.setPrefSize(1530, 630);
+
         tabPane.setTranslateY(25);
         tabPane.setSide(Side.BOTTOM);
+        tabPane.getTabs().add(new Tab("Order View"));
+        tabPane.getTabs().add(new Tab(exchange.getName() +"-->  Wallet"));
+        tabPane.getTabs().add(new Tab("Stellar Network  Trading (XLM)"));
+        tabPane.getTabs().get(2).setContent(
+                new VBox(new Label("Stellar lumen's Ecosystem"), new VBox())
+        );
+        tabPane.getTabs().add(new Tab("Trading Window"));
 
-        CandleStickChartContainer container =
-                new CandleStickChartContainer(exchange, new TradePair("BTC","USD"), telegramToken, true
-                );
+        tabPane.setPrefSize(1530, 630);
 
-        anchorPane.setPadding(new Insets(10, 10, 10, 10));
-        container.setPrefSize(1000, 600);
-        String baseCurrency="AUD";
-        String counterCurrency="USD";
+      for (int i = 0; i < tabPane.getTabs().size(); i++) {
 
-        if (exchange instanceof Oanda) {baseCurrency = "EUR"; counterCurrency="USD";}
-        DraggableTab tradeTab = new DraggableTab(
-                baseCurrency + "/" + counterCurrency
-                , "");
+          tabPane.getTabs().get(i).setContent(
+                  tradingTabPane
+          );
+      }
+      for (int i = 0; i < tradingTabPane.getTabs().size(); i++){
+          if (exchange instanceof Oanda oanda){
+              tradePair=new TradePair("EUR","USD");
 
-
-        tradeTab.setContent(new
-                CandleStickChartContainer(exchange, new TradePair(baseCurrency,counterCurrency), telegramToken, true));
-
-        tabPane.getTabs().add(tradeTab);
-
-
+          tradingTabPane.getTabs().get(i).setContent(
+                  new CandleStickChartContainer(oanda,tradePair,telegramToken,true)
+          );}else
+              tradingTabPane.getTabs().get(i).setContent(
+                  new CandleStickChartContainer(exchange,tradePair,telegramToken,true)
+          );
+      }
 
         anchorPane.getChildren().addAll(hBox, tabPane);
 
-
+        tabPane.getSelectionModel().select(tabPane.getTabs().size()-1);
         getChildren().add(anchorPane);
 
     }
 
 
-
-    public TradePair getTradePair() {
-        return tradePair;
-    }
-
-    public void setTradePair(TradePair tradePair) {
-        this.tradePair = tradePair;
-    }
-
-
-
-    public double getPrice() {
-
-        return 0;
-    }
-
-    public double getVolume() {
-        return 0;
-    }
-
-    public Exchange getExchange() {
-        return exchange;
-    }
-
-    public void setExchange(Exchange exchange) {
-        this.exchange = exchange;
-    }
-    // Constructor
 
 
 }

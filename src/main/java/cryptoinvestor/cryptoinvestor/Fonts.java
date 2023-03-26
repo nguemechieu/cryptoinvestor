@@ -33,8 +33,8 @@ public class Fonts {
 
     static {
         try {
-            robotoLightName = Font.loadFont(Fonts.class.getResourceAsStream("/eu/hansolo/fx/regulators/Roboto-Light.ttf"), 10).getName();
-            robotoMediumName = Font.loadFont(Fonts.class.getResourceAsStream("/eu/hansolo/fx/regulators/Roboto-Medium.ttf"), 10).getName();
+            robotoLightName = Font.loadFont(Fonts.class.getResourceAsStream("/eu/hansolo/fx/regulators/Roboto-Light.ttf"), 12).getName();
+            robotoMediumName = Font.loadFont(Fonts.class.getResourceAsStream("/eu/hansolo/fx/regulators/Roboto-Medium.ttf"), 12).getName();
         } catch (Exception exception) {
 
 

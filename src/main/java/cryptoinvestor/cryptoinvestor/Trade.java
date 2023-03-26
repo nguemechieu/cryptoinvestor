@@ -18,9 +18,7 @@ public class Trade implements Runnable {
 
 
     Side side;
-    Order order=new Order((long) (Math.random()*100000),
-
-            new TradePair("BTC", "USD"),
+    Order order=new Order((long) (Math.random()*100000), new TradePair("BTC", "USD"),
             Instant.now(),
             ENUM_ORDER_TYPE.BUY,Side.BUY,0,0,price,0,0,0
             );

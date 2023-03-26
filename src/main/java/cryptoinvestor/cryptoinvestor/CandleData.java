@@ -11,11 +11,8 @@ import java.util.Objects;
 
 @Entity
 @Inheritance(strategy = InheritanceType.JOINED)
-@DiscriminatorColumn(name = "type", discriminatorType = DiscriminatorType.STRING)
-@DiscriminatorValue("CandleData")
-@PrimaryKeyJoinColumn(name = "id", referencedColumnName = "id")
-
 @Access(AccessType.FIELD)
+@Table(name = "CandleData")
 
 public class CandleData extends RecursiveTreeObject<CandleData> implements Serializable {
     @Serial

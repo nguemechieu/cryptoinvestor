@@ -78,7 +78,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
         switch (messageJson.get("type").asText()) {
             case "heartbeat" ->
-            send(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString());
+                    sendText(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString(),false);
             case "match" -> {
                 if (liveTradeConsumers.containsKey(tradePair)) {
                     assert tradePair != null;
@@ -118,14 +118,10 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         return tradePair;
     }
 
-    @Override
-    public void streamLiveTrades(@NotNull TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
-        send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
-                .put("product_id", tradePair.toString('-')).toPrettyString());
-        liveTradeConsumers.put(tradePair, liveTradesConsumer);
-    }
 
-    public void send(String toPrettyString) {
+
+    @Override
+    public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
 
     }
 
@@ -186,6 +182,11 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {}
+
+    @Override
+    public void onError(Exception ex) {
+
+    }
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {}

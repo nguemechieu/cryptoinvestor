@@ -1,169 +1,147 @@
 package cryptoinvestor.cryptoinvestor;
 
-import javafx.collections.ListChangeListener;
 import javafx.concurrent.Worker;
-import javafx.geometry.Pos;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Paint;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebHistory;
 import javafx.scene.web.WebView;
-import netscape.javascript.JSObject;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
-import java.util.Date;
 
 public class Browser extends Region {
-    static final String[] urls = new String[]{
-            "https://www.google.com/search?q",
-            "https://www.ebay.com",
-            "https://www.amazon.com",
-            "https://www.facebook.com"
-    };
-
-    static String[] imageFiles = new String[]{
-           "7123025_logo_google_g_icon.png",
-            "8377-ebay_102466 (1).png",
-            "amazon.png",
-            "Facebook-PNG-Photos (1).png"};
-
-
-
-
-    static ImageView selectedImage = new ImageView();
-
-    static
-    WebView webView = new WebView();
-
-
-    WebEngine webEngine = webView.getEngine();
-    String[] captions = new String[]{
-            "Google",
-            "Ebay",
-            "Amazon",
-            "Facebook"
-    };
-    final Hyperlink[] pls
-            = new Hyperlink[captions.length];
-    HBox toolBar;
-    ComboBox<String> comboBox = new ComboBox<>();
-    boolean needDocumentationButton = false;
-    TabPane tabPane = new TabPane();
-
-
+    private final WebEngine webEngine=new WebEngine();
+    private final TabPane tabPane = new TabPane();
+    private final WebView webView=new WebView();
     public Browser() {
-        //apply the styles'
 
-        getStyleClass().add("browser");
-        HBox hbox=new HBox();
-        hbox.setAlignment(Pos.CENTER);
-        hbox.setSpacing(10);
-        //process history
-        WebHistory history = webEngine.getHistory();
-        history.getEntries().addListener((ListChangeListener<WebHistory.Entry>) c -> {
-            c.next();
-            for (WebHistory.Entry e : c.getRemoved()) {
-                comboBox.getItems().remove(e.getUrl());
-            }
-            for (WebHistory.Entry e : c.getAddedSubList()) {
-                comboBox.getItems().add(e.getUrl());
-            }
+        this.getStyleClass().add("browser");
+        this.setPadding(new Insets(10, 10, 10, 10));
+        this.setMaxWidth(Double.MAX_VALUE);
+        this.setMaxHeight(Double.MAX_VALUE);
+
+tabPane.setTranslateY(34);
+        webEngine.load("https://www.google.com/search?q=");
+webView.setPrefSize(1500,780);
+        WebEngine webEngine = webView.getEngine();
+        webEngine.setJavaScriptEnabled(true);
+        webEngine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == Worker.State.SUCCEEDED) {
+                webEngine.executeScript("window.scrollTo(0, document.body.scrollHeight)");}
         });
 
-        //set the behavior for the history combobox
-        comboBox.setOnAction(ev -> {
-            int offset = comboBox.getSelectionModel().getSelectedIndex() - history.getCurrentIndex();
-            history.go(offset);
-        });
-        comboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                history.go(history.getCurrentIndex() + 1);
-            }
-        });
-        // process page loading
-
-
-        // load the home pag
-
-        DraggableTab tab = new DraggableTab(new Date().toString(), "");
-        WebView webView1 = new WebView();
-        webView1.getEngine().load("https://www.google.com");
-        tab.setContent(webView1);
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
+        int i=0;
+        i++;
+        DraggableTab tab = new DraggableTab("Tab"+i,"");
         tabPane.getTabs().add(tab);
+        TextField searchBar =new TextField();
+        searchBar.setPromptText("Search here... ");
 
-         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
-        Button addButton = new Button("+");
-        tabPane.setTranslateY(25);
-
-        tabPane.setPrefSize(1530, 780);
-        VBox  h1box=new VBox();
-        h1box.setAlignment(Pos.CENTER);
-        h1box.setSpacing(5);
-
-        h1box.getChildren().addAll(new HBox(removeButton(),addButton,refreshButton(),screenShotButton(),goBack(),goForward(),downloadButton()),tabPane);
-
-
-        TextField label=new TextField();
-
-        label.setBackground(
-               Background.fill(
-                       Paint.valueOf(
-                               "rgba(25, 189, 189, 1)"
-
-                       )
-               )
+        searchBar.setPrefWidth(1500);
+        searchBar.textProperty().addListener((observable, oldValue, newValue) -> webEngine.load(
+                "https://www.google.com/search?q=" + newValue
+        ));
+        WebView web=new WebView();
+        web.setPrefSize(1500,780);
+        web.getEngine().load(
+                "https://www.google.com/search?q="
         );
-        addButton.setOnAction(e ->{   DraggableTab tab1 = new DraggableTab(captions[0], "");
-            label.setPromptText("  Enter a keyword to search for");
-            label.setOnAction(ev -> {
-                String keyword = label.getText();
-                if (keyword!= null &&!keyword.isEmpty()) {
-                    WebView webView3 = new WebView();
-                    webView3.getEngine().load("https://www.google.com/search?q=" + keyword);
 
-                    tabPane.getSelectionModel().getSelectedItem().setContent(webView3);
-                }
-            });
-
-            WebView webView4 = new WebView();
-            webView4.getEngine().load("https://www.google.com");
-            tab1.setContent(webView4);
-            tabPane.getTabs().add(tab1);
-        });
-
-        label.setPrefWidth(800);
-        label.setMaxHeight(100);
-        label.setPromptText("Enter a keyword to search for");
-        HBox searchBox = new HBox(comboBox,label);
-        getChildren().addAll(new VBox(hbox,new Separator(), searchBox, h1box));
-        label.setOnAction(ev -> {
-            String keyword = label.getText();
-            if (keyword!= null &&!keyword.isEmpty()) {
-                WebView webView0= new WebView();
-                webView0.getEngine().load("https://www.google.com/search?q=" + keyword);
-
-                tabPane.getSelectionModel().getSelectedItem().setContent(webView0);
-                label.setText("");
-                tabPane.getTabs().add(
-                        new DraggableTab(captions[0], "")
+        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue!= null) {
+                webEngine.load(
+                        searchBar.getText());
+                tab.setContent(new VBox(searchBar,
+                        web,
+                        new HBox(
+                                createLink("https://www.google.com/"),
+                                createLink("https://www.youtube.com/"),
+                                createLink("https://www.facebook.com/"),
+                                createLink("https://twitter.com/"),
+                                createLink("https://www.instagram.com/"),
+                                createLink("https://www.linkedin.com/"),
+                                createLink("https://github.com/"),
+                                createLink("https://www.reddit.com/")
+                        )));
+            }else {
+                webView.getEngine().load(
+                        "https://www.google.com/search?q="
                 );
+                tab.setContent(webView);
             }
+
         });
+      webEngine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
+          if (newValue == Worker.State.SUCCEEDED) {
+              webEngine.executeScript("window.scrollTo(0, document.body.scrollHeight)");
+
+          }else {
+              webEngine.executeScript("window.scrollTo(0, 0)");
+          }
+      });
+        tab.setContent(new VBox(searchBar,
+                        web,
+                        new HBox(
+                                createLink("https://www.google.com/"),
+                                createLink("https://www.youtube.com/"),
+                                createLink("https://www.facebook.com/"),
+                                createLink("https://twitter.com/"),
+                                createLink("https://www.instagram.com/"),
+                                createLink("https://www.linkedin.com/"),
+                                createLink("https://github.com/"),
+                                createLink("https://www.reddit.com/")
+                        )
+                )
+        );
+       HBox hBox = new HBox();
+       hBox.setPadding(new Insets(10, 10, 10, 10));
+       hBox.getChildren().add(downloadButton());
+       hBox.getChildren().add(removeButton());Button addButton = new Button("+");
+       hBox.getChildren().add(addButton);
 
 
 
 
+
+            addButton.setOnAction(e ->
+
+            {tabPane.getTabs().add(new DraggableTab("Tab"+tabPane.getTabs().size(),""));
+
+        WebView web0=new WebView();
+        web0.setPrefSize(1530,780);
+              web0.getEngine().load(
+                      "https://www.google.com/search?q="
+              );
+
+        tabPane.getTabs().get(tabPane.getTabs().size()-1).setContent(new VBox(searchBar, web0));});
+
+            hBox.getChildren().add(downloadButton());
+
+
+        hBox.getChildren().add(refreshButton());
+       hBox.getChildren().add(goBack());
+       hBox.getChildren().add(goForward());
+       hBox.getChildren().add(screenShotButton());
+       hBox.getChildren().add(createLink("https://www.google.com/"));
+       hBox.getChildren().add(createLink("https://www.youtube.com/"));
+       hBox.getChildren().add(createLink("https://www.facebook.com/"));
+       hBox.getChildren().add(createLink("https://twitter.com/"));
+       hBox.getChildren().add(createLink("https://www.instagram.com/"));
+       hBox.getChildren().add(createLink("https://www.linkedin.com/"));
+       hBox.getChildren().add(createLink("https://github.com/"));
+       hBox.getChildren().add(createLink("https://www.reddit.com/"));
+getChildren().add(hBox);
+        getChildren().add(tabPane);
     }
 
 
-
-
-private @NotNull Button downloadButton(){
+    private @NotNull Button downloadButton(){
         Button button = new Button("Download");
         button.setOnAction(e -> webEngine.executeScript("window.print()"));
         return button;
@@ -183,11 +161,7 @@ private @NotNull Button downloadButton(){
         return button;
     }
 
-    private @NotNull Node createImage(String url) {
-        Image image = new Image(url);
-        selectedImage.setImage(image);
-        return selectedImage;
-    }
+
     private @NotNull Node createLink(String url) {
         Hyperlink link = new Hyperlink(url);
         link.setOnAction(e -> webEngine.load(url));
@@ -228,9 +202,15 @@ private @NotNull Button downloadButton(){
 
     // JavaScript interface object
     public static class JavaApp {
+        private final Label searchTerm = new Label("Search Term");
+
         @Override
         public String toString() {
             return "JavaScript App";
+        }
+
+        public String getSearchTerm() {
+            return searchTerm.getText();
         }
     }
 

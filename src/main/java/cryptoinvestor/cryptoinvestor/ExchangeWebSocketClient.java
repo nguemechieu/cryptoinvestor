@@ -14,6 +14,7 @@ import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
@@ -149,7 +150,19 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
     }
 
 
-    public abstract void stopStreamLiveTrades(TradePair tradePair);
+    public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) throws IOException, ParseException, InterruptedException {
+
+        for (TradePair tradePair : tradePairs) {
+            streamLiveTrades(tradePair, liveTradesConsumer);
+        }
+
+
+    }
+
+    public void stopStreamLiveTrades(TradePair tradePair) {
+        liveTradeConsumers.remove(tradePair);
+
+    }
 
     public boolean supportsStreamingTrades(TradePair tradePair) {
 
@@ -200,6 +213,8 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
     public abstract void abort();
 
     public abstract void onClose(int code, String reason, boolean remote);
+
+    public abstract void onError(Exception ex);
 
     public abstract void onOpen(ServerHandshake serverHandshake);
 }

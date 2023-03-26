@@ -28,37 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 
-
-
-        import com.fasterxml.jackson.core.JsonProcessingException;
-        import com.fasterxml.jackson.databind.DeserializationFeature;
-        import com.fasterxml.jackson.databind.JsonNode;
-        import com.fasterxml.jackson.databind.ObjectMapper;
-        import com.fasterxml.jackson.databind.SerializationFeature;
-        import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-        import cryptoinvestor.cryptoinvestor.*;
-        import javafx.util.Pair;
-        import org.java_websocket.drafts.Draft_6455;
-        import org.java_websocket.handshake.ServerHandshake;
-        import org.jetbrains.annotations.NotNull;
-        import org.slf4j.Logger;
-        import org.slf4j.LoggerFactory;
-
-        import javax.websocket.*;
-        import java.io.IOException;
-        import java.math.BigDecimal;
-        import java.net.URI;
-        import java.net.http.WebSocket;
-        import java.nio.ByteBuffer;
-        import java.time.Instant;
-        import java.util.Collections;
-        import java.util.Set;
-        import java.util.concurrent.CompletableFuture;
-
-        import static java.time.format.DateTimeFormatter.ISO_INSTANT;
-
-
-    public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
+public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
 
 
 
@@ -70,23 +40,27 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
     private final CompletableFuture<Boolean> connectionEstablished = new CompletableFuture<>();
 
     private static final Logger logger = LoggerFactory.getLogger(cryptoinvestor.cryptoinvestor.Coinbase.CoinbaseWebSocketClient.class);
-    private final Set<TradePair> tradePairs;
 
 
-    public BinanceUsWebSocket(Set<TradePair> tradePairs) {
+    public BinanceUsWebSocket() {
         super(URI.create(
-                "wss://stream.binance.us:9443/ws/btcusdt@trade"
+                "wss://stream.binance.us:9443/ws"
         ), new Draft_6455());
-        this.tradePairs = tradePairs;
-        logger.info("Coinbase websocket client initialized");
-
+        logger.info("Binance us websocket client initialized");
     }
 
     @Override
-    public void onMessage(String message) throws TelegramApiException, IOException, InterruptedException {
+    public void onMessage(String message) {
         JsonNode messageJson;
         try {
             messageJson = OBJECT_MAPPER.readTree(message);
+            if (messageJson.has("event") && messageJson.get("event").asText().equalsIgnoreCase("ping")) {
+                sendText(OBJECT_MAPPER.createObjectNode().put("type", "pong").toPrettyString(),false);
+                logger.info(
+                        "BinanceUs  websocket client: Pong received"
+                );
+            }
+
         } catch (JsonProcessingException ex) {
             logger.error("ex: ", ex);
             throw new RuntimeException(ex);
@@ -94,7 +68,7 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
         if (messageJson.has("event") && messageJson.get("event").asText().equalsIgnoreCase("info")) {
 
-            if (messageJson.has("product_id") && messageJson.get("product_id").asText().equalsIgnoreCase("BTC-USD")) {
+            if (messageJson.has("product_id") && messageJson.get("product_id").asText().equalsIgnoreCase("BTCUSD")) {
                 connectionEstablished.complete(true);
             }
         }
@@ -112,17 +86,22 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
         switch (messageJson.get("type").asText()) {
             case "heartbeat" ->
-                    send(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString());
+                    sendText(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString(),true);
             case "match" -> {
                 if (liveTradeConsumers.containsKey(tradePair)) {
                     assert tradePair != null;
-                    Trade newTrade = new Trade(tradePair,
-                            DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
-                                    tradePair.getCounterCurrency()),
-                            DefaultMoney.of(new BigDecimal(messageJson.get("size").asText()),
-                                    tradePair.getBaseCurrency()),
-                            side, messageJson.at("trade_id").asLong(),
-                            Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
+                    Trade newTrade ;
+                    try {
+                        newTrade = new Trade(tradePair,
+                                DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
+                                        tradePair.getCounterCurrency()),
+                                DefaultMoney.of(new BigDecimal(messageJson.get("size").asText()),
+                                        tradePair.getBaseCurrency()),
+                                side, messageJson.at("trade_id").asLong(),
+                                Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
+                    } catch (TelegramApiException | IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                     liveTradeConsumers.get(tradePair).acceptTrades(Collections.singletonList(newTrade));
                 }
             }
@@ -135,17 +114,17 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
     private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
         final String productId = messageJson.get("product_id").asText();
-        final String[] products = productId.split("-");
+        final String[] products = productId.split("/");
         TradePair tradePair;
         if (products[0].equalsIgnoreCase("BTC")) {
-            tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
+            tradePair = TradePair.parse(productId, "/", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
         } else {
             // products[0] == "ETH"
             if (products[1].equalsIgnoreCase("usd")) {
-                tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
+                tradePair = TradePair.parse(productId, "/", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
             } else {
                 // productId == "ETH-BTC"
-                tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, CryptoCurrency.class));
+                tradePair = TradePair.parse(productId, "/", new Pair<>(CryptoCurrency.class, CryptoCurrency.class));
             }
         }
 
@@ -154,14 +133,19 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
     @Override
     public void streamLiveTrades(@NotNull TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
-        send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
-                .put("product_id", tradePair.toString('-')).toPrettyString());
+        sendText(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
+                .put("product_id", tradePair.toString()).toPrettyString(),true);
         liveTradeConsumers.put(tradePair, liveTradesConsumer);
     }
 
-    public void send(String toPrettyString) {
+    @Override
+    public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
+        for (TradePair tradePair : tradePairs) {
+            streamLiveTrades(tradePair, liveTradesConsumer);
+        }
 
     }
+
 
     @Override
     public void stopStreamLiveTrades(TradePair tradePair) {
@@ -220,6 +204,11 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
     @Override
     public void onClose(int code, String reason, boolean remote) {}
+
+    @Override
+    public void onError(Exception ex) {
+
+    }
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {}
@@ -289,7 +278,5 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
         return null;
     }
 
-    public Set<TradePair> getTradePairs() {
-        return tradePairs;
-    }
+
 }

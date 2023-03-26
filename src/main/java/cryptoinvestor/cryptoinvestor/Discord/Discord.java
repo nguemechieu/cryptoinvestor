@@ -1,15 +1,14 @@
 package cryptoinvestor.cryptoinvestor.Discord;
 
 
-import cryptoinvestor.cryptoinvestor.Chat;
-import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
-import cryptoinvestor.cryptoinvestor.TelegramClient;
-import cryptoinvestor.cryptoinvestor.oanda.OandaWebSocket;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
 
 
-public class Discord extends TelegramClient   {
+public class Discord  {
     private String url = "https://discord.com/api/oauth2/authorize?client_id=1087210119097499751&permissions=0&scope=bot";
 
    private String discordToken = "MTA4NzIxMDExOTA5NzQ5OTc1MQ.GTPtoi.IoKi82j9vnTZAe1VG8LHO60aFUGJzgfYG5blYo";
@@ -43,39 +42,41 @@ public class Discord extends TelegramClient   {
             "https://api.discord.org/bot" +
                     this.getClientId() +
                     "/sendMessage?chat_id=" +
-                    this.getChatId() +
+
                     "&parse_mode=Markdown&text=";
     private String clientSecret = "1087210119097499751";
     private static String apiUrl;
     private static String apiVersion;
     private String accessToken;
     private String refreshToken;
+    HttpRequest.Builder requestBuilder;
+    HttpClient client;
 
     public Discord(
-            String apiUrl,
-            String apiVersion,
-            String clientSecret,
-            String clientId,
-            String accessToken,
-            String refreshToken) throws IOException, InterruptedException {
-        super(
-                apiUrl,
-                apiVersion,
-                clientSecret,
-                clientId,
-                accessToken,
-                refreshToken
-        );
-        Discord.apiUrl = apiUrl;
-        Discord.apiVersion = apiVersion;
-        this.clientSecret = clientSecret;
-        this.clientId = clientId;
-        this.accessToken = accessToken;
-        this.refreshToken = refreshToken;
-        connect();
-        this.sendMessage(Chat.getWelcomeMessage());
 
-        this.sendMessage(Coinbase.getCoinbaseMessage());
+            String accessToken) throws IOException, InterruptedException {
+
+        this.accessToken = accessToken;
+        requestBuilder = HttpRequest.newBuilder();
+        requestBuilder.header("Client-ID", clientId);
+
+        requestBuilder.header("Authorization", "Bearer " + accessToken);
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+      requestBuilder.header("Cache-Control", "no-cache");
+
+
+       this. client = HttpClient.newHttpClient();
+
+       sendMessage(
+
+                "Hello, I am Cryptoinvestor. I am a bot that allows you to buy cryptocurrencies from the Cryptocurrency Marketplace." +
+                        " I can buy cryptocurrencies from the Cryptocurrency Marketplace, sell cryptocurrencies from the Cryptocurrency Marketplace," +
+                        " and get information about cryptocurrencies from the Cryptocurrency Marketplace."
+       );
+
+
     }
 
     public static String getApiUrl() {
@@ -130,20 +131,16 @@ public class Discord extends TelegramClient   {
         String url = getApiUrl() + getApiVersion() + message;
         System.out.println(url);
         String photo="";
-        post(url, url, photo);
+
         Thread.sleep(1000);
 
         System.out.println(url);
 
     }
 
-    public static Object connect() {
+    public static @NotNull Object connect() {
         String url = getApiUrl() + getApiVersion() + "/oauth2/token";
         System.out.println(url);
-
-
-
-
         return "";
 
     }
@@ -155,7 +152,7 @@ public class Discord extends TelegramClient   {
         Thread.sleep(1000);
 
         System.out.println(url);
-        return  post(url, url, photo);
+        return  null;
     }
     public String sendPhoto(String photo, String caption) throws IOException, InterruptedException {
         String url = getApiUrl() + getApiVersion() + "/photos";
@@ -164,7 +161,7 @@ public class Discord extends TelegramClient   {
 
         System.out.println(url);
 
-        return  post(url, photo, caption);
+        return null;
     }
     public  String sendVideo(String video) throws IOException, InterruptedException {
         String url = getApiUrl() + getApiVersion() + "/videos";
@@ -172,7 +169,7 @@ public class Discord extends TelegramClient   {
         Thread.sleep(1000);
 
         System.out.println(url);
-        return  post(url, url, video);
+        return null;
     }
     public  String sendAudio(String audio) throws IOException, InterruptedException {
         String url = getApiUrl() + getApiVersion() + "/audio";
@@ -180,7 +177,7 @@ public class Discord extends TelegramClient   {
         Thread.sleep(1000);
 
         System.out.println(url);
-        return  post(url, url, audio);
+        return  null;
     }
     public  String sendDocument(String document) throws IOException, InterruptedException {
         String url = getApiUrl() + getApiVersion() + "/documents";
@@ -188,7 +185,7 @@ public class Discord extends TelegramClient   {
         Thread.sleep(1000);
 
         System.out.println(url);
-        return  post(url, url, document);
+        return null;
     }
     public  String sendSticker(String sticker) throws IOException, InterruptedException {
         String url = getApiUrl() + getApiVersion() + "/stickers";
@@ -196,7 +193,7 @@ public class Discord extends TelegramClient   {
         Thread.sleep(1000);
 
         System.out.println(url);
-        return  post(url, url, sticker);
+        return  null;
     }
     public  String sendVoice(String voice) throws IOException, InterruptedException {
         String url = getApiUrl() + getApiVersion() + "/voice";
@@ -204,7 +201,7 @@ public class Discord extends TelegramClient   {
         Thread.sleep(1000);
 
         System.out.println(url);
-        return  post(url, url, voice);
+        return null;
     }
 
 

@@ -3,5 +3,9 @@ package cryptoinvestor.cryptoinvestor;
 public enum CurrencyType {
     FIAT,
     CRYPTO,
-    NULL
+    NULL;
+
+    public short getIsoCode() {
+        return (short) ordinal();
+    }
 }

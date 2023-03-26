@@ -1,12 +1,9 @@
 package cryptoinvestor.cryptoinvestor;
 
-import com.jfoenix.controls.RecursiveTreeItem;
-import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
@@ -31,10 +28,9 @@ public class TradingWindow extends AnchorPane {
         super();
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
+        String telegramApiKey= "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo";
         for (ENUM_EXCHANGE_LIST i : ENUM_EXCHANGE_LIST.values()) {
             DraggableTab tab = new DraggableTab(i.name(), "");
-
-
             if (i.getIcon() != null) {
                 tab.setGraphic(
                         new ImageView((String) i.getIcon())
@@ -43,50 +39,51 @@ public class TradingWindow extends AnchorPane {
 
             switch (i) {
 
+
                 case COINBASE_PRO -> {
-                    Coinbase coinbase = new Coinbase();//"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
-                    tab.setContent(new TradeView(coinbase));
+                    Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","45676890ojhghkjl" ,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                    tab.setContent(new TradeView(coinbase,telegramApiKey));
 
                 }
                 case BITFINEX -> {
                     Bitfinex bitfinex = new Bitfinex("String POLONIEX_API_KEY", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(
 
-                            new TradeView(bitfinex));
+                            new TradeView(bitfinex,telegramApiKey));
 
 
                 }
                 case KRAKEN -> {
                     Kraken kraken = new Kraken("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(
-                            new TradeView(kraken));
+                            new TradeView(kraken,telegramApiKey));
 
                 }
                 case BITSTAMP -> {
-                    Bitstamp bitstamp = new Bitstamp("apibsn","sdd","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                    Bitstamp bitstamp = new Bitstamp("apibsn","sdd","erhi");
 
-                            new TradeView(bitstamp);
+                            new TradeView(bitstamp,telegramApiKey);
                 }
                 case POLONIEX-> {
-                    Poloniex poloniex = new Poloniex("wer","2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
-                    tab.setContent(new TradeView(poloniex));
+                    Poloniex poloniex = new Poloniex("eeuhiro");
+                    tab.setContent(new TradeView(poloniex, telegramApiKey));
                 }
 
                 case KUCOIN -> {
-                    Kucoin kucoin = new Kucoin( "trtyuy", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
-                    tab.setContent(new TradeView(kucoin));// "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "sretry789", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo"));
+                    Kucoin kucoin = new Kucoin( "trtyuy");
+                    tab.setContent(new TradeView(kucoin,telegramApiKey));// "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "sretry789", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo"));
 
                 }
                 case BINANCE_US -> {
                     BinanceUs binance = new BinanceUs( "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
-                    tab.setContent(new TradeView(binance));
+                    tab.setContent(new TradeView(binance,telegramApiKey));
 
                 }
-                case BINANCE-> {
-                   Binance binance = new Binance("YU");
-                    tab.setContent(new TradeView(binance));
-
-            }
+//                case BINANCE-> {
+//                   Binance binance = new Binance("YU");
+//                    tab.setContent(new TradeView(binance,telegramApiKey));
+//
+//            }
                 case OANDA -> {
                     Oanda oanda = new Oanda(
                             "77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99"
@@ -97,7 +94,7 @@ public class TradingWindow extends AnchorPane {
 
 
                     tab.setContent(
-                            new TradeView(oanda));
+                            new TradeView(oanda,telegramApiKey));
                 }
             }
             tabPane.getTabs().add(tab);

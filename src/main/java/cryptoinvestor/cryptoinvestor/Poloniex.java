@@ -20,7 +20,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -47,7 +46,7 @@ public class Poloniex extends Exchange {
     String url = "https://poloniex.com/public?command=returnTicker";
     private String apiKey;
 
-    public Poloniex(String POLONIEX_API_KEY,String telegramApiKey ) throws TelegramApiException, IOException, ParseException, InterruptedException {
+    public Poloniex(String POLONIEX_API_KEY ) throws TelegramApiException, IOException, ParseException, InterruptedException {
         super(null);
     }
 
@@ -403,6 +402,127 @@ public class Poloniex extends Exchange {
         System.out.println(jsonObject.toString(4));
 
     }
+
+    @Override
+    public String getSymbol() {
+        return null;
+    }
+
+    @Override
+    public String getPrice() {
+        return null;
+    }
+
+    @Override
+    public String getVolume() {
+        return null;
+    }
+
+    @Override
+    public String getOpen() {
+        return null;
+    }
+
+    @Override
+    public String getHigh() {
+        return null;
+    }
+
+    @Override
+    public String getLow() {
+        return null;
+    }
+
+    @Override
+    public String getClose() {
+        return null;
+    }
+
+    @Override
+    public String getTimestamp() {
+        return null;
+    }
+
+    @Override
+    public String getTradeId() {
+        return null;
+    }
+
+    @Override
+    public String getOrderId() {
+        return null;
+    }
+
+    @Override
+    public String getTradeType() {
+        return null;
+    }
+
+    @Override
+    public String getSide() {
+        return null;
+    }
+
+    @Override
+    public String getExchange() {
+        return null;
+    }
+
+    @Override
+    public String getCurrency() {
+        return null;
+    }
+
+    @Override
+    public String getAmount() {
+        return null;
+    }
+
+    @Override
+    public String getFee() {
+        return null;
+    }
+
+    @Override
+    public String getAvailable() {
+        return null;
+    }
+
+    @Override
+    public String getBalance() {
+        return null;
+    }
+
+    @Override
+    public String getPending() {
+        return null;
+    }
+
+    @Override
+    public String getTotal() {
+        return null;
+    }
+
+    @Override
+    public String getDeposit() {
+        return null;
+    }
+
+    @Override
+    public String getWithdraw() {
+        return null;
+    }
+
+    @Override
+    public void deposit(Double value) {
+
+    }
+
+    @Override
+    public void withdraw(Double value) {
+
+    }
+
     HttpClient client =  HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
     // Get all orders
     //       GET

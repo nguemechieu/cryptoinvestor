@@ -35,22 +35,20 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    private final Set<TradePair> tradePairs;
-    private OandaWebSocket connection;
-//
+
+
 //    curl \
 //            -H "Authorization: Bearer <AUTHENTICATION TOKEN>" \
 //            "https://stream-fxtrade.oanda.com/v3/accounts/<ACCOUNT>/pricing/stream?instruments=EUR_USD%2CUSD_CAD"
 
   public OandaWebSocket(Set<TradePair> tradePair, String accountID) {
-        super(URI.create("ws://api-fxtrade.oanda.com/v3/accounts"+accountID+"pricing/stream?instruments="+"EUR_USD"), new Draft_6455());
+        super(URI.create("ws://api-fxtrade.oanda.com/v3/accounts"+accountID+"pricing/stream?instruments="+"EUR_USD&USD_CAD"), new Draft_6455());
         Objects.requireNonNull(tradePair);
 
-      this.tradePairs = tradePair;
     }
 
     @Override
-    public void onMessage(String message) throws TelegramApiException, IOException, InterruptedException {
+    public void onMessage(String message) {
         JsonNode messageJson;
         try {
             messageJson = OBJECT_MAPPER.readTree(message);
@@ -61,6 +59,10 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 
         if (messageJson.has("event") && messageJson.get("event").asText().equalsIgnoreCase("info")) {
             connectionEstablished.setValue(true);
+            logger.info(
+                    "oanda websocket client: connection established with account: " +
+                            messageJson.get("account_id").asText()
+            );
         }
 
         TradePair tradePair = null;
@@ -75,21 +77,26 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 
         switch (messageJson.get("type").asText()) {
             case "heartbeat" ->
-                    send(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString());
+                    sendText(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on","").toPrettyString(),false);
             case "match" -> {
                 if (liveTradeConsumers.containsKey(tradePair)) {
                     assert tradePair != null;
-                    Trade newTrade = new Trade(tradePair,
-                            DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
-                                    tradePair.getCounterCurrency()),
-                            DefaultMoney.of(new BigDecimal(messageJson.get("size").asText()),
-                                    tradePair.getBaseCurrency()),
-                            side, messageJson.at("trade_id").asLong(),
-                            Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
+                    Trade newTrade;
+                    try {
+                        newTrade = new Trade(tradePair,
+                                DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
+                                        tradePair.getCounterCurrency()),
+                                DefaultMoney.of(new BigDecimal(messageJson.get("size").asText()),
+                                        tradePair.getBaseCurrency()),
+                                side, messageJson.at("trade_id").asLong(),
+                                Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
+                    } catch (TelegramApiException | IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
                     liveTradeConsumers.get(tradePair).acceptTrades(Collections.singletonList(newTrade));
                 }
             }
-            case "error" -> throw new IllegalArgumentException("Error on Coinbase websocket client: " +
+            case "error" -> throw new IllegalArgumentException("Error on Oanda websocket client: " +
                     messageJson.get("message").asText());
             default -> throw new IllegalStateException("Unhandled message type on Gdax websocket client: " +
                     messageJson.get("type").asText());
@@ -115,18 +122,16 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
         return tradePair;
     }
 
+
     @Override
-    public void streamLiveTrades(@NotNull TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
-        send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
-                .put("product_id", tradePair.toString('-')).toPrettyString());
-        liveTradeConsumers.put(tradePair, liveTradesConsumer);
+    public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
+
+                sendText(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
+                      .put("product_id", tradePairs.toString()).toPrettyString(),false);
+        liveTradeConsumers.put(tradePairs.iterator().next(), liveTradesConsumer);
+
     }
 
-    private void send(String toPrettyString) {
-        if (connectionEstablished.getValue()) {
-            connection.send(toPrettyString);
-        }
-    }
 
     @Override
     public void stopStreamLiveTrades(TradePair tradePair) {
@@ -135,7 +140,15 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 
     @Override
     public boolean supportsStreamingTrades(TradePair tradePair) {
-        return tradePairs.contains(tradePair);
+
+        return !liveTradeConsumers.containsKey(tradePair);
+    }
+
+
+
+    @Override
+    public void request(long n) {
+
     }
 
     @Override
@@ -187,6 +200,11 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {}
+
+    @Override
+    public void onError(Exception ex) {
+
+    }
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {}

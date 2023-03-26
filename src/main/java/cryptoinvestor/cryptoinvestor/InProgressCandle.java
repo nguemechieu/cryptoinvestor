@@ -154,4 +154,23 @@ public class InProgressCandle {
     public void setCloseTimeSoFar(int i) {
         this.closeTime = i;
     }
+
+    public double getTotalVolume() {
+
+        return volumeSoFar * currentTill;
+
+
+    }
+
+    public double getVolume24h() {
+        return volumeSoFar * 24;
+    }
+
+    public double getHighPrice24h() {
+        return highPriceSoFar * 24;
+    }
+
+    public double getLowPrice24h() {
+        return lowPriceSoFar * 24;
+    }
 }

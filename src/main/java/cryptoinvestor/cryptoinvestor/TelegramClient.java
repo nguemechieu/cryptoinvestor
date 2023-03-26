@@ -1,12 +1,14 @@
 package cryptoinvestor.cryptoinvestor;
 
-import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.animation.Animation;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
 import javafx.stage.Stage;
+import org.java_websocket.client.WebSocketClient;
+import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +17,6 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.websocket.Session;
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URI;
@@ -25,23 +26,24 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.Path;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 import static java.lang.System.out;
 
 //  makeRequest("https://api.telegram.org/bot" + token + "/setWebhook");
-public class TelegramClient extends ChatEndpoint {
+public class TelegramClient {
     public static final ArrayList<Chat> ArrayListChat = new ArrayList<>();
     private static final Logger logger = LoggerFactory.getLogger(TelegramClient.class);
+
+
+
+
     public static int offset = 0;
     public static String message = "";
     protected static Path path;
     static boolean disable_content_type_detection = false;
-    static int limit = 10;
-    static int page = 1;
+     int limit = 10;
+     int page = 1;
     //chat_id	//Integer or String	Yes	Unique identifier for the target chat or username of the target channel (in the format @channelusername)
     // message_thread_id;//	Integer	Optional	Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
     // text	String	Yes	Text of the message to be sent, 1-4096 characters after entities parsing
@@ -90,7 +92,7 @@ public class TelegramClient extends ChatEndpoint {
     static String chat_photo_file_name;
     static File chat_voice_file_id;
     static File chat_caption_file_id;
-    private static Session session;
+
     private static String entity_type = "";
     private static String inline_keyboard_text = "";
     private static boolean is_restricted = false;
@@ -153,76 +155,35 @@ public class TelegramClient extends ChatEndpoint {
     private boolean DrawLines;
     private String lastMessage;
     private String chatDescription;
-    private int i;
 
-    public TelegramClient(String token) throws IOException, TelegramApiException {
-        super(session);
+static HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
+static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+    private DoubleSummaryStatistics initializationLatch;
 
+    public TelegramClient(String token) throws IOException, TelegramApiException, InterruptedException {
 
-        if (token == null) {
-
-            throw new TelegramApiException("Telegram token can't be  null ");
-            //  throw new TelegramApiException("Telegram token can't be  null ");
-
-
-        }
         TelegramClient.token = token;
-        TelegramClient.mapper = new ObjectMapper();
-
-        JsonNode jsonNode = mapper.readTree( Objects.requireNonNull(TelegramClient.connect()).toString());
-
-              for (JsonNode node : jsonNode) {
-
-                  if (node.has("ok")) {
-
-
-                      JSONObject jsonObject = new JSONObject(node);
-                      if (jsonObject.getBoolean("ok")) {
-                          TelegramClient.username = jsonObject.getString("username");
-                          TelegramClient.from_id = jsonObject.getString("id");
-                          TelegramClient.chat_id = jsonObject.getString("chat_id");
-                          TelegramClient.chat_last_name = jsonObject.getString("last_name");
-                          TelegramClient.chat_first_name = jsonObject.getString("first_name");
-                          TelegramClient.chat_photo_file_id = jsonObject.getString("photo");
-                          TelegramClient.chat_photo_file_unique_id = jsonObject.getString("photo_file_unique_id");
-                          TelegramClient.chat_type = jsonObject.getString("type");
-                          TelegramClient.chat_title = jsonObject.getString("title");
-                          TelegramClient.chat_username = jsonObject.getString("username");
-                          TelegramClient.chat_type = jsonObject.getString("type");
-                          isOnline = true;
-                      } else {
-                          networkError = jsonObject.getString("description");
-                          System.out.println(networkError);
-                          Alert alert = new Alert(Alert.AlertType.ERROR);
-                          alert.setTitle("Telegram Error");
-                          alert.setHeaderText(null);
-                          alert.setContentText(networkError);
-                          alert.showAndWait();
-
-                      }
-                  }
-
-                   }
-
-
-        logger.info("Telegram Client Created");
-    }
-
-
-    public TelegramClient(String apiUrl, String apiVersion, String clientSecret, String clientId, String accessToken, String refreshToken) {
-        super(
-                apiUrl,
-                apiVersion,
-                clientSecret
+        this.address = "https://api.telegram.org/bot" + token;
+        this.res = System.out;
+        this.initializationLatch = new DoubleSummaryStatistics();
+        initializationLatch.accept(
+                0
         );
-        TelegramClient.token = accessToken;
 
-        TelegramClient.mapper = new ObjectMapper();
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", "Bearer " + token);
+        requestBuilder.header("Cache-Control", "no-cache");
+        requestBuilder.header("Accept-Encoding", "gzip, deflate, br");
+
+
+
         logger.info("Telegram Client Created");
-        TelegramClient.connect();
-
-
     }
+
+
+
 
     public static int getLength() {
         return length;
@@ -256,9 +217,7 @@ public class TelegramClient extends ChatEndpoint {
         TelegramClient.updateMode = updateMode;
     }
 
-    public static void setSession(Session session) {
-        TelegramClient.session = session;
-    }
+
 
     public static String getLocation() {
         return location;
@@ -385,30 +344,22 @@ public class TelegramClient extends ChatEndpoint {
     //makeRequest return JSONObject
     @Contract("_, _ -> new")
     private static @NotNull JSONObject makeRequest(String url, @NotNull String method) {
-        HttpResponse<String> response = null;
+        HttpResponse<String> response;
+        try {
+            response = client.send(
+                    requestBuilder.build(),
+                    HttpResponse.BodyHandlers.ofString()
+            );
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
 
         try {
 
             if (method.equals("GET")) {
                 url = url + "?offset=" + offset + "&limit=" + length;
             }
-            HttpRequest.Builder builder = HttpRequest.newBuilder();
-            builder.uri(URI.create(url));
-            builder.header("Authorization", "Bearer " + token);
-            builder.header("Content-Type", "application/json");
-            builder.header("Accept", "application/json");
-            builder.header("Accept-Language", language);
-            builder.header("Accept-Encoding", "gzip, deflate");
-            builder.header("Cache-Control", "no-cache");
-            builder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
-            switch (method) {
-                case "GET" -> builder.GET();
-                case "POST" -> builder.POST(HttpRequest.BodyPublishers.noBody());
-                case "PUT" -> builder.PUT(HttpRequest.BodyPublishers.noBody());
-            }
-            HttpClient client = HttpClient.newHttpClient();
-            HttpRequest request = builder.build();
-            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
             NETWORK_RESPONSE networkResponse;
 
             if (response.statusCode() != 200) {
@@ -693,35 +644,32 @@ public class TelegramClient extends ChatEndpoint {
         TelegramClient.entities = entities;
     }
 
-    public static Object connect() {
+    public static @Nullable Object connect() {
         isOnline = true;
-        try {
-            URL url = new URL("https://api.telegram.org/bot" + token + "/getMe");
-            HttpURLConnection con = (HttpURLConnection) url.openConnection();
-            con.setRequestMethod("GET");
-            con.setRequestProperty("Accept", "application/json");
-            con.setRequestProperty("Content-Type", "application/json");
-            con.setRequestProperty("Authorization", "Bearer " + token);
 
-            con.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.11 (KHTML, like Gecko) Chrome/23.0.1271.95 Safari/537.11");
-            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+        String url = "https://api.telegram.org/bot" + token + "/getMe";
+
+
+        requestBuilder.uri(URI.create(url));
+        client.sendAsync(requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        ).thenApply(
+                HttpResponse::body
+        ).thenApply(response -> {
+            try {
+                JSONObject jsonObject = new JSONObject(response);
+                marketInfo = jsonObject.getJSONObject("result");
+
+                return mapper.readValue(response, NETWORK_RESPONSE.class);
+
+
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
             }
-            in.close();
-            String responseString = response.toString();
-            JSONObject jsonObject = new JSONObject(responseString);
-            marketInfo = jsonObject.getJSONObject("result");
+        });
 
-            return marketInfo;
-
-        } catch (IOException e) {
-            e.printStackTrace();
+             return null;
         }
-        return null;
-    }
 
     public String getFrom_first_name() {
         return from_first_name;
@@ -2610,6 +2558,14 @@ public class TelegramClient extends ChatEndpoint {
 
     public PrintStream getRes() {
         return res;
+    }
+
+    public void setRes(PrintStream res) {
+        this.res = res;
+    }
+
+    public DoubleSummaryStatistics getInitializationLatch() {
+        return initializationLatch;
     }
 
 
