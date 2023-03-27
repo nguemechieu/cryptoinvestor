@@ -22,6 +22,7 @@
           <option value="CB-ACCESS-TIMESTAMP" />
           <option value="Sec-Fetch-Site" />
           <option value="Client-ID" />
+          <option value="REDIRECT_URI" />
         </set>
       </option>
     </inspection_tool>

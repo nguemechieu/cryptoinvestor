@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 public abstract class ExchangeWebSocketClient implements javax.websocket.WebSocketContainer {
     private static final Logger logger = LoggerFactory.getLogger(ExchangeWebSocketClient.class);
     protected final BooleanProperty connectionEstablished;
-    protected final Map<TradePair, LiveTradesConsumer> liveTradeConsumers = new ConcurrentHashMap<TradePair, LiveTradesConsumer>();
+    protected final Map<TradePair, LiveTradesConsumer> liveTradeConsumers = new ConcurrentHashMap<>();
 
 
     protected final CountDownLatch webSocketInitializedLatch = new CountDownLatch(1);
@@ -40,14 +40,14 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
             }
         });
         this.connect(clientUri, clientDraft);
+        logger.info("Connection established " + this.connectionEstablished.get()+ " " + this.webSocketInitializedLatch);
+
     }
 
     private void connect(URI clientUri, Draft clientDraft) {
         WebSocketClient webSocketClient = new WebSocketClient(clientUri, clientDraft) {
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
-
-
                 connectionEstablished.set(true);
                 CompletableFuture.runAsync(() -> {
                     try {
@@ -64,7 +64,7 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
 
             @Override
             public void onMessage(String s) {
-                TradePair.logger.info("Received message: " + s);
+                logger.info("Received message: " + s);
 
                 logger.info("Received message: " + s);
 
@@ -150,19 +150,23 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
     }
 
 
-    public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) throws IOException, ParseException, InterruptedException {
+//    public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) throws IOException, ParseException, InterruptedException {
+//
+//        for (TradePair tradePair : tradePairs) {
+//            streamLiveTrades(tradePair, liveTradesConsumer);
+//        }
+//
+//
+//    }
+//
+//    public void stopStreamLiveTrades(TradePair tradePair) {
+//        liveTradeConsumers.remove(tradePair);
+//
+//    }
 
-        for (TradePair tradePair : tradePairs) {
-            streamLiveTrades(tradePair, liveTradesConsumer);
-        }
+    public abstract void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer);
 
-
-    }
-
-    public void stopStreamLiveTrades(TradePair tradePair) {
-        liveTradeConsumers.remove(tradePair);
-
-    }
+    public abstract void stopStreamLiveTrades(TradePair tradePair);
 
     public boolean supportsStreamingTrades(TradePair tradePair) {
 

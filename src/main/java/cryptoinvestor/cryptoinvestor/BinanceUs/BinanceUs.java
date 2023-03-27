@@ -48,8 +48,8 @@ public class BinanceUs extends Exchange {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static final String ur0 = "wss://stream.binance.us:9443";
-    private static Set<TradePair> tradePairs;
-    private static final ExchangeWebSocketClient binanceUsWebSocket = new BinanceUsWebSocket();
+    private static final Set<TradePair> tradePairs=CurrencyDataProvider.getTradePairs();
+    private static final ExchangeWebSocketClient binanceUsWebSocket = new BinanceUsWebSocket(tradePairs);
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     private final String api_key;
 
@@ -557,7 +557,7 @@ this .api_key = binanceUsApiKey;
     public void CancelOrder(long orderID) {
     }
 
-    public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE market, double quantity, int i, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+    public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE market, double quantity, int i, @NotNull Date timestamp, long orderID, double stopPrice, double takeProfitPrice) {
     }
 
     public void closeAll() {

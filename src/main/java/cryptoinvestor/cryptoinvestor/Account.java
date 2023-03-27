@@ -3,13 +3,14 @@ package cryptoinvestor.cryptoinvestor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 import java.io.Serializable;
 import java.util.Date;
 
 
 @Entity
-
+@Table(name = "Account")
 public class Account implements Serializable {
 
 String          uuid;

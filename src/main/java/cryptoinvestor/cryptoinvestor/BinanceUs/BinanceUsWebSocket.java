@@ -42,7 +42,7 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
     private static final Logger logger = LoggerFactory.getLogger(cryptoinvestor.cryptoinvestor.Coinbase.CoinbaseWebSocketClient.class);
 
 
-    public BinanceUsWebSocket() {
+    public BinanceUsWebSocket(Set<TradePair> tradePairs) {
         super(URI.create(
                 "wss://stream.binance.us:9443/ws"
         ), new Draft_6455());
@@ -77,6 +77,9 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
         TradePair tradePair = null;
         try {
             tradePair = parseTradePair(messageJson);
+            logger.info(
+                    "BinanceUs  websocket client: received trade pair: " + tradePair.toString()
+            );
         } catch (CurrencyNotFoundException exception) {
             logger.error("coinbase websocket client: could not initialize trade pair: " +
                     messageJson.get("product_id").asText(), exception);

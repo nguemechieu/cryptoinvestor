@@ -39,12 +39,17 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 public class Bitstamp extends Exchange {
-    private String apiKey;
+    private final String apiKey;
+    private final String secret;
+    private final String coinbaseSecret;
 
     public Bitstamp(String bitstamp_key, String bitstamp_secret, String coinbaseSecret) throws TelegramApiException, IOException, InterruptedException {
 
         super( null);
         this.apiKey = bitstamp_key;
+        this.secret = bitstamp_secret;
+        this.coinbaseSecret = coinbaseSecret;
+
 
 
 

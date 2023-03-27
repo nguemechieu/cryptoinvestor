@@ -84,6 +84,7 @@ public class CandleStickChart extends Region {
     private final ConcurrentHashMap<CandleData,CandleData> onCandleDataUpdate=new ConcurrentHashMap<>();
 
 
+
     /**
      * Maps an open time (as a Unix timestamp) to the computed candle data (high price, low price, etc.) for a trading
      * period beginning with that opening time. Thus the key "1601798498" would be mapped to the candle data for trades
@@ -608,12 +609,10 @@ public class CandleStickChart extends Region {
 
             ConcurrentHashMap<CryptoMarketData, CryptoMarketData> dat = CurrencyDataProvider.getMarketDataConcurrentHashMap();
 
-            String name = telegram.getUsername();
-
 
             infoLabel.setText(
-                    "Timeframe  " + secondsPerCandle + "  seconds."  +  "   Mode: " + selectedAutoTrading
-                            + "BOT : " +   telegram.getUsername()+
+                    "Timeframe  " + secondsPerCandle + "  seconds. "  +  "   Mode: " + selectedAutoTrading
+                            + "   BOT : " +   telegram.getUsername()+
 
                             "    Current Price : " +inProgressCandle.getOpenPrice()+
                             "    Previous Price : " +
@@ -664,7 +663,7 @@ public class CandleStickChart extends Region {
         }
 
         graphicsContext.setFill(Color.BLACK);
-        graphicsContext.fillRect(0, 0, chartWidth, chartHeight);
+        graphicsContext.fillRect(0, 0, chartWidth-120, chartHeight-120);
 
         double monetaryUnitsPerPixel = (yAxis.getUpperBound() - yAxis.getLowerBound()) / canvas.getHeight();
         double pixelsPerMonetaryUnit = 1d / monetaryUnitsPerPixel;

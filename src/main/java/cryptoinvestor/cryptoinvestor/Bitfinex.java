@@ -554,7 +554,7 @@ public class Bitfinex extends Exchange {
     public void closeAll() {
     }
 
-    public void createOrder(TradePair tradePair, Side sell, ENUM_ORDER_TYPE stopLoss, Double quantity, double price, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+    public void createOrder(TradePair tradePair, Side sell, ENUM_ORDER_TYPE stopLoss, Double quantity, double price, @NotNull Date timestamp, long orderID, double stopPrice, double takeProfitPrice) {
     }
 
 

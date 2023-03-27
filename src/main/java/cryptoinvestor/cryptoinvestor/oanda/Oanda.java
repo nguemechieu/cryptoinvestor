@@ -1,6 +1,7 @@
 package cryptoinvestor.cryptoinvestor.oanda;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,6 +16,7 @@ import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -757,6 +759,78 @@ requestBuilder.header("Authorization", "Bearer " + apiKey);
     }
 
     public void closeAll() {
+    }
+
+    public List<Instruments> getAvailableSymbols() throws IOException, InterruptedException {
+        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/"+accountID+"/instruments";
+        System.out.println(uriStr);
+
+        requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.GET();
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+
+
+//        "instruments": [
+//        {
+//            "displayName": "USD/THB",
+//                "displayPrecision": 3,
+//                "marginRate": "0.05",
+//                "maximumOrderUnits": "100000000",
+//                "maximumPositionSize": "0",
+//                "maximumTrailingStopDistance": "100.000",
+//                "minimumTradeSize": "1",
+//                "minimumTrailingStopDistance": "0.050",
+//                "name": "USD_THB",
+//                "pipLocation": -2,
+//                "tradeUnitsPrecision": 0,
+//                "type": "CURRENCY"
+//        },
+
+Instruments instruments = new Instruments(
+        "USD_THB",
+        "CURRENCY",
+        "USD/THB",
+        -2,
+        0,
+        100000000,
+        1,
+        5,
+        50,
+        100.000,
+        100.000,
+        0,
+                "",
+        ""
+);
+List<Instruments> instrumentsList = new ArrayList<>();
+JSONObject jsonObject = new JSONObject(response.body());
+JSONArray jsonArray = jsonObject.getJSONArray("instruments");
+for (int i = 0; i < jsonArray.length(); i++) {
+    instrumentsList.add(new Instruments(
+            jsonArray.getJSONObject(i).getString("name"),
+            jsonArray.getJSONObject(i).getString("type"),
+            jsonArray.getJSONObject(i).getString("displayName"),
+            jsonArray.getJSONObject(i).getInt("pipLocation"),
+            (int) jsonArray.getJSONObject(i).getDouble("marginRate"),
+            (int) jsonArray.getJSONObject(i).getDouble("maximumOrderUnits"),
+            (int) jsonArray.getJSONObject(i).getDouble("maximumPositionSize"),
+            (int) jsonArray.getJSONObject(i).getDouble("maximumTrailingStopDistance"),
+            (int)  jsonArray.getJSONObject(i).getDouble("minimumTradeSize"),
+            jsonArray.getJSONObject(i).getDouble("minimumTrailingStopDistance"),
+            jsonArray.getJSONObject(i).getDouble("tradeUnitsPrecision"),
+            jsonArray.getJSONObject(i).getDouble("displayPrecision"),"",""
+    ));
+}
+
+
+
+logger.info("Instruments -->"+ instruments);
+
+
+
+        return instrumentsList;
     }
 
     static abstract class OandaCandleDataSupplier extends CandleDataSupplier {

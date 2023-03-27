@@ -1,6 +1,8 @@
 package cryptoinvestor.cryptoinvestor;
 import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.Node;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
@@ -55,18 +57,21 @@ public class CandleStickChartContainer extends Region {
         toolbar = new CandleStickChartToolbar(widthProperty(), heightProperty(), candleDataSupplier.getSupportedGranularities());
         HBox toolbarContainer = new HBox(toolbar);
         toolbarContainer.setPrefWidth(Double.MAX_VALUE);
-        toolbarContainer.setPrefHeight(12);
+        toolbarContainer.setPrefHeight(20);
         toolbarContainer.prefWidthProperty().bind(prefWidthProperty());
-        toolbarContainer.setTranslateX(300);
+        toolbarContainer.setTranslateX(100);
 
         setLeftAnchor(toolbarContainer, 82.0);
         setRightAnchor(toolbarContainer, 0.0);
         candleChartContainer = new VBox();
+        candleChartContainer.setPrefWidth(Double.MAX_VALUE);
+        candleChartContainer.setPrefHeight(300);
         setTopAnchor(candleChartContainer, 46.0);
         setLeftAnchor(candleChartContainer, 15.0);
         setRightAnchor(candleChartContainer, 15.0);
-        setBottomAnchor(candleChartContainer, 0.0);
-        AnchorPane containerRoot = new AnchorPane(toolbarContainer, candleChartContainer);
+
+
+        AnchorPane containerRoot = new AnchorPane(toolbarContainer,candleChartContainer);
         getChildren().addAll(containerRoot);
         toolbar.registerEventHandlers(candleStickChart, secondsPerCandle);
         secondsPerCandle.addListener((observableDurationValue, oldDurationValue, newDurationValue) -> {
@@ -99,9 +104,11 @@ public class CandleStickChartContainer extends Region {
 
         candleStickChart = new CandleStickChart(exchange, exchange.getCandleDataSupplier(secondsPerCandle, tradePair),
                 tradePair, liveSyncing, secondsPerCandle, widthProperty(), heightProperty(),telegramToken);
-
-
         candleChartContainer.getChildren().setAll(candleStickChart);
+        animateInNewChart(candleStickChart);
+        toolbar.setChartOptions(candleStickChart.getChartOptions());
+
+
     }
 
     private void animateInNewChart(CandleStickChart newChart) {

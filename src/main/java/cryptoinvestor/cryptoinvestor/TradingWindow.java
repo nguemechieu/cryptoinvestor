@@ -41,7 +41,7 @@ public class TradingWindow extends AnchorPane {
 
 
                 case COINBASE_PRO -> {
-                    Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","45676890ojhghkjl" ,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
+                    Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","ULaVf9zteLbuLb8Pz8g+0tIlUStLsWP0A8bNHtJA7WIc7/vrYYFtKBvvz9Ady6offn+Nu3P7smzi421suPrMnQ==" ,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
                     tab.setContent(new TradeView(coinbase,telegramApiKey));
 
                 }

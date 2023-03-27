@@ -11,7 +11,7 @@ import java.net.http.HttpRequest;
 public class Discord  {
     private String url = "https://discord.com/api/oauth2/authorize?client_id=1087210119097499751&permissions=0&scope=bot";
 
-   private String discordToken = "MTA4NzIxMDExOTA5NzQ5OTc1MQ.GTPtoi.IoKi82j9vnTZAe1VG8LHO60aFUGJzgfYG5blYo";
+   private String discordToken = "MTA4NzIxMDExOTA5NzQ5OTc1MQ.GOPoN8.nCemlpkjh1QeNnyK-gQh_Ihjnk0y6AunoXey64";
 
     public String getUrl() {
         return url;
@@ -39,11 +39,10 @@ public class Discord  {
 
     private String clientId = "72421114444444444";
     String host =
-            "https://api.discord.org/bot" +
-                    this.getClientId() +
-                    "/sendMessage?chat_id=" +
+            "https://api.discord.org/bot" ;//+
+                 //   "/sendMessage?chat_id=" +
 
-                    "&parse_mode=Markdown&text=";
+                   // "&parse_mode=Markdown&text=";
     private String clientSecret = "1087210119097499751";
     private static String apiUrl;
     private static String apiVersion;
@@ -54,11 +53,11 @@ public class Discord  {
 
     public Discord(
 
-            String accessToken) throws IOException, InterruptedException {
+            String accessToken) {
 
         this.accessToken = accessToken;
         requestBuilder = HttpRequest.newBuilder();
-        requestBuilder.header("Client-ID", clientId);
+        requestBuilder.header("Client-ID", "1087210119097499751");
 
         requestBuilder.header("Authorization", "Bearer " + accessToken);
         requestBuilder.header("Content-Type", "application/json");
@@ -67,14 +66,41 @@ public class Discord  {
       requestBuilder.header("Cache-Control", "no-cache");
 
 
+
+//        API_ENDPOINT = 'https://discord.com/api/v10'
+//        CLIENT_ID = '332269999912132097'
+//        CLIENT_SECRET = '937it3ow87i4ery69876wqire'
+
+requestBuilder.header(     "REDIRECT_URI" , "https://nicememe.website");
+requestBuilder.header(
+        "Content-Type",
+        "application/x-www-form-urlencoded"
+    );
+
+requestBuilder.header(
+        "Accept",
+        "application/json"
+    );
+
+//        def exchange_code(code):
+        Object data = new String[]{
+                "client_id:", clientId,
+                "client_secret:", clientSecret,
+                "grant_type", accessToken,
+                //       'code': code,
+                "redirect_uri", "https://nicememe.website"
+        };
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(data.toString()));
+
+//        headers = {
+//                'Content-Type': 'application/x-www-form-urlencoded'
+//  }
+//        r = requests.post('%s/oauth2/token' % API_ENDPOINT, data=data, headers=headers)
+//        r.raise_for_status()
+//        return r.json()
+
        this. client = HttpClient.newHttpClient();
 
-       sendMessage(
-
-                "Hello, I am Cryptoinvestor. I am a bot that allows you to buy cryptocurrencies from the Cryptocurrency Marketplace." +
-                        " I can buy cryptocurrencies from the Cryptocurrency Marketplace, sell cryptocurrencies from the Cryptocurrency Marketplace," +
-                        " and get information about cryptocurrencies from the Cryptocurrency Marketplace."
-       );
 
 
     }
@@ -187,7 +213,7 @@ public class Discord  {
         System.out.println(url);
         return null;
     }
-    public  String sendSticker(String sticker) throws IOException, InterruptedException {
+    public  String sendSticker(String sticker) throws InterruptedException {
         String url = getApiUrl() + getApiVersion() + "/stickers";
         System.out.println(url);
         Thread.sleep(1000);
@@ -195,7 +221,7 @@ public class Discord  {
         System.out.println(url);
         return  null;
     }
-    public  String sendVoice(String voice) throws IOException, InterruptedException {
+    public  String sendVoice(String voice) throws InterruptedException {
         String url = getApiUrl() + getApiVersion() + "/voice";
         System.out.println(url);
         Thread.sleep(1000);

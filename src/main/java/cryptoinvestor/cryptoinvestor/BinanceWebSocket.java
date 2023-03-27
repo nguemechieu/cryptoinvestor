@@ -160,7 +160,7 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
 
     @Override
     protected @NotNull URI getURI() {
-        return null;
+        return  null;
     }
 
     @Override
@@ -222,7 +222,9 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
         }
 
         @Override
-        public void onOpen(ServerHandshake serverHandshake) {}
+        public void onOpen(ServerHandshake serverHandshake) {
+            connectionEstablished.complete(true);
+        }
 
         @Override
         public long getDefaultAsyncSendTimeout() {
@@ -231,6 +233,7 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
 
         @Override
         public void setAsyncSendTimeout(long timeout) {
+
 
         }
 

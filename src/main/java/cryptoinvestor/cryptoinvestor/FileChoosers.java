@@ -14,7 +14,7 @@ public class FileChoosers {
     public void start() throws Exception {
 
         FileChooser file = new FileChooser();
-        file.setTitle("Open file");
+        file.setTitle("Open File");
         Stage primaryStage = new Stage();
 
         file1 = file.showOpenDialog(primaryStage);

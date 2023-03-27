@@ -28,7 +28,7 @@ public class TradeView extends Region  {
 
     private TradePair tradePair;
 
-    public TradeView(Exchange exchange, String telegramToken) throws URISyntaxException, IOException {
+    public TradeView(Exchange exchange, String telegramToken) throws URISyntaxException, IOException, InterruptedException {
 
         super();
         TabPane tradingTabPane = new TabPane();
@@ -48,6 +48,8 @@ public class TradeView extends Region  {
 //        );
 
 
+      //  Discord discord = new Discord("MTA4NzIxMDExOTA5NzQ5OTc1MQ.GTPtoi.IoKi82j9vnTZAe1VG8LHO60aFUGJzgfYG5blYo");
+
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
 
@@ -61,41 +63,27 @@ public class TradeView extends Region  {
                 new ChoiceBox<>();
 
         ChoiceBox<String> counterChoicebox = new ChoiceBox<>();
-        symbolChoicebox.getItems().addAll(
-                "USD",
-                "EUR",
-                "GBP","AUD",
-                "CAD",
-                "CHF",
-                "CNY",
-                "DKK",
-                "EUR",
-                "HKD",
-                "HUF",
-                "IDR",
-                "ILS",
-                "INR",
-                "JPY",
-                "KRW",
-                "MXN",
-                "MYR",
-                "NOK",
-                "NZD",
-                "PHP",
-                "PLN",
-                "RUB",
-                "SEK",
-                "SGD",
-                "THB",
-                "TRY",
-                "USD",
-                "ZAR"
+        ChoiceBox<String> symbolChoiceboxOanda = new ChoiceBox<>();
+        ChoiceBox<String> counterChoiceboxOanda= new ChoiceBox<>();
+        switch (exchange) {
+            case Oanda oanda1 -> symbolChoiceboxOanda.getItems().addAll(
+                    oanda1.getAvailableSymbols().stream().map(s -> s.name).toString()
+            );
+            case BinanceUs binanceUs-> symbolChoicebox.getItems().addAll(CurrencyDataProvider.getInstance().stream().map(Currency::getCode).toString());
+
+            case Coinbase coinbase -> symbolChoicebox.getItems().addAll(CurrencyDataProvider.getTradePairs().stream().map(TradePair::getPair).toString());
 
 
-        );
-        symbolChoicebox.setValue("USD");
-        counterChoicebox.getItems().addAll(
-                "USD",
+            default -> symbolChoicebox.getItems().addAll(CurrencyDataProvider.getInstance().stream().map(Currency::getCode).toString());
+
+
+        }
+
+
+
+        counterChoiceboxOanda.setValue("USD");
+        counterChoiceboxOanda.getItems().addAll(
+                "USD","BTC",
                 "EUR",
                 "GBP","AUD",
                 "CAD",
@@ -148,13 +136,15 @@ public class TradeView extends Region  {
      Button AddBtn = new Button("Load new chart");
 
 
+        ChoiceBox<String> finalSymbolChoicebox = symbolChoicebox;
+        ChoiceBox<String> finalCounterChoicebox = counterChoicebox;
         AddBtn.setOnAction(
                 event -> {
 
 
 
-                    String baseCurrency = symbolChoicebox.getValue();
-                    String counterCurrency = counterChoicebox.getValue();
+                    String baseCurrency = finalSymbolChoicebox.getValue();
+                    String counterCurrency = finalCounterChoicebox.getValue();
                     if (baseCurrency.equals("SELECT A BASE CURRENCY")) {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Error");
@@ -200,10 +190,12 @@ public class TradeView extends Region  {
 
 
         Button tradingBtn = new Button("Trading Buttons");
+        ChoiceBox<String> finalSymbolChoicebox1 = symbolChoicebox;
+        ChoiceBox<String> finalCounterChoicebox1 = counterChoicebox;
         tradingBtn.setOnAction(
                 event -> {
-                    String baseCurrency = symbolChoicebox.getValue();
-                    String counterCurrency = counterChoicebox.getValue();
+                    String baseCurrency = finalSymbolChoicebox1.getValue();
+                    String counterCurrency = finalCounterChoicebox1.getValue();
                     if (baseCurrency.equals("SELECT A BASE CURRENCY")) {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Error");
@@ -224,9 +216,9 @@ public class TradeView extends Region  {
                         return;
                     }
                     StackPane stackPane = new StackPane();
-                    stackPane.setPrefSize(400, 230);
+                    stackPane.setPrefSize(500, 230);
                     GridPane gridPane = new GridPane();
-                    gridPane.setPrefSize(350, 230);
+                    gridPane.setPrefSize(500, 230);
                     gridPane.setHgap(10);
                     gridPane.setVgap(10);
                     gridPane.setPadding(new Insets(10, 10, 10, 10));
@@ -239,8 +231,8 @@ public class TradeView extends Region  {
                                 long orderID = Math.round(Instant.now().getEpochSecond() * 1000000);
                                 double stopPrice = 100;
                                 double takeProfitPrice = 100;
-                                @NotNull Instant timestamp=
-                                        Instant.now();
+                                @NotNull Date timestamp=
+                               new Date();
 
 
                                 double price = Double.parseDouble(baseCurrency + counterCurrency);
@@ -259,7 +251,7 @@ public class TradeView extends Region  {
                                   );}else  if (exchange instanceof Bitfinex coinbase){
 
                                     coinbase.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                             ENUM_ORDER_TYPE.MARKET,
                                             quantity,
                                             0,
@@ -272,7 +264,8 @@ public class TradeView extends Region  {
 
                                 }else if (exchange instanceof BinanceUs binanceUs){
                                     binanceUs.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                             ENUM_ORDER_TYPE.MARKET,
                                             quantity,
                                             0,
@@ -320,7 +313,7 @@ public class TradeView extends Region  {
 
                                         coinbase.createOrder(
 
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                                 ENUM_ORDER_TYPE.MARKET,
                                                 0,
                                                 0,
@@ -334,7 +327,7 @@ public class TradeView extends Region  {
 
                                 }else if (exchange instanceof Bittrex bittrex){
                                         bittrex.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                                 ENUM_ORDER_TYPE.MARKET,
                                                 quantity,
                                                 0,
@@ -349,7 +342,7 @@ public class TradeView extends Region  {
 
                                 }else if (exchange instanceof Kraken kraken)  {
                                     kraken.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                             ENUM_ORDER_TYPE.MARKET,
                                             quantity,
                                             0,
@@ -363,7 +356,7 @@ public class TradeView extends Region  {
 
                                     try {
                                         poloniex.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                                 ENUM_ORDER_TYPE.MARKET,
                                                 quantity,
                                                 0,
@@ -381,11 +374,11 @@ public class TradeView extends Region  {
 
 
                                         bitfinex.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                                 ENUM_ORDER_TYPE.MARKET,
                                                 quantity,
                                                 0,
-                                                timestamp,
+                                                Date.from(timestamp),
                                                 orderID,
                                                 stopPrice,
                                                 takeProfitPrice
@@ -397,7 +390,7 @@ public class TradeView extends Region  {
 
                                     try {
                                         bitstamp.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                                 ENUM_ORDER_TYPE.MARKET,
                                                 quantity,
                                                 0,
@@ -415,7 +408,7 @@ public class TradeView extends Region  {
 
 
                                     binanceUs.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                             ENUM_ORDER_TYPE.MARKET,
                                             quantity,
                                             0,
@@ -471,7 +464,7 @@ public class TradeView extends Region  {
 
                                     if (exchange instanceof Bittrex bittrex){
                                         bittrex.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                 ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                                 quantity,
                                                 0,
@@ -482,7 +475,7 @@ public class TradeView extends Region  {
                                         );
                                     }else if (exchange instanceof Kraken kraken){
                                         kraken.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                 ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                                 quantity,
                                                 0,
@@ -494,7 +487,7 @@ public class TradeView extends Region  {
                                     }else if (exchange instanceof Poloniex poloniex){
                                         try {
                                             poloniex.createOrder(
-                                                    new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                    new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                     ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                                     quantity,
                                                     0,
@@ -508,11 +501,11 @@ public class TradeView extends Region  {
                                         }
                                     }else if (exchange instanceof Bitfinex bitfinex){
                                         bitfinex.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                 ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                                 quantity,
                                                 0,
-                                                timestamp,
+                                                Date.from(timestamp),
                                                 orderID,
                                                 stopPrice,
                                                 takeProfitPrice
@@ -520,7 +513,7 @@ public class TradeView extends Region  {
                                     }else if (exchange instanceof Bitstamp bitstamp){
                                         try {
                                             bitstamp.createOrder(
-                                                    new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                    new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                     ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                                     quantity,
                                                     0,
@@ -535,7 +528,7 @@ public class TradeView extends Region  {
 
                                     }else if (exchange instanceof BinanceUs binanceUs){
                                         binanceUs.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                 ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                                 quantity,
                                                 0,
@@ -547,7 +540,7 @@ public class TradeView extends Region  {
                                     }else if (exchange instanceof Coinbase coinbase){
                                         try {
                                             coinbase.createOrder(
-                                                    new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                    new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                     ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                                     quantity,
                                                     0,
@@ -561,7 +554,7 @@ public class TradeView extends Region  {
                                         }
                                     }else if (exchange instanceof Oanda oanda){
                                         oanda.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()),
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()),
                                             POSITION_FILL.DEFAULT_FILL,price,
                                                 ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                                 cryptoinvestor.cryptoinvestor.Side.SELL,
@@ -585,7 +578,7 @@ public class TradeView extends Region  {
                                         double takeProfitPrice = 100;
                                         switch (exchange) {
                                             case Bittrex bittrex -> bittrex.createOrder(
-                                                    new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                    new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                     ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                                     quantity,
                                                     price,
@@ -595,7 +588,7 @@ public class TradeView extends Region  {
                                                     takeProfitPrice
                                             );
                                             case Kraken kraken -> kraken.createOrder(
-                                                    new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                    new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                     ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                                     quantity,
                                                     price,
@@ -605,7 +598,7 @@ public class TradeView extends Region  {
                                                     takeProfitPrice
                                             );
                                             case Poloniex poloniex -> poloniex.createOrder(
-                                                    new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                    new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                     ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                                     quantity,
                                                     price,
@@ -615,17 +608,17 @@ public class TradeView extends Region  {
                                                     takeProfitPrice
                                             );
                                             case Bitfinex bitfinex -> bitfinex.createOrder(
-                                                    new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                    new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                     ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                                     quantity,
                                                     0,
-                                                    timestamp,
+                                                    Date.from(timestamp),
                                                     orderID,
                                                     stopPrice,
                                                     takeProfitPrice
                                             );
                                             case Bitstamp bitstamp -> bitstamp.createOrder(
-                                                    new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                    new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                     ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                                     quantity,
                                                     0,
@@ -635,7 +628,7 @@ public class TradeView extends Region  {
                                                     takeProfitPrice
                                             );
                                             case Kucoin kucoin -> kucoin.createOrder(
-                                                    new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                    new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                     ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                                     quantity,
                                                     0,
@@ -647,7 +640,7 @@ public class TradeView extends Region  {
                                             case null, default -> {
                                                if (exchange instanceof BinanceUs binanceUs) {
                                                     binanceUs.createOrder(
-                                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                             ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                                             quantity,
                                                             price,
@@ -658,7 +651,7 @@ public class TradeView extends Region  {
                                                     );
                                                 } else if (exchange instanceof Coinbase coinbase) {
                                                     coinbase.createOrder(
-                                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                             ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                                             quantity,
                                                             price,
@@ -669,7 +662,7 @@ public class TradeView extends Region  {
                                                     );
                                                 } else if (exchange instanceof Oanda oanda) {
                                                    oanda.createOrder(
-                                                           new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()),
+                                                           new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()),
                                                            POSITION_FILL.DEFAULT_FILL,price,
                                                            ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                                            cryptoinvestor.cryptoinvestor.Side.SELL,
@@ -712,7 +705,7 @@ public class TradeView extends Region  {
 
                                     if (exchange instanceof Oanda oanda){
                                         oanda.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()),
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()),
                                                 POSITION_FILL.DEFAULT_FILL,price,
                                                 ENUM_ORDER_TYPE.STOP_LOSS,
                                                 cryptoinvestor.cryptoinvestor.Side.SELL,
@@ -722,7 +715,7 @@ public class TradeView extends Region  {
                                         );
                                     }else if (exchange instanceof Coinbase coinbase){
                                         coinbase.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                 ENUM_ORDER_TYPE.STOP_LOSS,
                                                 quantity,
                                                 price,
@@ -733,7 +726,7 @@ public class TradeView extends Region  {
                                         );
                                     }else if (exchange instanceof Bittrex bittrex){
                                         bittrex.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                 ENUM_ORDER_TYPE.STOP_LOSS,
                                                 quantity,
                                                 price,
@@ -744,7 +737,7 @@ public class TradeView extends Region  {
                                         );
                                     }else if (exchange instanceof Poloniex poloniex){
                                         poloniex.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                 ENUM_ORDER_TYPE.STOP_LOSS,
                                                 quantity,
                                                 price,
@@ -755,18 +748,18 @@ public class TradeView extends Region  {
                                         );
                                     }else if (exchange instanceof Bitfinex bitfinex){
                                         bitfinex.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                 ENUM_ORDER_TYPE.STOP_LOSS,
                                                 quantity,
                                                 price,
-                                                timestamp,
+                                                Date.from(timestamp),
                                                 orderID,
                                                 stopPrice,
                                                 takeProfitPrice
                                         );
                                     }else if (exchange instanceof Kraken kraken){
                                         kraken.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                 ENUM_ORDER_TYPE.STOP_LOSS,
                                                 quantity,
                                                 price,
@@ -777,7 +770,7 @@ public class TradeView extends Region  {
                                         );
                                     }else if (exchange instanceof BinanceUs binanceUs){
                                         binanceUs.createOrder(
-                                                new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
+                                                new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.BUY,
                                                 ENUM_ORDER_TYPE.STOP_LOSS,
                                                 quantity,
                                                 price,
@@ -806,7 +799,7 @@ public class TradeView extends Region  {
                                     double takeProfitPrice = 100;
                                 if (exchange instanceof Coinbase coinbase){
                                     coinbase.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                             ENUM_ORDER_TYPE.STOP_LOSS,
                                             quantity,
                                             price,
@@ -817,7 +810,7 @@ public class TradeView extends Region  {
                                     );
                                 }else if (exchange instanceof Bittrex bittrex){
                                     bittrex.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                             ENUM_ORDER_TYPE.STOP_LOSS,
                                             quantity,
                                             price,
@@ -828,7 +821,7 @@ public class TradeView extends Region  {
                                     );
                                 }else if (exchange instanceof Poloniex poloniex){
                                     poloniex.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                             ENUM_ORDER_TYPE.STOP_LOSS,
                                             quantity,
                                             price,
@@ -839,11 +832,11 @@ public class TradeView extends Region  {
                                     );
                                 }else if (exchange instanceof Bitfinex bitfinex){
                                     bitfinex.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                             ENUM_ORDER_TYPE.STOP_LOSS,
                                             quantity,
                                             price,
-                                            timestamp,
+                                            Date.from(timestamp),
                                             orderID,
                                             stopPrice,
                                             takeProfitPrice
@@ -851,7 +844,7 @@ public class TradeView extends Region  {
                                 }else if (exchange instanceof Kraken kraken){
 
                                     kraken.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                             ENUM_ORDER_TYPE.STOP_LOSS,
                                             quantity,
                                             price,
@@ -862,7 +855,7 @@ public class TradeView extends Region  {
                                             );
                                 }else if (exchange instanceof BinanceUs binanceUs){
                                     binanceUs.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()), cryptoinvestor.cryptoinvestor.Side.SELL,
                                             ENUM_ORDER_TYPE.STOP_LOSS,
                                             quantity,
                                             price,
@@ -873,7 +866,7 @@ public class TradeView extends Region  {
                                     );
                                 }else if (exchange instanceof Oanda oanda){
                                     oanda.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(),counterChoicebox.getValue()),
+                                            new TradePair(finalSymbolChoicebox1.getValue(), finalCounterChoicebox1.getValue()),
                                             POSITION_FILL.DEFAULT_FILL,price,
                                             ENUM_ORDER_TYPE.STOP_LOSS,
                                             cryptoinvestor.cryptoinvestor.Side.SELL,
@@ -893,7 +886,7 @@ public class TradeView extends Region  {
                                     long orderID=
                                             Math.round(Instant.now().getEpochSecond() * 1000000);
                                     if (exchange instanceof Coinbase coinbase){
-                                        coinbase.cancelOrder(orderID);
+                                        coinbase.cancelOrder(String.valueOf(orderID));
                                     }else if (exchange instanceof Bittrex bittrex){
                                         bittrex.CancelOrder(orderID);
                                     }
@@ -921,8 +914,7 @@ public class TradeView extends Region  {
                     buyCancelBtn.setOnAction(
                             event6 -> {
                                 try {
-                                    @NotNull Instant timestamp=
-                                            Instant.now();
+
                                     double price=0;
                                     Double quantity = spinner.getValue();
                                     long orderID = Math.round(Instant.now().getEpochSecond() * 1000000);
@@ -936,7 +928,7 @@ public class TradeView extends Region  {
                                     }else if (exchange instanceof Bitstamp bitstamp){
                                         bitstamp.CancelOrder(orderID);
                                     }else if (exchange instanceof Coinbase coinbase){
-                                        coinbase.cancelOrder(orderID);
+                                        coinbase.cancelOrder(String.valueOf(orderID));
                                     }else if (exchange instanceof BinanceUs binanceUs){
                                         binanceUs.CancelOrder(orderID);
                                     }else if (exchange instanceof Kucoin kucoin){
@@ -958,10 +950,12 @@ public class TradeView extends Region  {
                 });
         Button orderViewBtn=new Button("Order View");
 
+        ChoiceBox<String> finalSymbolChoicebox2 = symbolChoicebox;
+        ChoiceBox<String> finalCounterChoicebox2 = counterChoicebox;
         orderViewBtn.setOnAction(
                 event -> {
-                    String baseCurrency = symbolChoicebox.getValue();
-                    String counterCurrency = counterChoicebox.getValue();
+                    String baseCurrency = finalSymbolChoicebox2.getValue();
+                    String counterCurrency = finalCounterChoicebox2.getValue();
                     if (baseCurrency.equals("SELECT A BASE CURRENCY")) {
                         Alert alert = new Alert(Alert.AlertType.ERROR);
                         alert.setTitle("Error");
@@ -1026,10 +1020,7 @@ public class TradeView extends Region  {
                   timeColumn.setCellValueFactory(
                             param -> new ReadOnlyStringWrapper(param.getValue().getValue().timestamp.toString())
                     );
-                    TreeTableColumn <Trade, String> idColumn = new TreeTableColumn<>("ID");
-                    idColumn.setCellValueFactory(
-                            param -> new ReadOnlyStringWrapper(String.valueOf(param.getValue().getValue().getId()))
-                    );
+
                     TreeTableColumn <Trade, String> orderIdColumn = new TreeTableColumn<>("Order ID");
                  orderIdColumn.setCellValueFactory(
                             param -> new ReadOnlyStringWrapper(param.getValue().getValue().getId().toString())
@@ -1057,10 +1048,8 @@ public class TradeView extends Region  {
 
 
                     orders.getColumns().addAll(symbolColumn, priceColumn, amountColumn, sideColumn,
-
-
-                    typeColumn, timeColumn, idColumn, orderIdColumn, statusColumn, filledColumn, remainingColumn);
-                    Scene scene = new Scene(orders,800,200);
+                    typeColumn, timeColumn, orderIdColumn, statusColumn, filledColumn, remainingColumn);
+                    Scene scene = new Scene(orders,1200,300);
                     Stage stage = new Stage();
                     stage.setScene(scene);
                     stage.show();
@@ -1069,12 +1058,39 @@ public class TradeView extends Region  {
         walletBtn.setOnAction(
                 event -> {
                     Stage stage = new Stage();
+                    assert exchange != null;
                     stage.setScene(new Scene(new Wallet(exchange)));
                     stage.show();
                 });
 
 
-        HBox hBox = new HBox(symbolChoicebox, counterChoicebox, removeBtn, AddBtn, tradingBtn, orderViewBtn,walletBtn);
+        Button orderHistoryBtn=
+                new Button("Order History");
+        orderHistoryBtn.setOnAction(
+                event -> {
+                    Stage stage = new Stage();
+                    assert exchange!= null;
+                    try {
+                        stage.setScene(new Scene(new OrderHistory(exchange)));
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    stage.show();
+                });
+
+
+        if (exchange instanceof Oanda oanda){
+
+
+            symbolChoicebox=symbolChoiceboxOanda;
+            counterChoicebox=counterChoiceboxOanda;
+        }
+        HBox hBox = new HBox(new HBox(symbolChoicebox,counterChoicebox), removeBtn, AddBtn, tradingBtn, orderViewBtn,walletBtn,
+
+
+                orderHistoryBtn
+
+                );
         setPadding(new Insets(10, 10, 10, 10));
 
         hBox.setPrefSize(1500,20);
@@ -1085,6 +1101,7 @@ public class TradeView extends Region  {
         tabPane.setTranslateY(25);
         tabPane.setSide(Side.BOTTOM);
         tabPane.getTabs().add(new Tab("Order View"));
+        assert exchange != null;
         tabPane.getTabs().add(new Tab(exchange.getName() +"-->  Wallet"));
         tabPane.getTabs().add(new Tab("Stellar Network  Trading (XLM)"));
         tabPane.getTabs().get(2).setContent(
@@ -1113,7 +1130,6 @@ public class TradeView extends Region  {
       }
 
         anchorPane.getChildren().addAll(hBox, tabPane);
-
         tabPane.getSelectionModel().select(tabPane.getTabs().size()-1);
         getChildren().add(anchorPane);
 

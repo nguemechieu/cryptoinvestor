@@ -8,6 +8,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
+import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.Alert;
@@ -46,14 +48,48 @@ public class CurrencyDataProvider {
     private static final ConcurrentHashMap<SymmetricPair<String, CurrencyType>, Currency> CURRENCIES = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<CryptoMarketData, CryptoMarketData> MARKET_DATA_CONCURRENT_HASH_MAP = new ConcurrentHashMap<>();
     private static Roi roi;
-    private static final TradePair tradePairs
-            = new TradePair("BTC", "USD");
+
+    static Set<TradePair> tradePairs=
+            new HashSet<>() {{
+                add(new TradePair("BTC", "USD"));
+                add(new TradePair("ETH", "USD"));
+                add(new TradePair("LTC", "USD"));
+                add(new TradePair("BCH", "USD"));
+                add(new TradePair("XRP", "USD"));
+                add(new TradePair("EOS", "USD"));
+                add(new TradePair("NEO", "USD"));
+                add(new TradePair("TRX", "USD"));
+                add(new TradePair("XLM", "USD"));
+                add(new TradePair("DASH", "USD"));
+                add(new TradePair("ZEC", "USD"));
+                add(new TradePair("ETC", "USD"));
+                add(new TradePair("XMR", "USD"));
+                add(new TradePair("XEM", "USD"));
 
 
+
+            }};
+
+
+    public static Set<TradePair> getTradePairs() {
+        for (Currency currency : CURRENCIES.values()) {
+
+            if (currency.currencyType.equals(CurrencyType.CRYPTO)) {
+                TradePair tradePair1 = new TradePair(currency.code, "USD");
+                tradePairs.add(tradePair1);
+
+                logger.info("tradePair1: " + tradePair1);
+            }
+        }
+        return tradePairs;
+
+    }
     public static ConcurrentHashMap<CryptoMarketData, CryptoMarketData> getMarketDataConcurrentHashMap() {
 
         return MARKET_DATA_CONCURRENT_HASH_MAP;
     }
+
+
 
     @Contract(" -> new")
     public static @NotNull List<Currency> getInstance() {
@@ -335,9 +371,6 @@ public class CurrencyDataProvider {
         CurrencyDataProvider.roi = roi;
     }
 
-    public static TradePair getTradePairs() {
-        return tradePairs;
-    }
 
     public enum OANDA_ACCESS_TOKEN {
         ACCESS_TOKEN("adc94d655c0c81e0afdd3da09292f82d-dacf61d05de1d1867d27f725069b9aa2"),

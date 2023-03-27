@@ -38,13 +38,15 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     private final CompletableFuture<Boolean> connectionEstablished = new CompletableFuture<>();
 
     private static final Logger logger = LoggerFactory.getLogger(CoinbaseWebSocketClient.class);
-    private final Set<TradePair> tradePairs;
 
 
     public CoinbaseWebSocketClient(Set<TradePair> tradePairs) {
         super(URI.create("wss://ws-feed.pro.coinbase.com"), new Draft_6455());
-        this.tradePairs = tradePairs;
         logger.info("Coinbase websocket client initialized");
+
+        for (TradePair tradePair : tradePairs) {
+            liveTradeConsumers.put(tradePair, new LiveTradeConsumer(tradePair));
+        }
 
     }
 
@@ -78,7 +80,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
         switch (messageJson.get("type").asText()) {
             case "heartbeat" ->
-                    sendText(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString(),false);
+                    sendText(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", false).toPrettyString(),false);
             case "match" -> {
                 if (liveTradeConsumers.containsKey(tradePair)) {
                     assert tradePair != null;
@@ -122,6 +124,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
     @Override
     public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
+        this.liveTradeConsumers.put((TradePair) tradePairs, liveTradesConsumer);
 
     }
 
@@ -177,19 +180,28 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
     @Override
     public void abort() {
+        connectionEstablished.complete(false);
+        logger.info("Coinbase websocket client aborted");
 
     }
 
     @Override
-    public void onClose(int code, String reason, boolean remote) {}
+    public void onClose(int code, String reason, boolean remote) {
+
+        connectionEstablished.complete(false);
+        logger.info("Coinbase websocket client closed");
+    }
 
     @Override
     public void onError(Exception ex) {
 
+        logger.error("ex: ", ex);
     }
 
     @Override
-    public void onOpen(ServerHandshake serverHandshake) {}
+    public void onOpen(ServerHandshake serverHandshake) {
+        connectionEstablished.complete(true);
+    }
 
     @Override
     public long getDefaultAsyncSendTimeout() {
@@ -202,12 +214,12 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
-    public Session connectToServer(Object endpoint, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Object endpoint, URI path)  {
         return null;
     }
 
     @Override
-    public Session connectToServer(Class<?> annotatedEndpointClass, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Class<?> annotatedEndpointClass, URI path) {
         return null;
     }
 
@@ -256,7 +268,5 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         return null;
     }
 
-    public Set<TradePair> getTradePairs() {
-        return tradePairs;
-    }
+
 }

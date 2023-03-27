@@ -55,5 +55,11 @@ public class Product {
         this.category = category;
         this.currency = currency;
     }
-    public Product(){}
+    public Product(){
+        this.name = "";
+        this.description = "";
+        this.url = "";
+        this.category = "";
+        this.currency = "";
+    }
 }

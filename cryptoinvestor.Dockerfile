@@ -8,6 +8,6 @@ COPY mvnw pom.xml ./
 RUN chmod +x mvnw
 RUN  ./mvnw dependency:resolve
 COPY src ./src
-EXPOSE 5000
+EXPOSE 7000
 ENTRYPOINT ["java" , "CryptoInvestor"]
 CMD ["docker", "run" , "--rm", "cryptoinvestor" ]

@@ -31,11 +31,8 @@ public class CryptoInvestor extends Application {
         preferences.put("username", "root");
         preferences.put("password", "root307#");
         try {
-         preferences.exportNode(
-                 new FileOutputStream(
+         preferences.exportNode(new FileOutputStream(System.getProperty("user.home") + "/.config/cryptoinvestor.xml"));
 
-                         System.getProperty("user.home") + "/.config/cryptoinvestor.xml"
-                         ));
 
         } catch (BackingStoreException | IOException e) {
             logger.error(e.getMessage());
@@ -65,7 +62,7 @@ public class CryptoInvestor extends Application {
         } catch (TelegramApiException e) {
             throw new RuntimeException(e);
         }
-        primaryStage.setTitle("CryptoInvestor                    " + new java.util.Date() + "         version :" + 0.01);
+        primaryStage.setTitle("CryptoInvestor                    " + new java.util.Date() );
         primaryStage.setScene(new Scene(tradingWindow, 1530, 780));
         primaryStage.setResizable(true);
         primaryStage.sizeToScene();
