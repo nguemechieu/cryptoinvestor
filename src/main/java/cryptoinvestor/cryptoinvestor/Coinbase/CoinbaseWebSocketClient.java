@@ -40,7 +40,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     private static final Logger logger = LoggerFactory.getLogger(CoinbaseWebSocketClient.class);
 
 
-    public CoinbaseWebSocketClient(Set<TradePair> tradePairs) {
+    public CoinbaseWebSocketClient(@NotNull Set<TradePair> tradePairs) {
         super(URI.create("wss://ws-feed.pro.coinbase.com"), new Draft_6455());
         logger.info("Coinbase websocket client initialized");
 
@@ -224,12 +224,12 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
-    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
         return null;
     }
 
     @Override
-    public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path)  {
         return null;
     }
 
@@ -260,12 +260,14 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
     @Override
     public void setDefaultMaxTextMessageBufferSize(int max) {
+        logger.info("Coinbase websocket client: default max text message buffer size set to " + max);
 
     }
 
     @Override
     public Set<Extension> getInstalledExtensions() {
-        return null;
+        return
+                Collections.emptySet();
     }
 
 

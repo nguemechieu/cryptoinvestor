@@ -1,7 +1,7 @@
 package cryptoinvestor.cryptoinvestor.oanda;
 
 public record OandaTransaction() {
-    private static String transactionId = "12";
+    private static String transactionId ;
 
     public static String getTransactionId() {
         return transactionId;

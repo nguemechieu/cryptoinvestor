@@ -3,13 +3,14 @@ package cryptoinvestor.cryptoinvestor;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
 
 public class Order extends RecursiveTreeObject<Order> {
-     ArrayList<Order> orders=new ArrayList<>();
+    ArrayList<Order> orders=new ArrayList<>();
     private  TradePair tradePair;
    private Instant timestamp;
   private   ENUM_ORDER_TYPE order_type;
@@ -36,6 +37,40 @@ private String symbol;
     private Side side;
     private String filled;
     private String unit;
+
+    public Order(JSONObject jsonObject) {
+        this.id = jsonObject.getLong("id");
+        this.tradePair = new TradePair("EUR", "USD");
+        this.timestamp = Instant.ofEpochMilli(jsonObject.getLong("timestamp"));
+        this.order_type = ENUM_ORDER_TYPE.valueOf(jsonObject.getString("orderType"));
+        this.remaining = jsonObject.getDouble("remaining");
+        this.fee = jsonObject.getDouble("fee");
+        this.lotSize = jsonObject.getDouble("lotSize");
+        this.stopLoss = jsonObject.getDouble("stopLoss");
+        this.symbol = jsonObject.getString("symbol");
+        this.type = ENUM_ORDER_TYPE.valueOf(jsonObject.getString("type"));
+        this.side = Side.valueOf(jsonObject.getString("side"));
+        this.filled = jsonObject.getString("filled");
+        this.unit = jsonObject.getString("unit");
+        this.total = jsonObject.getDouble("total");
+    }
+
+    public Order(String orderId, String clientOrderId, String symbol, String side, String status, String type, String timeInForce, String price, String origQty, String executedQty, String cummulativeQuoteQty, String icebergQty) {
+        this.id = Long.valueOf(orderId);
+        this.tradePair = new TradePair("EUR", "USD");
+        this.timestamp = Instant.ofEpochMilli(Long.parseLong(timeInForce));
+        this.order_type = ENUM_ORDER_TYPE.valueOf(type);
+        this.remaining = Double.parseDouble(origQty);
+        this.fee = Double.parseDouble(price);
+        this.lotSize = Double.parseDouble(executedQty);
+        this.stopLoss = Double.parseDouble(cummulativeQuoteQty);
+        this.symbol = symbol;
+        this.side = Side.valueOf(side);
+        this.status = status;
+        this.type = ENUM_ORDER_TYPE.valueOf(type);
+        this.created = Date.from(Instant.ofEpochMilli(Long.parseLong(timeInForce)));
+        this.updated = Date.from(Instant.ofEpochMilli(Long.parseLong(timeInForce)));
+    }
 
     public int getOrderID() {
         return orderID;

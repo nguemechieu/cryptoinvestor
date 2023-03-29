@@ -7,16 +7,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import cryptoinvestor.cryptoinvestor.*;
-import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUsWebSocket;
+import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,7 +25,6 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.net.http.WebSocket;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -40,51 +38,62 @@ import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 public class Binance extends Exchange {
-
     private static final Logger logger = LoggerFactory.getLogger(Binance.class);
-
-
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
 
-     static Set<TradePair> tradePairs;
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     private final String api_key;
-    private static final ExchangeWebSocketClient binanceWebSocket = new BinanceWebSocket(
-            tradePairs
-    );
-    private final HttpClient client=HttpClient.newHttpClient(
-    );
 
-    public Binance(  String binanceUsApiKey) {
-        super( binanceWebSocket
-        );
-
-
+    private final HttpClient client=HttpClient.newHttpClient();
+    public Binance(  String apiKey, String apiSecret, String accountId) {
+        super( null);
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
-        requestBuilder.header(  "Origin", "https://api.binance.us");
-        requestBuilder.header("Referer", "https://www.binance.us");
+        requestBuilder.header(  "Origin", "https://api.binance.com");
+        requestBuilder.header("Referer", "https://api.binance.com");
         requestBuilder.header("Sec-Fetch-Dest", "empty");
         requestBuilder.header("Sec-Fetch-Mode", "cors");
         requestBuilder.header("Accept", "application/json");
         requestBuilder.header("Authorization",
-                "Bearer " + binanceUsApiKey
+                "Bearer " + apiKey
         );
 
         logger.info("BinanceUs " + nanoTime());
 
 
-        this .api_key = binanceUsApiKey;
+        this .api_key = apiKey;
 
     }
 
-    public void createOrder(double price1, ENUM_ORDER_TYPE type1, Side side1, double quantity1, double stopLoss1, double takeProfit1) {
-        createOrder(price1, type1, side1, quantity1, stopLoss1, takeProfit1);
 
+
+    public void createOrder(TradePair tradePair,double price1, ENUM_ORDER_TYPE type1, Side side1, double quantity1, double stopLoss1, double takeProfit1) throws IOException, InterruptedException {
+
+        String url = "https://api.binance.com/api/v3/order";
+        String body = "{\n" +
+                "  \"symbol\": \"" + tradePair + "\",\n" +
+                "  \"side\": \"" + side1 + "\",\n" +
+                "  \"type\": \"" + type1 + "\",\n" +
+                "  \"timeInForce\": \"GTC\",\n" +
+                "  \"quantity\": " + quantity1 + ",\n" +
+                "  \"price\": " + price1 + ",\n" +
+                "  \"stopPrice\": " + stopLoss1 + ",\n" +
+                "  \"icebergQty\": " + takeProfit1 + ",\n" +
+                "  \"newOrderRespType\": \"FULL\",\n" +
+                "  \"recvWindow\": 10000,\n" +
+                "  \"timestamp\": \"" + LocalDateTime.now().format(DateTimeFormatter.ISO_INSTANT) + "\"\n" +
+                "}";
+        logger.info(url);
+        logger.info(body);
+        requestBuilder.uri(URI.create(url));
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body));
+        HttpResponse<String> response =client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info(String.valueOf(response.statusCode()));
+        logger.info(response.body());
     }
 
     @Override
@@ -116,8 +125,10 @@ public class Binance extends Exchange {
 
     }
 
-    ;
-
+    @Override
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle() {
+        return null;
+    }
 
 
 //    private @Nullable String timestampSignature(
@@ -141,6 +152,10 @@ public class Binance extends Exchange {
 //
 //    }
 
+    @Override
+    public Set<Integer> getSupportedGranularities() {
+        return
+                Set.of(1, 5, 15, 30, 60, 120, 180, 360, 720, 1440, 2160, 4320, 8640, 17280, 34560, 60480, 120960, 241920, 483840, 965680, 1921040, 3843200, 7686400, 15728000, 31536000, 62912000, 125920000, 251680000, 503360000, 1048576000);}
 
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
@@ -535,6 +550,100 @@ public class Binance extends Exchange {
 
     }
 
+    @Override
+    public @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create("https://api.binance.us/api/v3/exchangeInfo"));
+HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+
+        System.out.println(response.body());
+if (response.statusCode() == 200) {
+    ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+    mapper.registerModule(new JavaTimeModule());
+    JsonNode root = mapper.readTree(response.body());
+    ArrayNode symbols = (ArrayNode) root.get("symbols");
+    List<Currency> currencies = new ArrayList<>();
+    for (int i = 0; i < symbols.size(); i++) {
+        currencies.add(new Currency(CurrencyType.CRYPTO,
+                symbols.get(i).get("baseAsset").asText(),
+                symbols.get(i).get("quoteAsset").asText(),
+                symbols.get(i).get("symbol").asText(),
+                symbols.get(i).get("baseAssetPrecision").asInt(),
+                symbols.get(i).get("filters").get(0).get("filterType").asText(),
+                ""
+                ) {
+            @Override
+            public int compareTo(java.util.@NotNull Currency o) {
+                return 0;
+            }
+        });
+    }
+    return currencies;
+}else {
+    logger.info(
+            response.statusCode() + " " + response.body()
+    );
+    return new ArrayList<>();
+}
+
+
+    }
+
+    @Override
+    public void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) {
+
+    }
+
+    @Override
+    public void closeAllOrders() {
+
+    }
+
+    @Override
+    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+        ArrayList<TradePair> tradePairs = new ArrayList<>();
+
+       for (Currency currency : getAvailableSymbols()) {
+           tradePairs.add(new TradePair(currency.getCode(),"USD"));
+
+       }
+        return
+                tradePairs;
+    }
+
+    @Override
+    public void cancelOrder(long orderID) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void cancelAllOrders() {
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
+
+        String uriStr = "https://api.binance.com/" +
+                "api/v3/allOrders";
+
+        System.out.println(uriStr);
+
+    }
+
+    @Override
+    public void cancelAllOpenOrders() {
+
+    }
+
+    @Override
+    public ListView<Order> getOrderView() {
+        return new ListView<>();
+    }
+
+    @Override
+    public List<Objects> getOrderBook() {
+        return null;
+    }
+
     public void createOrder(
             @NotNull TradePair tradePair, TRADE_ORDER_TYPE orderType,
             Side side,
@@ -655,7 +764,7 @@ public class Binance extends Exchange {
                             HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
                     .thenApply(response -> {
-                        Log.info("Binance Us response: -->{}", response);
+                        Log.info("Binance response: -->{}", response);
                         JsonNode res;
                         try {
                             res = OBJECT_MAPPER.readTree(response);
@@ -674,7 +783,7 @@ public class Binance extends Exchange {
                             // Remove the current in-progress candle
 
 
-                            logger.info("Binance Us response: --> {}", res);
+                            logger.info("Binance response: --> {}", res);
                             if (res.get(0).get(0).asInt() + secondsPerCandle > endTime.get()) {
                                 ((ArrayNode) res).remove(0);
                             }

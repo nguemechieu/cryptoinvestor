@@ -7,9 +7,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,17 +42,11 @@ import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 public class Bitstamp extends Exchange {
     private final String apiKey;
-    private final String secret;
-    private final String coinbaseSecret;
 
-    public Bitstamp(String bitstamp_key, String bitstamp_secret, String coinbaseSecret) throws TelegramApiException, IOException, InterruptedException {
+    public Bitstamp(String bitstamp_key, String bitstamp_secret, String coinbaseSecret) {
 
         super( null);
         this.apiKey = bitstamp_key;
-        this.secret = bitstamp_secret;
-        this.coinbaseSecret = coinbaseSecret;
-
-
 
 
     }
@@ -85,6 +81,21 @@ public class Bitstamp extends Exchange {
     public void cancelOrder(long orderId) {}
 
     public void cancelAllOrders() {}
+
+    @Override
+    public void cancelAllOpenOrders() {
+
+    }
+
+    @Override
+    public ListView<Order> getOrderView() {
+        return new ListView<>();
+    }
+
+    @Override
+    public List<Objects> getOrderBook() {
+        return null;
+    }
 
 
     private void sendRequest(String url, String payload) {
@@ -121,6 +132,11 @@ public class Bitstamp extends Exchange {
                 };
     }
 
+    @Override
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle() {
+        return null;
+    }
+
     private @Nullable String timestampSignature(
             String apiKey,
             String passphrase
@@ -142,6 +158,16 @@ public class Bitstamp extends Exchange {
         return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes()));
     }
 
+
+    @Override
+    public Set<Integer> getSupportedGranularities() {
+        return Collections.unmodifiableSet(
+                new HashSet<>(
+                        Arrays.asList(1, 5, 15, 30, 60, 120, 180, 360, 720, 1440, 2160, 4320, 8640, 17280, 34560, 60480, 120960, 241920, 483840, 965680, 1921040, 3843200, 7200000, 14400000, 21600000, 43200000, 86400000, 172800000
+
+
+        )));
+    }
 
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
@@ -244,7 +270,7 @@ public class Bitstamp extends Exchange {
                 currentCandleStartedAt, ZoneOffset.UTC));
         long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
         // Get the closest supported granularity to the ideal granularity.
-        int actualGranularity = getCandleDataSupplier(secondsPerCandle, tradePair).getSupportedGranularities().stream()
+        int actualGranularity = getSupportedGranularities().stream()
                 .min(Comparator.comparingInt(i -> (int) Math.abs(i - idealGranularity)))
                 .orElseThrow(() -> new NoSuchElementException("Supported granularities was empty!"));
 
@@ -526,6 +552,27 @@ public class Bitstamp extends Exchange {
 
     }
 
+    @Override
+    public @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) {
+
+    }
+
+    @Override
+    public void closeAllOrders() {
+
+    }
+
+    @Override
+    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+        ArrayList<TradePair>tradePairs = new ArrayList<>();
+        return tradePairs;
+    }
+
     HttpClient client =  HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
     // Get all orders
     //       GET
@@ -627,7 +674,7 @@ public class Bitstamp extends Exchange {
         String data=
                 String.format(
                         "{\"product_id\": \"%s\", \"side\": \"%s\", \"type\": \"%s\", \"quantity\": %f, \"price\": %f, \"stop-loss\": %f, \"take-profit\": %f, \"take-profit-price\": %f, \"timestamp\": \"%s\"}",
-                        symbol, side.toString(), orderType.toString(), size, price, stopLoss, takeProfit, takeProfitPrice,
+                        symbol, side, orderType, size, price, stopLoss, takeProfit, takeProfitPrice,
                         timestamp.toEpochMilli() / 1000L);
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();

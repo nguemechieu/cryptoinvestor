@@ -1,11 +1,17 @@
 package cryptoinvestor.cryptoinvestor;
 
+import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
+import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
+import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class Exchange {
@@ -25,6 +31,8 @@ public abstract class Exchange {
         return webSocketClient;
     }
 
+
+    public abstract Set<Integer> getSupportedGranularities() ;
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
      * <p>
@@ -46,11 +54,11 @@ public abstract class Exchange {
      * <p>
      * TThis method only needs to be implemented to support live syncing.
      */
-    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
-            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) throws IOException, InterruptedException {
-        throw new UnsupportedOperationException("Exchange: " + this + " does not support fetching candle data" +
-                " for in-progress candle");
-    }
+    public abstract CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle();
+
+
+    public abstract CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
+            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
 
     public abstract void onOpen(ServerHandshake handshake);
 
@@ -107,4 +115,20 @@ public abstract class Exchange {
     public abstract void deposit(Double value);
 
     public abstract void withdraw(Double value);
+
+    public abstract @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException;
+
+    public abstract void  createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException;
+
+    public abstract void closeAllOrders() throws IOException, InterruptedException;
+    public abstract  List<TradePair> getTradePair() throws IOException, InterruptedException;
+
+    public abstract void cancelOrder(long orderID) throws IOException, InterruptedException;
+    public abstract void cancelAllOrders();
+    public abstract void cancelAllOpenOrders();
+
+
+    public abstract ListView<Order> getOrderView() throws IOException, InterruptedException;
+    public abstract List<Objects> getOrderBook();
+
 }

@@ -7,10 +7,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,21 +49,23 @@ public class Kraken extends Exchange {
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    private static final String ur0 = "wss://stream.binance.us:9443";
+    //private static final String ur0 = "wss://stream.binance.us:9443";
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+    private String telegramToken;
     protected String PASSPHRASE = "w73hzit0cgl";
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
     String API_KEY0 = "39ed6c9ec56976ad7fcab4323ac60dac";
     private final HttpClient client=HttpClient.newHttpClient();
 
-    public Kraken( String telegramToken, String binanceUsApiKey) throws IOException, TelegramApiException, InterruptedException {
+    public Kraken( String telegramToken, String binanceUsApiKey) {
         super(null);
+        this.telegramToken = telegramToken;
 
 
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
-        requestBuilder.header("Origin", "https://api.binance.us");
-        requestBuilder.header("Referer", "https://www.binance.us");
+        requestBuilder.header("Origin", "https://api.kraken.com");
+        requestBuilder.header("Referer", "https://www.kraken.com");
         requestBuilder.header("Sec-Fetch-Dest", "empty");
         requestBuilder.header("Sec-Fetch-Mode", "cors");
         requestBuilder.header("Accept", "application/json");
@@ -70,8 +75,19 @@ public class Kraken extends Exchange {
     }
 
 
-    public Kraken(String coinbaseApiKey, String coinbaseSecret, String telegramToken) throws TelegramApiException, IOException {
+    public Kraken(String coinbaseApiKey, String coinbaseSecret, String telegramToken) {
         super(null);
+        this.telegramToken = telegramToken;
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        requestBuilder.header("Origin", "https://api.kraken.com");
+        requestBuilder.header("Referer", "https://www.kraken.com");
+        requestBuilder.header("Sec-Fetch-Dest", "empty");
+        requestBuilder.header("Sec-Fetch-Mode", "cors");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", coinbaseApiKey + ":" + coinbaseSecret);
+        logger.info("Kraken " + nanoTime());
+
     }
 
     @Override
@@ -86,7 +102,14 @@ public class Kraken extends Exchange {
                 new KrakenCandleDataSupplier(secondsPerCandle, tradePair) {
                     @Override
                     public CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-                        return null;
+                        return
+                                CompletableFuture.supplyAsync(() -> {
+
+                                    String url = "https://api.kraken.com/0/public/Ticker?pair=" + tradePair.toString('_');
+
+
+                                    return Optional.empty();
+                                });
                     }
 
                     @Override
@@ -99,6 +122,11 @@ public class Kraken extends Exchange {
                         return null;
                     }
                 };
+    }
+
+    @Override
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle() {
+        return null;
     }
 
 //    private @Nullable String timestampSignature(
@@ -122,6 +150,12 @@ public class Kraken extends Exchange {
 //
 //    }
 
+
+    @Override
+    public Set<Integer> getSupportedGranularities() {
+        return
+                Set.of(1, 5, 15, 30, 60, 120, 180, 360, 720, 1440);
+    }
 
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
@@ -243,17 +277,16 @@ public class Kraken extends Exchange {
         return HttpClient.newHttpClient().sendAsync(
                         HttpRequest.newBuilder()
                                 .uri(URI.create(
-                                        "https://api.binance.us/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame
+                                        "https://api.kraken.com/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame
                                 ))
                                 .GET().build(),
                         HttpResponse.BodyHandlers.ofString())
                 .thenApply(HttpResponse::body)
                 .thenApply(response -> {
-                    Log.info("BinanceUs response: ", response);
-                    JsonNode res;
+                        JsonNode res;
                     try {
                         res = OBJECT_MAPPER.readTree(response);
-                        logger.info("BinanceUs response: ", response);
+                        logger.info("kraken response: ", response);
                     } catch (JsonProcessingException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -282,8 +315,7 @@ public class Kraken extends Exchange {
 
                         } else {
                             if (!foundFirst) {
-                                // FIXME: Why are we only using the first sub-candle here?
-                                currentTill = currCandle.get(0).asInt();
+                                   currentTill = currCandle.get(0).asInt();
                                 lastTradePrice = currCandle.get(4).asDouble();
                                 foundFirst = true;
                             }
@@ -314,7 +346,7 @@ public class Kraken extends Exchange {
 
         JSONObject jsonObject = new JSONObject();
         try {
-            URL url = new URL("https://api.coinbase.com/v2/exchange-rates");
+            URL url = new URL("https://api.kraken.com/v2/exchange-rates");
             HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
@@ -516,6 +548,71 @@ public class Kraken extends Exchange {
 
     }
 
+    @Override
+    public @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) {
+
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
+    }
+
+    @Override
+    public void closeAllOrders() {
+
+    }
+
+    @Override
+    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(
+                "https://api.kraken.com/0/public/Assets"
+        ));
+
+        HttpResponse<String>response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.body());
+        JSONObject jsonObject = new JSONObject(response.body());
+        System.out.println(jsonObject.toString(4));
+        List<TradePair> tradePairs = new ArrayList<>();
+        JSONObject jsonArray= jsonObject.getJSONObject("result");
+        for (int i = 0; i < jsonArray.length(); i++) {
+
+            TradePair tradePair;
+            if (jsonArray.has("altname"))    { tradePair = new TradePair(jsonArray.getString("altname"),"USD");
+            tradePairs.add(tradePair);}
+        }
+
+        return tradePairs;
+    }
+
+    @Override
+    public void cancelOrder(long orderID) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void cancelAllOrders() {
+
+    }
+
+    @Override
+    public void cancelAllOpenOrders() {
+
+    }
+
+    @Override
+    public ListView<Order> getOrderView() {
+        ListView<Order> orders = new ListView<>();
+        return orders;
+    }
+
+    @Override
+    public List<Objects> getOrderBook() {
+        return null;
+    }
+
     public void createMarketOrder(@NotNull TradePair tradePair, String side, double size) {
         JSONObject jsonObject = getJSON();
         System.out.println(jsonObject.toString(4));
@@ -559,6 +656,14 @@ public class Kraken extends Exchange {
         System.out.println(response.statusCode());
 
         System.out.println(uriStr);
+    }
+
+    public String getTelegramToken() {
+        return telegramToken;
+    }
+
+    public void setTelegramToken(String telegramToken) {
+        this.telegramToken = telegramToken;
     }
 
 

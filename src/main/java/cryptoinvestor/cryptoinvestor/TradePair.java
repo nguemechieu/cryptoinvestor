@@ -12,6 +12,7 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static java.lang.System.out;
 
@@ -31,8 +32,9 @@ public class TradePair extends Pair<Currency, Currency> {
 
     }
 
-    private final Currency baseCurrency;
-    private final Currency counterCurrency;
+     Currency baseCurrency;
+    Currency counterCurrency;
+    private String tradePairCode;
 
     public TradePair(Currency baseCurrency, Currency counterCurrency) {
         super(baseCurrency, counterCurrency);
@@ -48,6 +50,7 @@ public class TradePair extends Pair<Currency, Currency> {
         this.counterCurrency = CurrencyDataProvider.of(counterCurrency);
         logger.debug("TradePair created: {}", this);
     }
+
 
     @Contract("_, _ -> new")
     public static @NotNull TradePair of(String baseCurrencyCode, String counterCurrencyCode) {
@@ -277,5 +280,13 @@ public class TradePair extends Pair<Currency, Currency> {
 
     public static <K, T> K getPair(T t) {
         return (K) t;
+    }
+
+    public String getTradePairCode() {
+        return tradePairCode;
+    }
+
+    public void setTradePairCode(String tradePairCode) {
+        this.tradePairCode = tradePairCode;
     }
 }

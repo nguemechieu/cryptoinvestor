@@ -7,12 +7,12 @@ public enum ORDER_TYPES {
     OP_SELLLIMIT(3),
     OP_BUYSTOP(4),
     OP_SELLSTOP(5), NONE(6), LIMIT(7),
-    MARKET(8),
-    STOP_LOSS_LIMIT(9),
-    TAKE_PROFIT_LIMIT(10),
-    LIMIT_MAKER(11),
+
+
     TAKE_PROFIT(12),
-    STOP_LOSS(13);
+    STOP_LOSS(13),
+    LIMIT_MAKER(14), MARKET(15), STOP_LOSS_LIMIT(16), TAKE_PROFIT_LIMIT(17);
+
     private final int i;
 
     ORDER_TYPES(int type) {

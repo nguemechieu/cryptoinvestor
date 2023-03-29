@@ -7,8 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -65,7 +67,7 @@ public class Bitfinex extends Exchange {
 
 
 
-    public Bitfinex(  String token, @NotNull String passphrase) throws TelegramApiException, IOException, InterruptedException {
+    public Bitfinex(String token, @NotNull String passphrase, String s) throws TelegramApiException, IOException, InterruptedException {
 
 
         super( null);
@@ -91,7 +93,8 @@ public class Bitfinex extends Exchange {
     @Override
     public String getName() {
         return
-                "BinanceUs";
+
+                "Bitfinex";
     }
 
     @Override
@@ -112,6 +115,11 @@ public class Bitfinex extends Exchange {
                 return null;
             }
         };
+    }
+
+    @Override
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle() {
+        return null;
     }
 
 
@@ -136,6 +144,12 @@ public class Bitfinex extends Exchange {
 //
 //    }
 
+
+    @Override
+    public Set<Integer> getSupportedGranularities() {
+        return
+                Set.of(1, 5, 15, 30, 60, 120, 180, 360, 720, 1440, 2160, 4320, 8640, 17280, 34560, 60480, 120960, 241920, 483840, 965680, 1921040, 3843200, 7680000, 15728000, 31536000, 63072000, 126144000, 25264800);
+    }
 
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
@@ -528,6 +542,54 @@ public class Bitfinex extends Exchange {
     @Override
     public void withdraw(Double value) {
 
+    }
+
+    @Override
+    public @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) {
+
+    }
+
+    @Override
+    public void closeAllOrders() {
+
+    }
+
+    @Override
+    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+
+        ArrayList<TradePair> tradePairs = new ArrayList<>();
+        return tradePairs;
+
+    }
+
+    @Override
+    public void cancelOrder(long orderID) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void cancelAllOrders() {
+
+    }
+
+    @Override
+    public void cancelAllOpenOrders() {
+
+    }
+
+    @Override
+    public ListView<Order> getOrderView() {
+        return new ListView<>();
+    }
+
+    @Override
+    public List<Objects> getOrderBook() {
+        return null;
     }
 
     public void createMarketOrder(@NotNull TradePair tradePair, String side, double size) {

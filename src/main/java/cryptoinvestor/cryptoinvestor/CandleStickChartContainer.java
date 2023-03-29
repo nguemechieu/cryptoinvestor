@@ -54,7 +54,7 @@ public class CandleStickChartContainer extends Region {
         CandleDataSupplier candleDataSupplier = exchange.getCandleDataSupplier(secondsPerCandle.get(), tradePair);
 
 
-        toolbar = new CandleStickChartToolbar(widthProperty(), heightProperty(), candleDataSupplier.getSupportedGranularities());
+        toolbar = new CandleStickChartToolbar(widthProperty(), heightProperty(), exchange.getSupportedGranularities());
         HBox toolbarContainer = new HBox(toolbar);
         toolbarContainer.setPrefWidth(Double.MAX_VALUE);
         toolbarContainer.setPrefHeight(20);

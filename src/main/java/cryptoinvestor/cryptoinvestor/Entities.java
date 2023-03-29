@@ -13,7 +13,7 @@ public class Entities {
     public Integer offset;
     public Integer length;
     public String url;
-    public User user;
+    public users user;
     public String language;
     public String custom_emoji_id;
 
@@ -22,7 +22,7 @@ public class Entities {
             Integer offset,
             Integer length,
             String url,
-            User user,
+            users user,
             String custom_emoji_id,
             String language
     ) {
@@ -58,11 +58,11 @@ public class Entities {
         this.url = url;
     }
 
-    public User getUser() {
+    public users getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(users user) {
         this.user = user;
     }
 

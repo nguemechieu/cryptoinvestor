@@ -35,6 +35,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.SkinBase;
 import javafx.scene.layout.StackPane;
 import javafx.util.Duration;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -42,7 +43,6 @@ import java.util.List;
 
 public class ToggleSwitchSkin extends SkinBase<ToggleSwitch> {
     private static final List<CssMetaData<? extends Styleable, ?>> STYLEABLES;
-
     static {
         final List<CssMetaData<? extends Styleable, ?>> styleables = new ArrayList<>(SkinBase.getClassCssMetaData());
         STYLEABLES = Collections.unmodifiableList(styleables);
@@ -112,11 +112,11 @@ public class ToggleSwitchSkin extends SkinBase<ToggleSwitch> {
         transition.play();
     }
 
-    private void updateLabel(ToggleSwitch skinnable) {
+    private void updateLabel(@NotNull ToggleSwitch skinnable) {
         label.setText(skinnable.isOn() ? skinnable.getTurnOnText() : skinnable.getTurnOffText());
     }
 
-    private void mousePressedOnToggleSwitch(ToggleSwitch toggleSwitch) {
+    private void mousePressedOnToggleSwitch(@NotNull ToggleSwitch toggleSwitch) {
         toggleSwitch.setSelected(!toggleSwitch.isOn());
     }
 

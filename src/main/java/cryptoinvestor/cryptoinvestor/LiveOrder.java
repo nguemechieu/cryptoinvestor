@@ -1,7 +1,6 @@
 package cryptoinvestor.cryptoinvestor;
 
 public class LiveOrder {
-
     double price;
     double amount;
     double size;

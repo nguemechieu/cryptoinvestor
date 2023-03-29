@@ -217,25 +217,26 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
     @Override
     public void setAsyncSendTimeout(long timeout) {
 
+
     }
 
     @Override
-    public Session connectToServer(Object endpoint, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Object endpoint, URI path)  {
         return null;
     }
 
     @Override
-    public Session connectToServer(Class<?> annotatedEndpointClass, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Class<?> annotatedEndpointClass, URI path) {
         return null;
     }
 
     @Override
-    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
         return null;
     }
 
     @Override
-    public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
         return null;
     }
 

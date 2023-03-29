@@ -17,8 +17,37 @@ import java.util.Locale;
 @Table(
         appliesTo = "users"
 )
+public class users implements Serializable {
+    private final String name;
 
-public class User implements Serializable {
+//    id string	Resource ID
+//    name string,
+//
+//    optional	User's public name
+//    username string, optional	Payment method's native currency
+//    profile_location string,
+
+    @Column(name = "profile_bio", nullable = false)
+    private String profile_bio;
+//    optional	Location for user's public profile
+    @Column(name = "profile_url", nullable = false)
+    private String profile_url;
+    @Column(name = "avatar_url", nullable = false)
+    private String avatar_url;
+    @Column(name = "resource", nullable = false)
+    private String resource;
+    @Column(name = "resource_path", nullable = false)
+    private String resource_path;
+
+
+//    profile_bio string, optional	Bio for user's public profile
+//    profile_url string, optional	Public profile location if user has one
+//    avatar_url string	User's avatar url
+//    resource string, constant user
+//    resource_path string
+
+
+
     public static final long serialVersionUID = 1L;
     @Column(name = "birthdate")
     private String birthdate;
@@ -36,11 +65,11 @@ public class User implements Serializable {
     private String email;
     @Column(name = "phone", nullable = false, unique = true)
     private String phone;
-    @Column(name = "firstname", nullable = false, unique = true)
+    @Column(name = "first_name", nullable = false, unique = true)
     private String firstname;
-    @Column(name = "lastname", nullable = false, unique = true)
+    @Column(name = "last_name", nullable = false, unique = true)
     private String lastname;
-    @Column(name = "middlename")
+    @Column(name = "middle_name")
     private String middlename;
     @Column(name = "address", unique = true, nullable = false)
     private String address;
@@ -62,15 +91,77 @@ public class User implements Serializable {
     private boolean active;
     @Column(name = "password_hash")
     private String passwordHash;
+
+    public users(int id, String name, String profile_bio, String profile_url, String avatar_url, String resource, String resource_path) {
+        this.profile_bio = profile_bio;
+        this.profile_url = profile_url;
+        this.avatar_url = avatar_url;
+        this.resource = resource;
+        this.resource_path = resource_path;
+        this.Id = id;
+        this.createdAt = String.valueOf(Locale.getDefault());
+        this.updatedAt = String.valueOf(Locale.getDefault());
+        this.active = true;
+        this.passwordHash = "";
+        this.passwordResetToken = "";
+        this.passwordResetSentAt = "";
+        this.name = name;
+    }
+
     @Column(name = "password_reset_token")
     private String passwordResetToken;
+
+    public String getName() {
+        return name;
+    }
+
+    public String getProfile_bio() {
+        return profile_bio;
+    }
+
+    public void setProfile_bio(String profile_bio) {
+        this.profile_bio = profile_bio;
+    }
+
+    public String getProfile_url() {
+        return profile_url;
+    }
+
+    public void setProfile_url(String profile_url) {
+        this.profile_url = profile_url;
+    }
+
+    public String getAvatar_url() {
+        return avatar_url;
+    }
+
+    public void setAvatar_url(String avatar_url) {
+        this.avatar_url = avatar_url;
+    }
+
+    public String getResource() {
+        return resource;
+    }
+
+    public void setResource(String resource) {
+        this.resource = resource;
+    }
+
+    public String getResource_path() {
+        return resource_path;
+    }
+
+    public void setResource_path(String resource_path) {
+        this.resource_path = resource_path;
+    }
+
     @Column(name = "password_reset_sent_at")
     private String passwordResetSentAt;
 
-    public User() {
-    }
 
-    public User(String username, String password, String email, String firstname, String lastname, String middlename, String gender, String birthdate, String phone, String address, String city, String state, String country, String zipCode) {
+
+    public users(String name, String username, String password, String email, String firstname, String lastname, String middlename, String gender, String birthdate, String phone, String address, String city, String state, String country, String zipCode) {
+        this.name = name;
 
         this.username = username;
         this.password = password;
@@ -92,6 +183,35 @@ public class User implements Serializable {
         this.updatedAt = String.valueOf(Locale.getDefault());
 
     }
+
+    public users(String username, String password, String email, String firstname, String lastname, String middlename, String gender, String birthdate, String phone, String address, String city, String state, String country, String zipCode) {
+
+        this.username = username;
+        this.password = password;
+
+        this.email = email;
+        this.firstname = firstname;
+        this.lastname = lastname;
+        this.middlename = middlename;
+        this.gender = gender;
+        this.birthdate = birthdate;
+        this.phone = phone;
+        this.address = address;
+        this.city = city;
+        this.state = state;
+        this.country = country;
+        this.zip = zipCode;
+        this.createdAt = String.valueOf(Locale.getDefault());
+
+        this.updatedAt = String.valueOf(Locale.getDefault());
+        this.active = true;
+        this.passwordHash = "";
+        this.passwordResetToken = "";
+        this.passwordResetSentAt = "";
+        this.name = "";
+
+    }
+
 
     public String getBirthdate() {
         return birthdate;

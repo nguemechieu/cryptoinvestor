@@ -142,7 +142,7 @@ public class TelegramClient {
     boolean sendNews = true;
     File chat_video_file_id;
     private JsonNode response;
-    private String address;
+    private final String address;
     private PrintStream res;
     private boolean Signal;
     private boolean Vhigh;
@@ -158,7 +158,7 @@ public class TelegramClient {
 
 static HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
 static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-    private DoubleSummaryStatistics initializationLatch;
+    private final DoubleSummaryStatistics initializationLatch;
 
     public TelegramClient(String token) throws IOException, TelegramApiException, InterruptedException {
 

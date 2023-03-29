@@ -1,20 +1,21 @@
 package cryptoinvestor.cryptoinvestor;
 
+import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
+import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.time.Instant;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class Bittrex extends Exchange {
     TradePair tradePair;
 
-    public Bittrex(String apikey) throws TelegramApiException, IOException {
-        super(
-                null
-        );
+
+    public Bittrex(String apikey, String s, String s1) {
+        super(null);
     }
 
 
@@ -37,6 +38,19 @@ public class Bittrex extends Exchange {
     @Override
     public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
         return null;
+    }
+
+    @Override
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle() {
+        return null;
+    }
+
+
+    @Override
+    public Set<Integer> getSupportedGranularities() {
+        return
+                new HashSet<>(Arrays.asList(1, 5, 15, 30, 60,
+                        120, 240, 360, 720, 1440, 2880, 5760, 11520, 23040, 46080, 92160, 180320, 360000));
     }
 
     @Override
@@ -187,6 +201,51 @@ public class Bittrex extends Exchange {
     @Override
     public void withdraw(Double value) {
 
+    }
+
+    @Override
+    public @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) {
+
+    }
+
+    @Override
+    public void closeAllOrders() {
+
+    }
+
+    @Override
+    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+        return null;
+    }
+
+    @Override
+    public void cancelOrder(long orderID) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void cancelAllOrders() {
+
+    }
+
+    @Override
+    public void cancelAllOpenOrders() {
+
+    }
+
+    @Override
+    public ListView<Order> getOrderView() {
+        return new ListView<>();
+    }
+
+    @Override
+    public List<Objects> getOrderBook() {
+        return null;
     }
 
     public void createOrder(double price, ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss, double takeProfit) {

@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
+
+import static java.lang.System.nanoTime;
+
 public class CryptoInvestor extends Application {
     private static final Logger logger = LoggerFactory.getLogger(CryptoInvestor.class);
 
@@ -21,8 +24,13 @@ public class CryptoInvestor extends Application {
         logger.info("CryptoInvestor started " + new java.util.Date());
     }
 
-    public static void main(String[] args) throws BackingStoreException {
+    public static void main(String[] args) throws Throwable {
 
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+            logger.error("CryptoInvestor " + nanoTime());
+            logger.error(e.getMessage());
+            e.printStackTrace();
+        });
         Preferences preferences = Preferences.userNodeForPackage(
                 CryptoInvestor.class
         );
@@ -48,9 +56,12 @@ public class CryptoInvestor extends Application {
 
     @Override
     public void start(@NotNull Stage primaryStage) throws Exception {
-        Platform.setImplicitExit(false);
-        Thread.setDefaultUncaughtExceptionHandler((thread, exception) -> logger.error("[" + thread + "]: ", exception));
 
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
+
+            logger.error(e.getMessage());
+            e.printStackTrace();
+        });
 
         primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("cryptoinvestor"))))
         ;
@@ -59,7 +70,7 @@ public class CryptoInvestor extends Application {
         try {
             tradingWindow = new TradingWindow();
 
-        } catch (TelegramApiException e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
         primaryStage.setTitle("CryptoInvestor                    " + new java.util.Date() );

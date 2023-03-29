@@ -50,6 +50,9 @@ public class Instruments {
     this.displayPrecision = displayPrecision;
   }
 
+  public Instruments() {
+  }
+
   public int getTradeUnitsPrecision() {
     return tradeUnitsPrecision;
   }

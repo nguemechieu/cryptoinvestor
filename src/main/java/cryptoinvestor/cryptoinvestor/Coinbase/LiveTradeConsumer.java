@@ -12,7 +12,7 @@ import java.util.List;
 public class LiveTradeConsumer implements LiveTradesConsumer {
     public LiveTradeConsumer(@NotNull TradePair tradePair) {
 
-        System.out.println(tradePair.toString());
+        System.out.println(tradePair);
 
     }
 
@@ -24,12 +24,14 @@ public class LiveTradeConsumer implements LiveTradesConsumer {
     }
 
     @Override
-    public void onConnectionEstablished() throws IOException, InterruptedException, ParseException {
+    public void onConnectionEstablished()  {
 
     }
 
     @Override
-    public void onConnectionFailed() throws IOException, InterruptedException {
+    public void onConnectionFailed()  {
+        System.out.println("Connection failed");
+
 
     }
 

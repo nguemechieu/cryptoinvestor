@@ -1328,14 +1328,10 @@ public class CandleStickChart extends Region {
                     // catch the data up to within 9 seconds of current time (or in this case roughly within 0.25% of
                     // current time).
                     CompletableFuture<Optional<InProgressCandleData>> inProgressCandleDataOptionalFuture = null;
-                    try {
-                        inProgressCandleDataOptionalFuture = exchange
-                                .fetchCandleDataForInProgressCandle(tradePair, Instant.ofEpochSecond(
-                                                candleData.get(candleData.size() - 1).getOpenTime() + secondsPerCandle),
-                                        secondsIntoCurrentCandle, secondsPerCandle);
-                    } catch (IOException | InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
+                    inProgressCandleDataOptionalFuture = exchange
+                            .fetchCandleDataForInProgressCandle(tradePair, Instant.ofEpochSecond(
+                                            candleData.get(candleData.size() - 1).getOpenTime() + secondsPerCandle),
+                                    secondsIntoCurrentCandle, secondsPerCandle);
                     inProgressCandleDataOptionalFuture.whenComplete((inProgressCandleDataOptional, throwable) -> {
                         if (throwable == null) {
                             if (inProgressCandleDataOptional.isPresent()) {

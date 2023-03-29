@@ -1,6 +1,7 @@
 package cryptoinvestor.cryptoinvestor;
 
 import com.google.gson.Gson;
+import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.control.TreeItem;
 import org.jetbrains.annotations.NotNull;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Trade implements Runnable {
+public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
 
     Side side;
@@ -144,7 +145,7 @@ public class Trade implements Runnable {
     public Trade(TradePair tradePair, @NotNull Money price, Money amount, Side transactionType,
                  long localTradeId, long timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException {
         this(tradePair, price.toDouble(), amount, transactionType, localTradeId, Instant.ofEpochSecond(timestamp), fee);
-        this.fee = fee;
+        Trade.fee = fee;
 
         logger.info("Trade created");
 
@@ -234,8 +235,8 @@ public class Trade implements Runnable {
 
         Trade other = (Trade) object;
 
-        return Objects.equals(tradePair, other.tradePair)
-                && Objects.equals(price, other.price)
+        return Objects.equals(tradePair, tradePair)
+                && Objects.equals(price, price)
                 && Objects.equals(amount, other.amount)
                 && transactionType == other.transactionType
                 && localTradeId == other.localTradeId
@@ -294,7 +295,7 @@ public class Trade implements Runnable {
     }
 
     public void setId(Long id) {
-        this.id = id;
+        Trade.id = id;
     }
 
     public String getInstrument() {
@@ -339,7 +340,7 @@ public class Trade implements Runnable {
     }
 
     public void setPrice(double price) {
-        this.price = price;
+        Trade.price = price;
     }
 
     public void setVolume(double volume) {

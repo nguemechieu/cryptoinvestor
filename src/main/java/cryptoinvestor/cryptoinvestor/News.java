@@ -23,7 +23,7 @@ import java.util.HashMap;
 
 import static java.lang.System.out;
 
-class News extends TreeItem<News> {
+class News extends RecursiveTreeObject<News> {
     int hours;
     int seconds;
     String url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=1bed8a31256f1525dbb0b6daf6898823";

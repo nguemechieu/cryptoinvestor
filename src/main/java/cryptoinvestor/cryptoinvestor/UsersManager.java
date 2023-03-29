@@ -11,11 +11,9 @@ import static java.lang.System.getProperty;
 
 
 public record UsersManager() {
-    static User user;
+    static users user;
     static DataSource db;
     static Alert alert = new Alert(Alert.AlertType.ERROR, "Please fill in all the fields");
-
-
     static {
         try {
 
@@ -31,17 +29,15 @@ public record UsersManager() {
         }
     }
 
-    public User getUser() {
+    public users getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(users user) {
         UsersManager.user = user;
     }
 
     public void RememberUser(boolean text) {
-
-
         if (text) {
             try {
 
@@ -89,7 +85,7 @@ public record UsersManager() {
             alert.showAndWait();
 
         } else {
-            user = new User(
+            user = new users(
                     username,
                     password,
                     email,

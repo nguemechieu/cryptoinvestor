@@ -1,23 +1,15 @@
 package cryptoinvestor.cryptoinvestor;
 
-import com.jfoenix.controls.RecursiveTreeItem;
-import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import javafx.beans.property.ReadOnlyStringWrapper;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeTableColumn;
 import javafx.scene.control.TreeTableView;
-import javafx.scene.layout.AnchorPane;
 
-import java.text.ParseException;
 import java.util.Date;
-
-import static cryptoinvestor.cryptoinvestor.NewsManager.getNewsList;
 
 public class NewsView extends TreeTableView<News> {
 
-    public NewsView() throws ParseException {
+    public NewsView() {
         super();
 
         this.setPrefHeight(780);
@@ -43,7 +35,7 @@ public class NewsView extends TreeTableView<News> {
 
 root.setValue(
         new News(
-                "Crypto Investor",
+                "photo",
                 "2020-01-,","",
                 new Date(),
                 "Crypto Investor is a cryptocurrency investment platform based on blockchain technology.",

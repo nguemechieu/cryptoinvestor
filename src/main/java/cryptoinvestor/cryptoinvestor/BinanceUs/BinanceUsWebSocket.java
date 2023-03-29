@@ -78,7 +78,7 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
         try {
             tradePair = parseTradePair(messageJson);
             logger.info(
-                    "BinanceUs  websocket client: received trade pair: " + tradePair.toString()
+                    "BinanceUs  websocket client: received trade pair: " + tradePair
             );
         } catch (CurrencyNotFoundException exception) {
             logger.error("coinbase websocket client: could not initialize trade pair: " +
@@ -278,7 +278,8 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
 
     @Override
     public Set<Extension> getInstalledExtensions() {
-        return null;
+        return
+                Collections.emptySet();
     }
 
 

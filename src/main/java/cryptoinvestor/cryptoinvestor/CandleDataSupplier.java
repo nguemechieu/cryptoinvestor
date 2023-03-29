@@ -3,6 +3,7 @@ package cryptoinvestor.cryptoinvestor;
 import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 
 import java.time.Instant;
 import java.util.List;
@@ -43,31 +44,7 @@ public abstract class CandleDataSupplier implements Supplier<Future<List<CandleD
 
     }
 
-    public Set<Integer> getSupportedGranularities() {
-        if (
 
-                this.get() instanceof Coinbase
-
-        ) {
-
-            return Set.of(60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24);
-
-        } else if (this.get() instanceof BinanceUs) {
-
-            return Set.of(60, 60 * 5, 60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7,
-                    3600 * 24 * 7 * 4, 3600 * 24 * 365);
-
-        } else if (this.get() != null) {
-            return Set.of(60, 60 * 5,
-                    60 * 15, 60 * 30, 3600, 3600 * 2, 3600 * 3, 3600 * 4, 3600 * 6, 3600 * 24, 3600 * 24 * 7,
-                    3600 * 24 * 7 * 4, 3600 * 24 * 365);
-        } else {
-            out.println("CandleS granularity Not valid instance " + this);
-            return Set.of(60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24);
-
-        }
-
-    }
 
     @Override
     public String toString() {

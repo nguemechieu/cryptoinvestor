@@ -7,12 +7,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -48,6 +51,21 @@ public class Poloniex extends Exchange {
 
     public Poloniex(String POLONIEX_API_KEY ) throws TelegramApiException, IOException, ParseException, InterruptedException {
         super(null);
+        this.apiKey = POLONIEX_API_KEY;
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        requestBuilder.header("X-MBX-APIKEY", apiKey);
+    }
+
+    public Poloniex(String poloniexApiKey, String s, String s1) {
+        super(null);
+        this.apiKey = poloniexApiKey;
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        requestBuilder.header("X-MBX-APIKEY", apiKey);
+
     }
 
     @Override
@@ -81,16 +99,27 @@ public class Poloniex extends Exchange {
 
     public void cancelAllOrders() {}
 
+    @Override
+    public void cancelAllOpenOrders() {
+
+    }
+
+    @Override
+    public ListView<Order> getOrderView() {
+        return
+                new ListView<>();
+    }
+
+    @Override
+    public List<Objects> getOrderBook() {
+        return null;
+    }
+
 
     private void sendRequest(String url, String payload) {
 
     }
 
-    public void CancelOrder(long orderID) {
-    }
-
-    public void closeAll() {
-    }
 
 
     @Override
@@ -118,6 +147,11 @@ public class Poloniex extends Exchange {
                 };
     }
 
+    @Override
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle() {
+        return null;
+    }
+
     private @Nullable String timestampSignature(
             String apiKey,
             String passphrase
@@ -139,6 +173,29 @@ public class Poloniex extends Exchange {
         return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes()));
     }
 
+
+    @Override
+    public Set<Integer> getSupportedGranularities() {
+        return
+                Collections.unmodifiableSet(
+                        new HashSet<>(
+                                Arrays.asList(
+                                60,
+                                        300,
+                                        900,
+                                        1800,
+                                        3600,
+                                        7200,
+                                        14400,
+                                        21600,
+                                        43200,
+                                        86400,
+                                        172800
+
+                                )
+                        )
+                );
+    }
 
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
@@ -163,7 +220,7 @@ public class Poloniex extends Exchange {
             // burst.
             // We will know if we get rate limited if we get a 429 response code.
             for (int i = 0; !futureResult.isDone(); i++) {
-                String uriStr = "https://api.pro.coinbase.com/";
+                String uriStr = "https://api.poloniex.com/";
                 uriStr += "products/" + tradePair.toString('-') + "/trades";
 
                 if (i != 0) {
@@ -241,7 +298,7 @@ public class Poloniex extends Exchange {
                 currentCandleStartedAt, ZoneOffset.UTC));
         long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
         // Get the closest supported granularity to the ideal granularity.
-        int actualGranularity = getCandleDataSupplier(secondsPerCandle, tradePair).getSupportedGranularities().stream()
+        int actualGranularity = getSupportedGranularities().stream()
                 .min(Comparator.comparingInt(i -> (int) Math.abs(i - idealGranularity)))
                 .orElseThrow(() -> new NoSuchElementException("Supported granularities was empty!"));
 
@@ -523,6 +580,45 @@ public class Poloniex extends Exchange {
 
     }
 
+    @Override
+    public @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) {
+
+    }
+
+    @Override
+    public void closeAllOrders() {
+
+    }
+
+    @Override
+    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+        requestBuilder.uri(
+                URI.create("https://api.poloniex.com/trade-pairs"));
+//        ;
+//        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+//
+   ArrayList<TradePair> tradePairs = new ArrayList<>();
+//        if (response.statusCode() == 200) {
+//            JSONObject jsonObject = new JSONObject(response.body());
+//            System.out.println(jsonObject.toString(4));
+//            JSONArray jsonArray = jsonObject.getJSONArray("data");
+//            for (int i = 0; i < jsonArray.length(); i++) {
+//                JSONObject jsonObject1 = jsonArray.getJSONObject(i);
+//                TradePair tradePair = new TradePair(jsonObject1.getString("id"), jsonObject1.getString("name"));
+//                tradePairs.add(tradePair);
+//            }
+//        } else {
+//            System.out.println(response.statusCode());
+//            System.out.println(response.body());
+//        }
+        return tradePairs;
+    }
+
     HttpClient client =  HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
     // Get all orders
     //       GET
@@ -591,7 +687,7 @@ public class Poloniex extends Exchange {
             System.out.println(response.body());
         }
     }
-    private void  getOrderHistory(TradePair tradePair) throws IOException, InterruptedException {
+    private void  getOrderHistory(@NotNull TradePair tradePair) throws IOException, InterruptedException {
         String symbol = tradePair.toString('-');
 
         String uriStr = "https://api.coinbase.com/api/v3/brokerage/orders";
@@ -624,7 +720,7 @@ public class Poloniex extends Exchange {
         String data=
                 String.format(
                         "{\"product_id\": \"%s\", \"side\": \"%s\", \"type\": \"%s\", \"quantity\": %f, \"price\": %f, \"stop-loss\": %f, \"take-profit\": %f, \"take-profit-price\": %f, \"timestamp\": \"%s\"}",
-                        symbol, side.toString(), orderType.toString(), size, price, stopLoss, takeProfit, takeProfitPrice,
+                        symbol, side, orderType, size, price, stopLoss, takeProfit, takeProfitPrice,
                         timestamp.toEpochMilli() / 1000L);
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();

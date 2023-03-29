@@ -6,6 +6,16 @@
         <language minSize="227" name="Java" />
       </Languages>
     </inspection_tool>
+    <inspection_tool class="FieldCanBeLocal" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="EXCLUDE_ANNOS">
+        <value>
+          <list size="1">
+            <item index="0" class="java.lang.String" itemvalue="jakarta.persistence.Column" />
+          </list>
+        </value>
+      </option>
+      <option name="IGNORE_FIELDS_USED_IN_MULTIPLE_METHODS" value="true" />
+    </inspection_tool>
     <inspection_tool class="IncorrectHttpHeaderInspection" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="customHeaders">
         <set>
@@ -23,6 +33,8 @@
           <option value="Sec-Fetch-Site" />
           <option value="Client-ID" />
           <option value="REDIRECT_URI" />
+          <option value="X-MBX-APIKEY" />
+          <option value="CB-ACCESS-SIGN" />
         </set>
       </option>
     </inspection_tool>

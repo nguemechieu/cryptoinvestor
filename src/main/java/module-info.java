@@ -20,4 +20,5 @@ module cryptoinvestor.cryptoinvestor {
     requires java.prefs;
     requires java.scripting;
     exports cryptoinvestor.cryptoinvestor;
+    exports cryptoinvestor.cryptoinvestor.JsonToCsv;
 }

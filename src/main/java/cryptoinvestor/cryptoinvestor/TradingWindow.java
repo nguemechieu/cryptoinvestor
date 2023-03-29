@@ -1,137 +1,147 @@
 package cryptoinvestor.cryptoinvestor;
 
+import com.jfoenix.controls.RecursiveTreeItem;
+import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 import javafx.beans.property.ReadOnlyStringWrapper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
-import java.util.Date;
 import java.util.Objects;
 import java.util.Properties;
 
-import static cryptoinvestor.cryptoinvestor.NewsManager.getNewsList;
+import static cryptoinvestor.cryptoinvestor.NewsManager.load;
 
 public class TradingWindow extends AnchorPane {
     private static final Logger logger = LoggerFactory.getLogger(TradingWindow.class);
-
-    public TradingWindow() throws TelegramApiException, IOException, URISyntaxException, NoSuchAlgorithmException, InterruptedException, ParseException {
+    public TradingWindow() throws Throwable {
         super();
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
-        String telegramApiKey= "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo";
+      //"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo";
         for (ENUM_EXCHANGE_LIST i : ENUM_EXCHANGE_LIST.values()) {
             DraggableTab tab = new DraggableTab(i.name(), "");
             if (i.getIcon() != null) {
-                tab.setGraphic(
-                        new ImageView((String) i.getIcon())
-                );
-            }
-
+                tab.setGraphic(new ImageView((String) i.getIcon()));}
+            tabPane.getTabs().add(tab);
+            @NotNull Exchange exchange = null;
+            String api_key = "";
+            String api_secret = "";
+            String account_id = "";
             switch (i) {
+                case
+                        BINANCE:
+                    new Binance(
+                            api_key,
+                            api_secret,
+                            account_id);
+                case BINANCE_US:
 
+                    exchange = new BinanceUs(
+                            api_key,
+                            api_secret,
+                            account_id);
+                    break;
+                case BITSTAMP: {
 
-                case COINBASE_PRO -> {
-                    Coinbase coinbase = new Coinbase("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","ULaVf9zteLbuLb8Pz8g+0tIlUStLsWP0A8bNHtJA7WIc7/vrYYFtKBvvz9Ady6offn+Nu3P7smzi421suPrMnQ==" ,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
-                    tab.setContent(new TradeView(coinbase,telegramApiKey));
-
-                }
-                case BITFINEX -> {
-                    Bitfinex bitfinex = new Bitfinex("String POLONIEX_API_KEY", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
-                    tab.setContent(
-
-                            new TradeView(bitfinex,telegramApiKey));
-
-
-                }
-                case KRAKEN -> {
-                    Kraken kraken = new Kraken("2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
-                    tab.setContent(
-                            new TradeView(kraken,telegramApiKey));
-
-                }
-                case BITSTAMP -> {
-                    Bitstamp bitstamp = new Bitstamp("apibsn","sdd","erhi");
-
-                            new TradeView(bitstamp,telegramApiKey);
-                }
-                case POLONIEX-> {
-                    Poloniex poloniex = new Poloniex("eeuhiro");
-                    tab.setContent(new TradeView(poloniex, telegramApiKey));
-                }
-
-                case KUCOIN -> {
-                    Kucoin kucoin = new Kucoin( "trtyuy");
-                    tab.setContent(new TradeView(kucoin,telegramApiKey));// "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "sretry789", "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo"));
+                     new Bitstamp(
+                            api_key,
+                            api_secret,
+                            account_id);
 
                 }
-                case BINANCE_US -> {
-                    BinanceUs binance = new BinanceUs( "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo");
-                    tab.setContent(new TradeView(binance,telegramApiKey));
+                case BITFINEX:
+                    exchange = new Bitfinex(
+                            api_key,
 
-                }
-//                case BINANCE-> {
-//                   Binance binance = new Binance("YU");
-//                    tab.setContent(new TradeView(binance,telegramApiKey));
-//
-//            }
-                case OANDA -> {
-                    Oanda oanda = new Oanda(
+                            api_secret,
+                            account_id
+                    );
+                    break;
+                case BITTREX:
+                    exchange =
+                            new Bittrex(
+
+                                    api_key,
+
+                                    api_secret,
+                                    account_id
+                            );
+                    break;
+
+                case COINBASE_PRO:
+                    exchange = new Coinbase(
+                            account_id,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","ULaVf9zteLbuLb8Pz8g+0tIlUStLsWP0A8bNHtJA7WIc7/vrYYFtKBvvz9Ady6offn+Nu3P7s"
+
+
+                    );
+                    break;
+                case OANDA:
+                    exchange = new Oanda(
+
                             "77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99"
 
                             , "001-001-2783446-002"
+
                     );
+                    break;
+                case POLONIEX:
+                    exchange = new Poloniex(
 
+                            api_key,
+                            api_secret,
+                            account_id
+                    );
+                    break;
+                 case KUCOIN:
+                     exchange = new Kucoin(
 
+                             api_key,
+                             api_secret,
+                             account_id
+                     );
+                     break;
 
-                    tab.setContent(
-                            new TradeView(oanda,telegramApiKey));
-                }
+                default:
+
             }
-            tabPane.getTabs().add(tab);
-        }
-tabPane.getTabs().addAll(getNewsTab(),browserTab());
 
-//        setPrefSize(1530, 680);
+           if (exchange!=null)tab.setContent(new VBox(new Label(i.name(),new Separator(Orientation.VERTICAL)), new TradeView(exchange,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo")));
+        }
+
+
+
+        tabPane.getTabs().addAll(getNewsTab(),browserTab());
+       setPrefSize(1530, 780);
         getStyleClass().add("trading-window");
         getStylesheets().add(Objects.requireNonNull(getClass().getResource("/cryptoinvestor/app.css")).toExternalForm());
-
         tabPane.setTranslateY(25);
 
         logger.debug("TradingWindow initialized");
-
-
         getChildren().addAll(getMenuBar(), tabPane);
 
     Properties properties = new Properties();
     properties.load(Objects.requireNonNull(getClass().getResourceAsStream("/cryptoinvestor/app.properties")));
     logger.debug("Properties loaded");
-
     logger.info("properties "+properties.values());
-
-
-
-
-
-
-
-
-     logger.debug("Properties loaded");
     }
 
     private @NotNull Tab browserTab() {
 
         DraggableTab browserTab = new DraggableTab("Browser", "");
-        browserTab.setContent(new Browser());
+        browserTab.setContent(new StackPane(new Browser()));
         return browserTab;
     }
 
@@ -139,46 +149,42 @@ tabPane.getTabs().addAll(getNewsTab(),browserTab());
         Tab newsTab = new Tab("News");
         TreeTableView<News>tree = new TreeTableView<>();
 
-        this.setPrefHeight(780);
-        this.setPrefWidth(1530);
+        ObservableList<News> ob= FXCollections.observableArrayList();
+        ob.addAll(load());
+        RecursiveTreeItem<News> root = new RecursiveTreeItem<>(ob, RecursiveTreeObject::getChildren);
+           root.setExpanded(true);
+           root.setValue(
+                   ob.get(0)
+           );
 
 
+
+        tree.setRoot(root);
+        setPrefHeight(780);
+        setPrefWidth(1530);
         setPrefSize(1530, 780);
         TreeTableColumn<News,String> titleColumn = new TreeTableColumn<>("Title");
-        titleColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getTitle()));
 
+        titleColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getTitle()));
         TreeTableColumn<News,String> dateColumn = new TreeTableColumn<>("Date");
         dateColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getDate().toString()));
         TreeTableColumn<News,String> impactColumn = new TreeTableColumn<>("Impact");
         impactColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getImpact()));
+
         TreeTableColumn<News,String>  forecastColumn = new TreeTableColumn<>("Forecast");
         forecastColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getForecast()));
         TreeTableColumn<News,String> previousColumn = new TreeTableColumn<>("Previous");
         previousColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getPrevious()));
         TreeTableColumn<News,String> countryColumn = new TreeTableColumn<>("Country");
         countryColumn.setCellValueFactory(param ->new ReadOnlyStringWrapper( param.getValue().getValue().getCountry()));
-        TreeItem<News> root = new TreeItem<>();
-        root.setExpanded(true);
-for (News news : getNewsList()) {
-    root.getChildren().add(news);
-}
-        root.setValue(new News(
-                        "Crypto Investor",
-                        "2020-01-,","",
-                        new Date(),
-                        "Crypto Investor is a cryptocurrency investment platform based on blockchain technology.",
-                        "https://www.youtube.com/watch?v=dQw4w9WgXcQ"));
 
       tree.getColumns().add(titleColumn);
       tree.getColumns().add(dateColumn);
+      tree.getColumns().add(countryColumn);
       tree.getColumns().add(impactColumn);
       tree.getColumns().add(forecastColumn);
       tree.getColumns().add(previousColumn);
-
-
-
-newsTab.setContent(tree);
-
+      newsTab.setContent(tree);
         return newsTab;
     }
 
@@ -187,6 +193,8 @@ newsTab.setContent(tree);
         fileMenu.getItems().add(
                 new MenuItem("New")
         );
+
+
         fileMenu.getItems().add(new SeparatorMenuItem());
         fileMenu.getItems().add(
                 new MenuItem("Open")
@@ -299,7 +307,7 @@ newsTab.setContent(tree);
         toolsMenu.getItems().add(new MenuItem("New Orders"));
         toolsMenu.getItems().add(new SeparatorMenuItem());
         toolsMenu.getItems().add(new MenuItem("History Center"));
-        toolsMenu.getItems().add(new SeparatorMenuItem());
+
         toolsMenu.getItems().add(new MenuItem("Balance Sheet"));
         return menuBar;
     }

@@ -20,6 +20,21 @@ public class Instrument {
     String tags;
 
     public Instrument() {
+        pipLocation = 0;
+        displayName = "";
+        maximumPositionSize = "";
+        type = "";
+        minimumTrailingStopDistance = "";
+        marginRate = "";
+        minimumTradeSize = "";
+        displayPrecision = 0;
+        guaranteedStopLossOrderMode = "";
+        name = "";
+        tradeUnitsPrecision = 0;
+        financing = new Financing();
+        maximumTrailingStopDistance = "";
+        maximumOrderUnits = "";
+        tags = "";
     }
 
     @Override

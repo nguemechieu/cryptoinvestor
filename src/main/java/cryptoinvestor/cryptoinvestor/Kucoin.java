@@ -7,8 +7,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -84,6 +86,21 @@ public class Kucoin extends Exchange {
 
     }
 
+    public Kucoin(String token1, String s, String s1) {
+
+        super(null);
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        requestBuilder.header("Origin",
+                "https://api.kucoin.com");
+        requestBuilder.header("Referer",
+                "https://www.kucoin.com/");
+        requestBuilder.header("Sec-Fetch-Dest", "empty");
+        requestBuilder.header("Sec-Fetch-Mode", "cors");
+        requestBuilder.header("Sec-Fetch-Site", "same-origin");
+        requestBuilder.header("X-MBX-APIKEY", s);
+    }
+
 
     @Override
     public String getName() {
@@ -112,6 +129,11 @@ public class Kucoin extends Exchange {
                 };
     }
 
+    @Override
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle() {
+        return null;
+    }
+
 //    private @Nullable String timestampSignature(
 //            String apiKey,
 //            String passphrase
@@ -133,6 +155,12 @@ public class Kucoin extends Exchange {
 //
 //    }
 
+
+    @Override
+    public Set<Integer> getSupportedGranularities() {
+        return
+                Set.of(1, 5, 15, 30, 60, 120, 180, 240, 300, 600, 900, 1800, 3600, 7200, 14400, 28800, 57600, 115200, 230400, 460800, 921600, 1803200, 3606400, 7219200, 14419200, 28825600, 57632000);
+    }
 
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
@@ -525,6 +553,54 @@ public class Kucoin extends Exchange {
     @Override
     public void withdraw(Double value) {
 
+    }
+
+    @Override
+    public @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException {
+        return new ArrayList<>();
+    }
+
+    @Override
+    public void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) {
+
+    }
+
+    @Override
+    public void closeAllOrders() {
+
+    }
+
+    @Override
+    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+        ArrayList<TradePair> tradePairs = new ArrayList<>();
+        return tradePairs;
+    }
+
+    @Override
+    public void cancelOrder(long orderID) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void cancelAllOrders() {
+
+    }
+
+    @Override
+    public void cancelAllOpenOrders() {
+
+    }
+
+    @Override
+    public ListView<Order> getOrderView() {
+        ListView<Order> orderListView = new ListView<>();
+        return orderListView;
+
+    }
+
+    @Override
+    public List<Objects> getOrderBook() {
+        return null;
     }
 
     public void createMarketOrder(@NotNull TradePair tradePair, String side, double size) {
