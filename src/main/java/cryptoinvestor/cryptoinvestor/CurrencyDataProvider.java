@@ -230,6 +230,11 @@ public class CurrencyDataProvider {
 
             coinsToRegister.add(new Currency(CurrencyType.CRYPTO, data.name, data.id, data.symbol, data.roi.percentage.length(), data.symbol, data.image) {
                 @Override
+                public int compareTo(@NotNull Currency o) {
+                    return 0;
+                }
+
+                @Override
                 public int compareTo(@NotNull java.util.Currency o) {
                     if (!o.getCurrencyCode().equals(this.getCode())) {
                         java.util.Currency.getAvailableCurrencies().add(java.util.Currency.getInstance(o.getCurrencyCode()));
@@ -287,6 +292,11 @@ public class CurrencyDataProvider {
 
                 CURRENCIES.put(SymmetricPair.of(fiatCurrency.getCurrencyCode(), CurrencyType.FIAT), new FiatCurrency(fiatCurrency.getCurrencyCode(), fiatCurrency.getDisplayName(),
                         fiatCurrency.getCurrencyCode(), fractional, fiatCurrency.getSymbol(), Locale.of(fiatCurrency.getSymbol()), "", fractional, img) {
+                    @Override
+                    public int compareTo(@NotNull Currency o) {
+                        return 0;
+                    }
+
                     @Override
                     public int compareTo(java.util.@NotNull Currency o) {
                         return 0;

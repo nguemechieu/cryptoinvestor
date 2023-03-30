@@ -1,32 +1,92 @@
 package cryptoinvestor.cryptoinvestor;
 
-import org.jetbrains.annotations.Contract;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.text.ParseException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
+
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
-
-
-public abstract class Currency {
-    private static final Logger logger = LoggerFactory.getLogger(Currency.class);
-    public static final CryptoCurrency NULL_CRYPTO_CURRENCY = new NullCryptoCurrency(CurrencyType.CRYPTO, "XXX", "XXX",
-            "XXX", 5, "XXX", "XXX");
-
-    public static final FiatCurrency NULL_FIAT_CURRENCY = new NullFiatCurrency();
-
-    protected String code;
-    protected int fractionalDigits;
-    protected String symbol;
+public abstract class Currency  implements Comparable<Currency> {
     CurrencyType currencyType;
     String fullDisplayName;
     String shortDisplayName;
+    protected String code;
+    protected int fractionalDigits;
+    protected String symbol;
+    private static final Map<SymmetricPair<String, CurrencyType>, Currency> CURRENCIES = new ConcurrentHashMap<>();
+    public static final CryptoCurrency NULL_CRYPTO_CURRENCY = new NullCryptoCurrency(
+            CurrencyType.NULL,
+            "",
+            "",
+            "",
+            0,
+            "",
+            ""
+    );
+    public static final FiatCurrency NULL_FIAT_CURRENCY = new NullFiatCurrency(
+            CurrencyType.NULL,
+            "",
+            "",
+            "",
+            0,
+            "",
+            ""
+    ) {
+        @Override
+        public int compareTo(@NotNull Currency o) {
+            return 0;
+        }
+
+        @Override
+        public int compareTo(java.util.@NotNull Currency o) {
+            return 0;
+        }
+    };
+    private static final Logger logger = LoggerFactory.getLogger(Currency.class);
+
+
+        /*
+        ServiceLoader<CurrencyDataProvider> serviceLoader = ServiceLoader.load(CurrencyDataProvider.class);
+        logger.info("service loader: " + serviceLoader);
+        for (CurrencyDataProvider provider : serviceLoader) {
+            logger.info("calling provider.registerCurrencies()");
+            try {
+                provider.registerCurrencies();
+            } catch (Exception e) {
+                logger.error("could not register currencies: ", e);
+            }
+        }
+         */
+
+
     private String image;
 
+    /**
+     * Private constructor used only for the {@code NULL_CURRENCY}.
+     */
+    protected Currency() {
+        this.currencyType = CurrencyType.NULL;
+        this.fullDisplayName = "";
+        this.shortDisplayName = "";
+        this.code = "XXX";
+        this.fractionalDigits = 0;
+        this.symbol = "";
+        this.image = "";
+    }
 
+    /**
+     * Protected constructor, called only by CurrencyDataProvider's.
+     */
     protected Currency(CurrencyType currencyType, String fullDisplayName, String shortDisplayName, String code,
-                       int fractionalDigits, String symbol, String image) {
+                       int fractionalDigits, String symbol) {
         Objects.requireNonNull(currencyType, "currencyType must not be null");
         Objects.requireNonNull(fullDisplayName, "fullDisplayName must not be null");
         Objects.requireNonNull(shortDisplayName, "shortDisplayName must not be null");
@@ -43,31 +103,118 @@ public abstract class Currency {
         this.code = code;
         this.fractionalDigits = fractionalDigits;
         this.symbol = symbol;
-        this.image = image;
-        logger.debug("Created currency: " + this);
+        this.image = "";
     }
 
-    @Contract("null -> fail")
-    public static @Nullable Currency of(Currency baseCurrency) {
-        if (baseCurrency == null) {
-            throw new IllegalArgumentException("baseCurrency must not be null");
-        }
+    public Currency(CurrencyType currencyType, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {
+        this(currencyType, fullDisplayName, shortDisplayName, code, fractionalDigits, symbol);
 
-        for (Currency currency : CurrencyDataProvider.getInstance()) {
-            if (currency.getCode().equals(baseCurrency.code)) {
-                return currency;
+        Objects.requireNonNull(currencyType, "currencyType must not be null");
+        Objects.requireNonNull(fullDisplayName, "fullDisplayName must not be null");
+        Objects.requireNonNull(shortDisplayName, "shortDisplayName must not be null");
+        Objects.requireNonNull(code, "code must not be null");
+
+        if (fractionalDigits < 0) {
+            throw new IllegalArgumentException("fractional digits must be non-negative, was: " + fractionalDigits);
+        }
+        Objects.requireNonNull(symbol, "symbol must not be null");
+
+        this.currencyType = currencyType;
+        this.fullDisplayName = fullDisplayName;
+        this.shortDisplayName = shortDisplayName;
+        this.code = code;
+        this.fractionalDigits = fractionalDigits;
+        this.symbol = symbol;
+
+        this.image = image;
+    }
+
+    protected static void registerCurrency(Currency currency) {
+        Objects.requireNonNull(currency, "currency must not be null");
+        CURRENCIES.put(SymmetricPair.of(currency.code, currency.currencyType), currency);
+    }
+
+    protected static void registerCurrencies(Collection<Currency> currencies) {
+        Objects.requireNonNull(currencies, "currencies must not be null");
+        currencies.forEach(Currency::registerCurrency);
+    }
+
+    public static Currency of(String code) {
+        Objects.requireNonNull(code, "code must not be null");
+        if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.FIAT))
+                && CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
+            logger.error("ambiguous currency code: " + code);
+            throw new IllegalArgumentException("ambiguous currency code: " + code + " (code" +
+                    " is used for multiple currency types); use ofCrypto(...) or ofFiat(...) instead");
+        } else {
+            if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
+                return CURRENCIES.get(SymmetricPair.of(code, CurrencyType.CRYPTO));
+            } else {
+                return CURRENCIES.getOrDefault(SymmetricPair.of(code, CurrencyType.FIAT), NULL_CRYPTO_CURRENCY);
             }
         }
-        logger.debug("Currency not found: " + baseCurrency);
-
-        return null;
     }
 
+    /**
+     * Get the fiat currency that has a currency code equal to the
+     * given {@code}. Using {@literal "¤¤¤"} as the currency code
+     * returns {@literal NULL_FIAT_CURRENCY}.
+     *
+     */
+    public static FiatCurrency ofFiat(@NotNull String code) {
+        if (code.equals("¤¤¤")) {
+            return NULL_FIAT_CURRENCY;
+        }
+
+        FiatCurrency result = (FiatCurrency) CURRENCIES.get(SymmetricPair.of(code, CurrencyType.FIAT));
+        return result == null ? NULL_FIAT_CURRENCY : result;
+    }
+
+
+    public static CryptoCurrency ofCrypto(@NotNull String code) {
+        if (code.equals("¤¤¤")) {
+            return NULL_CRYPTO_CURRENCY;
+        }
+
+        CryptoCurrency result = (CryptoCurrency) CURRENCIES.get(SymmetricPair.of(code, CurrencyType.CRYPTO));
+        return result == null ? NULL_CRYPTO_CURRENCY : result;
+    }
+
+    public static List<FiatCurrency> getFiatCurrencies() {
+        return CURRENCIES.values().stream()
+                .filter(currency -> currency.getCurrencyType() == CurrencyType.FIAT)
+                .map(currency -> (FiatCurrency) currency).toList();
+    }
+
+    public static Currency lookupBySymbol(String symbol) {
+
+        return CURRENCIES.values().stream().filter(currency -> currency.getSymbol().equals(symbol))
+                .findAny().orElse(NULL_FIAT_CURRENCY);
+    }
+
+    public static FiatCurrency lookupFiatByCode(String code) {
+        return (FiatCurrency) CURRENCIES.values().stream()
+                .filter(currency -> currency.currencyType == CurrencyType.FIAT && currency.code.equals(code))
+                .findAny().orElse(NULL_FIAT_CURRENCY);
+    }
+
+    public static FiatCurrency lookupLocalFiatCurrency() {
+        return (FiatCurrency) CURRENCIES.values().stream()
+                .filter(currency -> currency.currencyType == CurrencyType.FIAT)
+                .findAny().orElse(NULL_FIAT_CURRENCY);
+    }
 
     public CurrencyType getCurrencyType() {
         return this.currencyType;
     }
 
+    public String getFullDisplayName() {
+        return this.fullDisplayName;
+    }
+
+    public String getShortDisplayName() {
+        return this.shortDisplayName;
+    }
 
     public String getCode() {
         return this.code;
@@ -81,7 +228,11 @@ public abstract class Currency {
         return this.symbol;
     }
 
-
+    /**
+     * The finality of {@code equals(...)} ensures that the equality
+     * contract for subclasses must be based on currency type and code alone.
+     *
+     */
     @Override
     public final boolean equals(Object object) {
         if (object == null) {
@@ -99,66 +250,46 @@ public abstract class Currency {
         return currencyType == other.currencyType && code.equals(other.code);
     }
 
-    @Override
-    public String toString() {
-        return
-                "currencyType=" + currencyType +
-                        ", fullDisplayName='" + fullDisplayName + '\'' +
-                        ", code='" + code + '\'' +
-                        ", fractionalDigits=" + fractionalDigits +
-                        ", symbol='" + symbol + '\'' +
-                        ", shortDisplayName='" + shortDisplayName + '\'';
-    }
-
+    /**
+     * The finality of {@code hashCode()} ensures that the equality
+     * contract for subclasses must be based on currency
+     * type and code alone.
+     *
+     */
     @Override
     public final int hashCode() {
         return Objects.hash(currencyType, code);
     }
 
-    public abstract int compareTo(@NotNull java.util.Currency o);
+    @Override
+    public String toString() {
+        if (this == NULL_CRYPTO_CURRENCY) {
+            return "the null cryptocurrency";
+        } else if (this == NULL_FIAT_CURRENCY) {
+            return "the null fiat currency";
+        }
+        return String.format("%s (%s)", fullDisplayName, code);
+    }
 
     public String getImage() {
-        return this.image;
+        return image;
     }
 
     public void setImage(String image) {
         this.image = image;
     }
 
-    public short getIsoCode() {
-        return this.currencyType.getIsoCode();
-    }
+    public abstract int compareTo(java.util.@NotNull Currency o);
 
     private static class NullCryptoCurrency extends CryptoCurrency {
-        protected NullCryptoCurrency(CurrencyType crypto, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {
-            super(crypto,
-                    fullDisplayName,
-                    shortDisplayName,
-                    code,
-                    fractionalDigits,
-                    symbol, image
-            );
-        }
-
-
-        @Override
-        public int compareTo(java.util.@NotNull Currency o) {
-            return 0;
-
+        protected NullCryptoCurrency(CurrencyType currencyType, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {
+            super(currencyType, fullDisplayName, shortDisplayName, code, fractionalDigits, symbol, image);
         }
     }
 
-
-    private static class NullFiatCurrency extends FiatCurrency {
-        protected NullFiatCurrency() {
-            super();
-        }
-
-
-        @Override
-        public int compareTo(java.util.@NotNull Currency o) {
-
-            return 0;
+    private static abstract class NullFiatCurrency extends FiatCurrency {
+        protected NullFiatCurrency(CurrencyType currencyType, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {
+            super(currencyType, fullDisplayName, shortDisplayName, code, fractionalDigits, symbol, image);
         }
     }
 }

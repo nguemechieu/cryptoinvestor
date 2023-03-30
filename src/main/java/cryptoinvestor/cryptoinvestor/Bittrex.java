@@ -49,8 +49,10 @@ public class Bittrex extends Exchange {
     @Override
     public Set<Integer> getSupportedGranularities() {
         return
-                new HashSet<>(Arrays.asList(1, 5, 15, 30, 60,
-                        120, 240, 360, 720, 1440, 2880, 5760, 11520, 23040, 46080, 92160, 180320, 360000));
+                new HashSet<>(Arrays.asList(
+                        60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24,
+                        3600 * 24 * 7, 3600 * 24 * 30, 3600 * 24 * 30 * 7, 3600 * 24 * 30 * 30, 3600 * 24 * 30 * 30 * 7, 3600 * 24 * 30 * 30
+                ));
     }
 
     @Override
@@ -221,6 +223,16 @@ public class Bittrex extends Exchange {
     @Override
     public List<TradePair> getTradePair() throws IOException, InterruptedException {
         return null;
+    }
+
+    @Override
+    public void connect(String text, String text1, String userIdText) {
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
     }
 
     @Override

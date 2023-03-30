@@ -5,6 +5,9 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
@@ -38,7 +41,7 @@ private String symbol;
     private String filled;
     private String unit;
 
-    public Order(JSONObject jsonObject) {
+    public Order(JSONObject jsonObject) throws IOException, ParseException, URISyntaxException, InterruptedException {
         this.id = jsonObject.getLong("id");
         this.tradePair = new TradePair("EUR", "USD");
         this.timestamp = Instant.ofEpochMilli(jsonObject.getLong("timestamp"));
@@ -55,7 +58,7 @@ private String symbol;
         this.total = jsonObject.getDouble("total");
     }
 
-    public Order(String orderId, String clientOrderId, String symbol, String side, String status, String type, String timeInForce, String price, String origQty, String executedQty, String cummulativeQuoteQty, String icebergQty) {
+    public Order(String orderId, String clientOrderId, String symbol, String side, String status, String type, String timeInForce, String price, String origQty, String executedQty, String cummulativeQuoteQty, String icebergQty) throws IOException, ParseException, URISyntaxException, InterruptedException {
         this.id = Long.valueOf(orderId);
         this.tradePair = new TradePair("EUR", "USD");
         this.timestamp = Instant.ofEpochMilli(Long.parseLong(timeInForce));

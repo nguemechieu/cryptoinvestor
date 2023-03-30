@@ -15,7 +15,6 @@ import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -23,6 +22,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -177,23 +177,9 @@ public class Poloniex extends Exchange {
     @Override
     public Set<Integer> getSupportedGranularities() {
         return
-                Collections.unmodifiableSet(
-                        new HashSet<>(
-                                Arrays.asList(
-                                60,
-                                        300,
-                                        900,
-                                        1800,
-                                        3600,
-                                        7200,
-                                        14400,
-                                        21600,
-                                        43200,
-                                        86400,
-                                        172800
-
-                                )
-                        )
+                Set.of(
+                        60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24,
+                        3600 * 24 * 7, 3600 * 24 * 30, 3600 * 24 * 30 * 7, 3600 * 24 * 30 * 30, 3600 * 24 * 30 * 30 * 7
                 );
     }
 
@@ -279,7 +265,7 @@ public class Poloniex extends Exchange {
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException e) {
+                } catch (TelegramApiException | ParseException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -602,8 +588,7 @@ public class Poloniex extends Exchange {
 //        ;
 //        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
 //
-   ArrayList<TradePair> tradePairs = new ArrayList<>();
-//        if (response.statusCode() == 200) {
+        //        if (response.statusCode() == 200) {
 //            JSONObject jsonObject = new JSONObject(response.body());
 //            System.out.println(jsonObject.toString(4));
 //            JSONArray jsonArray = jsonObject.getJSONArray("data");
@@ -616,7 +601,17 @@ public class Poloniex extends Exchange {
 //            System.out.println(response.statusCode());
 //            System.out.println(response.body());
 //        }
-        return tradePairs;
+        return new ArrayList<>();
+    }
+
+    @Override
+    public void connect(String text, String text1, String userIdText) {
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
     }
 
     HttpClient client =  HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();

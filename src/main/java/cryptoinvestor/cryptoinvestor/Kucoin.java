@@ -22,10 +22,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -47,7 +49,7 @@ public class Kucoin extends Exchange {
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    private static final String ur0 = "wss://stream.binance.us:9443";
+    private static final String ur0 = "wss://stream.kucoin.com:9443";
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     protected String PASSPHRASE = "w73hzit0cgl";
     protected String API_SECRET = "FEXDflwq+XnAU2Oussbk1FOK7YM6b9A4qWbCw0TWSj0xUBCwtZ2V0MVaJIGSjWWtp9PjmR/XMQoH9IZ9GTCaKQ==";
@@ -159,7 +161,10 @@ public class Kucoin extends Exchange {
     @Override
     public Set<Integer> getSupportedGranularities() {
         return
-                Set.of(1, 5, 15, 30, 60, 120, 180, 240, 300, 600, 900, 1800, 3600, 7200, 14400, 28800, 57600, 115200, 230400, 460800, 921600, 1803200, 3606400, 7219200, 14419200, 28825600, 57632000);
+                Set.of(
+                        60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24,
+                        3600 * 24 * 7, 3600 * 24 * 30, 3600 * 24 * 30 * 7, 3600 * 24 * 30 * 365
+                );
     }
 
     /**
@@ -232,7 +237,7 @@ public class Kucoin extends Exchange {
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException e) {
+                } catch (TelegramApiException | ParseException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -574,6 +579,16 @@ public class Kucoin extends Exchange {
     public List<TradePair> getTradePair() throws IOException, InterruptedException {
         ArrayList<TradePair> tradePairs = new ArrayList<>();
         return tradePairs;
+    }
+
+    @Override
+    public void connect(String text, String text1, String userIdText) {
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
     }
 
     @Override

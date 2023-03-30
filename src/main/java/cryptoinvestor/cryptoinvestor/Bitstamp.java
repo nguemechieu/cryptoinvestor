@@ -22,12 +22,14 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -161,12 +163,7 @@ public class Bitstamp extends Exchange {
 
     @Override
     public Set<Integer> getSupportedGranularities() {
-        return Collections.unmodifiableSet(
-                new HashSet<>(
-                        Arrays.asList(1, 5, 15, 30, 60, 120, 180, 360, 720, 1440, 2160, 4320, 8640, 17280, 34560, 60480, 120960, 241920, 483840, 965680, 1921040, 3843200, 7200000, 14400000, 21600000, 43200000, 86400000, 172800000
-
-
-        )));
+        return Set.of(60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24, 3600 * 24 * 7, 3600 * 24 * 30, 3600 * 24 * 30 * 7, 3600 * 24 * 30 * 365);
     }
 
     /**
@@ -251,7 +248,7 @@ public class Bitstamp extends Exchange {
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException e) {
+                } catch (TelegramApiException | ParseException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -573,13 +570,23 @@ public class Bitstamp extends Exchange {
         return tradePairs;
     }
 
+    @Override
+    public void connect(String text, String text1, String userIdText) {
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
+    }
+
     HttpClient client =  HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
     // Get all orders
     //       GET
     //https://api.exchange.coinbase.com/orders
 
     public void getAllOrders() throws IOException, InterruptedException {
-        String uriStr = "https://api.exchange.coinbase.com/orders";
+        String uriStr = "https://api.bitstamp.com/orders";
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         requestBuilder.uri(URI.create(uriStr));
@@ -603,7 +610,7 @@ public class Bitstamp extends Exchange {
 
 
     public  void getOrder(String orderId) throws IOException, InterruptedException {
-        String uriStr = "https://api.exchange.coinbase.com/orders/" + orderId;
+        String uriStr = "https://api.bitstamp.com/orders/" + orderId;
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         requestBuilder.uri(URI.create(uriStr));
@@ -626,7 +633,7 @@ public class Bitstamp extends Exchange {
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     public void cancelOrder(String orderId) throws IOException, InterruptedException {
 
-        String uriStr = "https://api.exchange.coinbase.com/orders/" + orderId;
+        String uriStr = "https://api.bitstamp.com/orders/" + orderId;
         requestBuilder.DELETE();
         requestBuilder.uri(URI.create(uriStr));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());

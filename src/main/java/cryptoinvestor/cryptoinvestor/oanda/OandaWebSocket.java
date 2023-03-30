@@ -18,8 +18,10 @@ import javax.websocket.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Objects;
@@ -41,9 +43,10 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 //            -H "Authorization: Bearer <AUTHENTICATION TOKEN>" \
 //            "https://stream-fxtrade.oanda.com/v3/accounts/<ACCOUNT>/pricing/stream?instruments=EUR_USD%2CUSD_CAD"
 
-  public OandaWebSocket(Set<TradePair> tradePair, String accountID) {
-        super(URI.create("ws://api-fxtrade.oanda.com/v3/accounts"+accountID+"pricing/stream?instruments="+"EUR_USD&USD_CAD"), new Draft_6455());
+  public OandaWebSocket(Set<TradePair> tradePair) {
+        super(URI.create("ws://api-fxtrade.oanda.com/v3/accounts/001-001-2783446-002/pricing/stream?instruments="+"EUR_USD&USD_CAD"), new Draft_6455());
         Objects.requireNonNull(tradePair);
+
 
     }
 
@@ -90,7 +93,8 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
                                         tradePair.getBaseCurrency()),
                                 side, messageJson.at("trade_id").asLong(),
                                 Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
-                    } catch (TelegramApiException | IOException | InterruptedException e) {
+                    } catch (TelegramApiException | IOException | InterruptedException | ParseException |
+                             URISyntaxException e) {
                         throw new RuntimeException(e);
                     }
                     liveTradeConsumers.get(tradePair).acceptTrades(Collections.singletonList(newTrade));

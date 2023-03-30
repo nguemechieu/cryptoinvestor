@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
@@ -45,7 +46,9 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
     }
 
     private void connect(URI clientUri, Draft clientDraft) {
+
         WebSocketClient webSocketClient = new WebSocketClient(clientUri, clientDraft) {
+
             @Override
             public void onOpen(ServerHandshake serverHandshake) {
                 connectionEstablished.set(true);
@@ -59,12 +62,11 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
                         connectionEstablished.set(false);
                     }
                 });
-                TradePair.logger.info("Connection established");
+                logger.info("Connection established");
             }
 
             @Override
             public void onMessage(String s) {
-                logger.info("Received message: " + s);
 
                 logger.info("Received message: " + s);
 
@@ -85,7 +87,7 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
 
                     }
                 });
-                TradePair.logger.info("Connection closed");
+                logger.info("Connection closed");
             }
 
             @Override
@@ -115,7 +117,7 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
         return webSocketInitializedLatch;
     }
 
-    public abstract void onMessage(String message) throws TelegramApiException, IOException, InterruptedException;
+    public abstract void onMessage(String message) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException;
 
     public void streamLiveTrades(TradePair tradePair, LiveTradesConsumer liveTradesConsumer) throws IOException, InterruptedException, ParseException {
         liveTradeConsumers.put(tradePair, liveTradesConsumer);
@@ -150,30 +152,13 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
     }
 
 
-//    public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) throws IOException, ParseException, InterruptedException {
-//
-//        for (TradePair tradePair : tradePairs) {
-//            streamLiveTrades(tradePair, liveTradesConsumer);
-//        }
-//
-//
-//    }
-//
-//    public void stopStreamLiveTrades(TradePair tradePair) {
-//        liveTradeConsumers.remove(tradePair);
-//
-//    }
+
 
     public abstract void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer);
 
     public abstract void stopStreamLiveTrades(TradePair tradePair);
 
-    public boolean supportsStreamingTrades(TradePair tradePair) {
-
-        return liveTradeConsumers.containsKey(tradePair);
-
-
-    }
+    public boolean supportsStreamingTrades(TradePair tradePair) {return liveTradeConsumers.containsKey(tradePair);}
 
 
     @Contract(" -> new")

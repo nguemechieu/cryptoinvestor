@@ -12,7 +12,7 @@ public class Log {
     public Log() {
         System.out.println("Log");
         org.slf4j.Logger logger =
-                org.slf4j.LoggerFactory.getLogger(Log.class);
+                LoggerFactory.getLogger(Log.class);
         logger.info("Log");
 
 
@@ -30,7 +30,7 @@ public class Log {
     public static void error(String message) {
         System.err.println(message);
         org.slf4j.Logger logger =
-                org.slf4j.LoggerFactory.getLogger(message);
+                LoggerFactory.getLogger(message);
         logger.error(message);
     }
 
@@ -43,7 +43,7 @@ public class Log {
     public static void trace(String message) {
         System.err.println(message);
         org.slf4j.Logger logger =
-                org.slf4j.LoggerFactory.getLogger(message);
+                LoggerFactory.getLogger(message);
         logger.trace(message);
     }
 
@@ -52,7 +52,7 @@ public class Log {
                 + " at " + new java.util.Date());
         System.err.println(created_new_file);
         org.slf4j.Logger logger =
-                org.slf4j.LoggerFactory.getLogger(file);
+                LoggerFactory.getLogger(file);
         logger.info(file, created_new_file);
     }
 
@@ -61,7 +61,7 @@ public class Log {
         Logger.getLogger(s, String.valueOf(tag));
         System.err.println(s);
         org.slf4j.Logger logger =
-                org.slf4j.LoggerFactory.getLogger(s);
+                LoggerFactory.getLogger(s);
         logger.error(s, tag);
     }
 
@@ -69,7 +69,7 @@ public class Log {
         Logger.getLogger(tag, noCoinInfoAvailable.getClass().getName());
         System.err.println(noCoinInfoAvailable);
         org.slf4j.Logger logger =
-                org.slf4j.LoggerFactory.getLogger(tag);
+                LoggerFactory.getLogger(tag);
         logger.error(tag, noCoinInfoAvailable);
     }
 
@@ -78,7 +78,7 @@ public class Log {
 
         System.err.println(s);
         org.slf4j.Logger logger =
-                org.slf4j.LoggerFactory.getLogger(s);
+                LoggerFactory.getLogger(s);
         logger.debug(s, s.getClass().getSimpleName());
     }
 }

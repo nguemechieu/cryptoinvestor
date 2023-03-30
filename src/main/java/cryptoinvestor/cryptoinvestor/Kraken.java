@@ -13,7 +13,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,10 +22,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -154,7 +155,10 @@ public class Kraken extends Exchange {
     @Override
     public Set<Integer> getSupportedGranularities() {
         return
-                Set.of(1, 5, 15, 30, 60, 120, 180, 360, 720, 1440);
+                Set.of(
+                        60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24,
+                        3600 * 24 * 7, 3600 * 24 * 30, 3600 * 24 * 30 * 7, 3600 * 24 * 30 * 365
+                );
     }
 
     /**
@@ -227,7 +231,7 @@ public class Kraken extends Exchange {
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException e) {
+                } catch (TelegramApiException | ParseException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -580,15 +584,28 @@ public class Kraken extends Exchange {
         for (int i = 0; i < jsonArray.length(); i++) {
 
             TradePair tradePair;
-            if (jsonArray.has("altname"))    { tradePair = new TradePair(jsonArray.getString("altname"),"USD");
-            tradePairs.add(tradePair);}
+            if (jsonArray.has("altname"))    {
+                tradePair = new TradePair(jsonArray.getString("altname"),"USD");
+                tradePairs.add(tradePair);}
         }
 
         return tradePairs;
     }
 
     @Override
+    public void connect(String text, String text1, String userIdText) {
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
+    }
+
+    @Override
     public void cancelOrder(long orderID) throws IOException, InterruptedException {
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
 
     }
 

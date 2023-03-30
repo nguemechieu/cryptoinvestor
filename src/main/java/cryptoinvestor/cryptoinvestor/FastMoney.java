@@ -26,13 +26,13 @@ public final class FastMoney implements Money, Comparable<FastMoney> {
     private final long amount;
     private final int precision;
     private final Currency currency;
-    private FastMoney(long amount, Currency currency) {
+    private FastMoney(double amount, Currency currency) {
         this(amount, currency, currency.getFractionalDigits());
     }
 
-    private FastMoney(long amount, Currency currency, int precision) {
+    private FastMoney(double amount, Currency currency, int precision) {
         Objects.requireNonNull(currency, "currency must not be null");
-        this.amount = amount;
+        this.amount = (long) amount;
         this.precision = precision;
         this.currency = currency;
     }
@@ -58,13 +58,13 @@ public final class FastMoney implements Money, Comparable<FastMoney> {
 
     public static @NotNull Money ofFiat(long amount, final String currencyCode) {
         Objects.requireNonNull(currencyCode, "currencyCode must not be null");
-        return ofFiat(amount, currencyCode, CurrencyDataProvider.ofFiat(currencyCode).getFractionalDigits());
+        return ofFiat(amount, currencyCode, Currency.ofFiat(currencyCode).getFractionalDigits());
     }
 
     @Contract("_, _, _ -> new")
     public static @NotNull Money ofFiat(long amount, final String currencyCode, int precision) {
         Objects.requireNonNull(currencyCode, "currencyCode must not be null");
-        Currency currency = CurrencyDataProvider.ofFiat(currencyCode);
+        Currency currency = Currency.ofFiat(currencyCode);
         amount *= Math.pow(10, precision);
         return new FastMoney(amount, currency, precision);
     }
@@ -79,12 +79,12 @@ public final class FastMoney implements Money, Comparable<FastMoney> {
 
     @Contract("_, _ -> new")
     public static @NotNull Money ofCrypto(long amount, final String currencyCode) {
-        return ofCrypto(amount, currencyCode, CurrencyDataProvider.of(currencyCode).getFractionalDigits());
+        return ofCrypto(amount, currencyCode, Currency.of(currencyCode).getFractionalDigits());
     }
 
     @Contract("_, _, _ -> new")
     public static @NotNull Money ofCrypto(long amount, final String currencyCode, int precision) {
-        Currency currency = CurrencyDataProvider.of(currencyCode);
+        Currency currency = Currency.of(currencyCode);
         amount *= Math.pow(10, precision);
         return new FastMoney(amount, currency, precision);
     }
@@ -115,9 +115,9 @@ public final class FastMoney implements Money, Comparable<FastMoney> {
         }
 
         if (currencyType == CurrencyType.FIAT) {
-            return DefaultMoney.of(value, CurrencyDataProvider.ofFiat(currencyCode));
+            return DefaultMoney.of(value, Currency.ofFiat(currencyCode));
         } else {
-            return DefaultMoney.of(value, CurrencyDataProvider.of(currencyCode));
+            return DefaultMoney.of(value, Currency.of(currencyCode));
         }
     }
 

@@ -215,15 +215,10 @@ public class DataSource implements javax.sql.DataSource {
      *                 being made
      * @param password the user's password
      * @return a connection to the data source
-     * @throws SQLException        if a database access error occurs
-     * @throws SQLTimeoutException when the driver has determined that the
-     *                             timeout value specified by the {@code setLoginTimeout} method
-     *                             has been exceeded and has at least tried to cancel the
-     *                             current database connection attempt
      * @since 1.4
      */
     @Override
-    public Connection getConnection(String username, String password) throws SQLException {
+    public Connection getConnection(String username, String password) {
         return
                 null;
     }

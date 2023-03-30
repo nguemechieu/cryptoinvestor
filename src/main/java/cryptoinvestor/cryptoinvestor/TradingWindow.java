@@ -2,6 +2,7 @@ package cryptoinvestor.cryptoinvestor;
 
 import com.jfoenix.controls.RecursiveTreeItem;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
+
 import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
@@ -30,8 +31,8 @@ public class TradingWindow extends AnchorPane {
         super();
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
-      //"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo";
-        for (ENUM_EXCHANGE_LIST i : ENUM_EXCHANGE_LIST.values()) {
+   
+           for (ENUM_EXCHANGE_LIST i : ENUM_EXCHANGE_LIST.values()) {
             DraggableTab tab = new DraggableTab(i.name(), "");
             if (i.getIcon() != null) {
                 tab.setGraphic(new ImageView((String) i.getIcon()));}
@@ -118,10 +119,11 @@ public class TradingWindow extends AnchorPane {
 
             }
 
-           if (exchange!=null)tab.setContent(new VBox(new Label(i.name(),new Separator(Orientation.VERTICAL)), new TradeView(exchange,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo")));
+           if (exchange!=null)tab.setContent(
+                   new VBox(new Label(i.name(),
+                   new Separator(Orientation.VERTICAL)),
+                   new TradeView(exchange,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo")));
         }
-
-
 
         tabPane.getTabs().addAll(getNewsTab(),browserTab());
        setPrefSize(1530, 780);

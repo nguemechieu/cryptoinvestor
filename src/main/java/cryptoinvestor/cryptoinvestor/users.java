@@ -103,13 +103,11 @@ public class users implements Serializable {
         this.updatedAt = String.valueOf(Locale.getDefault());
         this.active = true;
         this.passwordHash = "";
-        this.passwordResetToken = "";
-        this.passwordResetSentAt = "";
+
         this.name = name;
     }
 
-    @Column(name = "password_reset_token")
-    private String passwordResetToken;
+
 
     public String getName() {
         return name;
@@ -155,8 +153,6 @@ public class users implements Serializable {
         this.resource_path = resource_path;
     }
 
-    @Column(name = "password_reset_sent_at")
-    private String passwordResetSentAt;
 
 
 
@@ -206,8 +202,7 @@ public class users implements Serializable {
         this.updatedAt = String.valueOf(Locale.getDefault());
         this.active = true;
         this.passwordHash = "";
-        this.passwordResetToken = "";
-        this.passwordResetSentAt = "";
+
         this.name = "";
 
     }
@@ -258,8 +253,6 @@ public class users implements Serializable {
                 ", updatedAt='" + updatedAt + '\'' +
                 ", active=" + active +
                 ", passwordHash='" + passwordHash + '\'' +
-                ", passwordResetToken='" + passwordResetToken + '\'' +
-                ", passwordResetSentAt='" + passwordResetSentAt + '\'' +
                 '}';
     }
 
@@ -413,22 +406,6 @@ public class users implements Serializable {
 
     public void setPasswordHash(String passwordHash) {
         this.passwordHash = passwordHash;
-    }
-
-    public String getPasswordResetToken() {
-        return passwordResetToken;
-    }
-
-    public void setPasswordResetToken(String passwordResetToken) {
-        this.passwordResetToken = passwordResetToken;
-    }
-
-    public String getPasswordResetSentAt() {
-        return passwordResetSentAt;
-    }
-
-    public void setPasswordResetSentAt(String passwordResetSentAt) {
-        this.passwordResetSentAt = passwordResetSentAt;
     }
 
 

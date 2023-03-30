@@ -1,15 +1,11 @@
 package cryptoinvestor.cryptoinvestor;
 
-import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
-import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import javafx.beans.property.IntegerProperty;
-import javafx.beans.property.SimpleIntegerProperty;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;

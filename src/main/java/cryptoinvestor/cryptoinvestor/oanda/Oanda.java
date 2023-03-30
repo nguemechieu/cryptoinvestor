@@ -7,8 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import cryptoinvestor.cryptoinvestor.*;
 import cryptoinvestor.cryptoinvestor.Currency;
+import cryptoinvestor.cryptoinvestor.*;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.control.Alert;
@@ -26,11 +26,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.URL;
+import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.security.NoSuchAlgorithmException;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -51,7 +52,22 @@ public class Oanda extends Exchange {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static Set<TradePair> tradePair;
 
+    static {
+
+            tradePair = new HashSet<>(
+                    List.of(
+                            new TradePair("EUR", "USD")
+                    )
+            );
+
+    }
+
+    private static final ExchangeWebSocketClient websocke =
+            new OandaWebSocket(
+                 tradePair
+            );
 
 
     public String getAccountID() {
@@ -63,10 +79,9 @@ public class Oanda extends Exchange {
     private static final HttpClient client=         HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
 
 
-    static TelegramClient telegramBot;
     public Oanda(String apiKey, String accountID)
             throws TelegramApiException, IOException, NoSuchAlgorithmException {
-        super(null);
+        super(websocke);
 
 
         this.accountID = accountID;
@@ -135,27 +150,13 @@ public class Oanda extends Exchange {
         return null;
     }
 
-
     @Override
     public Set<Integer> getSupportedGranularities() {
         return
-                Set.of(60,
-                        300,
-                        900,
-                        1800,
-                        3600,
-                        14400,
-                        86400,
-                        604800,
-                        2592000,
-                        31536000,
-                        6048000,
-                        8640000,
-                        60480000,
-                        259200000,
-                        315360000,
-                        604800000,
-                        864000000);
+                new HashSet<>(Arrays.asList(
+                        60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24,
+                        3600 * 24 * 7, 3600 * 24 * 30, 3600 * 24 * 30 * 7, 3600 * 24 * 30 * 365
+                ));
 
     }
 
@@ -183,7 +184,7 @@ public class Oanda extends Exchange {
             // We will know if we get rate limited if we get a 429 response code.
             for (int i = 0; !futureResult.isDone(); i++) {
                 String uriStr = "https://api-fxtrade.oanda.com/v3/";
-                uriStr += "/instruments/"+tradePair.getBaseCurrency().getCode()+"/candles?count=6&price=M&granularity=M5";
+                uriStr += "/instruments/"+tradePair.getBaseCurrency().getCode()+"/candles?count=6&price=M&granularity=M30";
 
                 if (i != 0) {
                     uriStr += "?after=" + afterCursor.get();
@@ -240,7 +241,7 @@ public class Oanda extends Exchange {
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException e) {
+                } catch (TelegramApiException | ParseException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -254,7 +255,7 @@ public class Oanda extends Exchange {
      */
     @Override
     public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
-            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+            @NotNull TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
         String startDateString1 = ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
                 currentCandleStartedAt, ZoneOffset.UTC));
         long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
@@ -346,8 +347,8 @@ public class Oanda extends Exchange {
 
         JSONObject jsonObject = new JSONObject();
         try {
-            var url = new URL("https://api.coinbase.com/v2/exchange-rates");
-            HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+            String url = "https://api-fxtrade.oanda.com/v2/exchange-rates";
+            HttpsURLConnection conn = (HttpsURLConnection) URI.create(url).toURL().openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
             conn.setRequestProperty("charset", "utf-8");
@@ -635,7 +636,7 @@ public class Oanda extends Exchange {
 
 
     public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size,
-                            @NotNull Instant timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
+                            @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
         // JSONObject jsonObject = getJSON();
         //   System.out.println(jsonObject.toString(4));
 
@@ -647,7 +648,7 @@ public class Oanda extends Exchange {
                 String.format(
                         "{\"product_id\": \"%s\", \"side\": \"%s\", \"type\": \"%s\", \"quantity\": %f, \"price\": %f, \"stop-loss\": %f, \"take-profit\": %f, \"take-profit-price\": %f, \"timestamp\": \"%s\"}",
                         symbol, side, orderType, size, price, stopLoss, takeProfit, takeProfitPrice,
-                        timestamp.toEpochMilli() / 1000L);
+                        timestamp);
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         data = String.format(data, orderType, side, price);
@@ -670,11 +671,6 @@ public class Oanda extends Exchange {
             alert.setContentText(response.body());
             alert.showAndWait();
 
-        } else {
-            JSONObject jsonObject = new JSONObject(response.body());
-
-
-            System.out.println(jsonObject.toString(4));
         }
 
 
@@ -712,7 +708,7 @@ public class Oanda extends Exchange {
     }
 
     @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+    public List<TradePair> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException {
   ArrayList<TradePair> tradePairs = new ArrayList<>();
 
   for (Currency currency : getAvailableSymbols()) {
@@ -721,6 +717,16 @@ public class Oanda extends Exchange {
 
   }
   return tradePairs;
+    }
+
+    @Override
+    public void connect(String text, String text1, String userIdText) {
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
     }
 
     @Override
@@ -739,13 +745,13 @@ public class Oanda extends Exchange {
     }
 
     @Override
-    public ListView<Order> getOrderView() {
+    public ListView<Order> getOrderView() throws IOException, ParseException, URISyntaxException, InterruptedException {
         ListView<Order> orderView = new ListView<>();
         String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/"+accountID+"/orders";
         System.out.println(uriStr);
         requestBuilder.uri(URI.create(uriStr));
         requestBuilder.GET();
-        HttpResponse<String> response = null;
+        HttpResponse<String> response;
         try {
             response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         } catch (IOException | InterruptedException e) {
@@ -862,6 +868,11 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
                         instrumentNode.get("name").asText(),""
                 ) {
                     @Override
+                    public int compareTo(@NotNull Currency o) {
+                        return 0;
+                    }
+
+                    @Override
                     public int compareTo(java.util.@NotNull Currency o) {
                         return 0;
                     }
@@ -907,10 +918,10 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
 
             String uriStr ="https://api-fxtrade.oanda.com/v3/instruments/"+tradePair.toString('_')+"/candles?count=6&price=M&granularity=M30";
 
-            if (startTime == EARLIEST_DATA) {
-                // signal more data is false
-                return CompletableFuture.completedFuture(Collections.emptyList());
-            }
+         if (startTime == EARLIEST_DATA) {
+//                // signal more data is false
+               return CompletableFuture.completedFuture(Collections.emptyList());
+        }
             requestBuilder.uri(URI.create(uriStr));
             //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
             return client.sendAsync(
@@ -918,14 +929,13 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
                             HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
                     .thenApply(response -> {
-                        Log.info("Oanda response: ", response);
+                        Log.info("Oanda response:--> ", response);
                         JsonNode res;
                         try {
                             res = OBJECT_MAPPER.readTree(response);
                             logger.info(
-                                    "Oanda response f: " + res.toString()
+                                    "Oanda response :--> " + res.toString()
                             );
-
 
                         } catch (JsonProcessingException ex) {
                             throw new RuntimeException(ex);
@@ -940,17 +950,18 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
                                     time = (int) Date.from(Instant.parse(res.get("time").asText())).getTime();
 
 //                                    time = (int) Date.from(Instant.parse(res.get(i).get("time").asText())).getTime();
-//                                }
-
+                                //endTime.set(stTime);
                                 logger.info(
                                         "time: " + time + ", endTime: " + endTime.get()
                                 );
                                 if (time+ secondsPerCandle > endTime.get()) {
                                     ((ArrayNode) res).remove(0);
                                 }
-                                endTime.set(startTime);
 
-                                List<CandleData> candleData = new ArrayList<>();
+
+                                ArrayList<CandleData> candleData=
+                                        new ArrayList<>();
+
                                 for (JsonNode candle : res.get("candles").get("mid")) {
                                     candleData.add(new CandleData(
                                             candle.get("o").asDouble(),  // open price
@@ -960,15 +971,16 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
                                             time,     // open time
                                             res.get("candle").get("volume").asDouble()   // volume
                                     ));
-                                    logger.info(
-                                            "time: " + time + ", endTime: " + endTime.get()
+
+                                   out.println (        "time: " + time + ", endTime: " + endTime.get()
                                     );
 
-                                    logger.info(
-                                            "CandleData: " + candleData
-                                    );
+
 
                                 }
+                                logger.info(
+                                        "CandleData :--> " + candleData
+                                );
                                 candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
                                 return candleData;
 

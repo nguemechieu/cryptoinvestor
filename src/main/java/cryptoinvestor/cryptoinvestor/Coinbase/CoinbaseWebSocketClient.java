@@ -19,8 +19,10 @@ import javax.websocket.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
@@ -51,7 +53,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
-    public void onMessage(String message) throws TelegramApiException, IOException, InterruptedException {
+    public void onMessage(String message) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException {
         JsonNode messageJson;
         try {
             messageJson = OBJECT_MAPPER.readTree(message);
@@ -102,7 +104,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
-        final String productId = messageJson.get("product_id").asText();
+         String productId = messageJson.get("product_id").asText();
         final String[] products = productId.split("-");
         TradePair tradePair;
         if (products[0].equalsIgnoreCase("BTC")) {

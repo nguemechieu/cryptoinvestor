@@ -22,10 +22,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -40,7 +42,7 @@ import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 public class Bitfinex extends Exchange {
 
-    private static final Logger logger = LoggerFactory.getLogger(cryptoinvestor.cryptoinvestor.Kraken.class);
+    private static final Logger logger = LoggerFactory.getLogger(Kraken.class);
 
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
@@ -148,8 +150,10 @@ public class Bitfinex extends Exchange {
     @Override
     public Set<Integer> getSupportedGranularities() {
         return
-                Set.of(1, 5, 15, 30, 60, 120, 180, 360, 720, 1440, 2160, 4320, 8640, 17280, 34560, 60480, 120960, 241920, 483840, 965680, 1921040, 3843200, 7680000, 15728000, 31536000, 63072000, 126144000, 25264800);
-    }
+                Set.of(
+                        60, 60 * 5, 60 * 15, 3600, 3600 * 6,
+                        3600 * 60, 3600 * 60 * 24 * 7 * 4, 3600 * 60 * 24 * 7 * 4 * 2, 3600 * 60 * 24 * 7
+                );    }
 
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
@@ -221,7 +225,7 @@ public class Bitfinex extends Exchange {
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException e) {
+                } catch (TelegramApiException | ParseException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -562,13 +566,29 @@ public class Bitfinex extends Exchange {
     @Override
     public List<TradePair> getTradePair() throws IOException, InterruptedException {
 
-        ArrayList<TradePair> tradePairs = new ArrayList<>();
-        return tradePairs;
+        return new ArrayList<>();
 
     }
 
     @Override
+    public void connect(String text, String text1, String userIdText) {
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
+    }
+
+    @Override
     public void cancelOrder(long orderID) throws IOException, InterruptedException {
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
+
+        String uriStr = "https://api.bitfinex.com/" +
+                "api/v3/orders/" + orderID;
+
+        System.out.println(uriStr);
 
     }
 
@@ -596,7 +616,7 @@ public class Bitfinex extends Exchange {
         JSONObject jsonObject = getJSON();
         System.out.println(jsonObject.toString(4));
 
-        String uriStr = "https://api.binance.us/" +
+        String uriStr = "https://api.bitfinex.com/" +
                 "api/v3/orders/" + tradePair.toString('/') +
                 "?side=" + side +
                 "&type=market" +

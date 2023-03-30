@@ -345,7 +345,16 @@ static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     @Contract("_, _ -> new")
     private static @NotNull JSONObject makeRequest(String url, @NotNull String method) {
         HttpResponse<String> response;
-        try {
+        try {   url = url + "?offset=" + offset + "&limit=" + length;
+
+
+
+            requestBuilder.uri(URI.create(url));
+
+            requestBuilder.GET();
+            requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.)");
+            requestBuilder.header("Accept", "application/json");
+
             response = client.send(
                     requestBuilder.build(),
                     HttpResponse.BodyHandlers.ofString()
@@ -356,27 +365,22 @@ static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
         try {
 
-            if (method.equals("GET")) {
-                url = url + "?offset=" + offset + "&limit=" + length;
-            }
+
 
             NETWORK_RESPONSE networkResponse;
 
             if (response.statusCode() != 200) {
                 isOnline = false;
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText(response.statusCode() + "");
-                alert.setContentText(response.headers().firstValue("Content-Type").get());
-                alert.showAndWait();
-
-                networkResponse = mapper.readValue(response.body(), NETWORK_RESPONSE.class);
-                networkError = networkResponse.getMessage();
-
-                networkError = response.headers().firstValue("Content-Type").get();
+//                Alert alert = new Alert(Alert.AlertType.ERROR);
+//                alert.setTitle("Error");
+//                alert.setHeaderText(response.statusCode() + "");
+//                alert.setContentText(response.headers().firstValue("Content-Type").get());
+//                alert.showAndWait();
+logger.info("Error: " + response.statusCode() + " " + response.headers().toString());
+                //networkError = response.headers().firstValue("Content-Type").get();
                 logger.info("Telegram  " + networkError);
 
-
+return new JSONObject();
             } else {
                 isOnline = true;
                 networkResponse = mapper.readValue(response.body(), NETWORK_RESPONSE.class);
@@ -387,8 +391,9 @@ static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         } catch (Exception e) {
             networkError = e.getMessage();
             out.println(e.getMessage());
+
         }
-        assert response != null;
+       /// assert response != null;
         out.println(response.body());
         return new JSONObject(response.body());
     }
@@ -651,6 +656,11 @@ static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
 
 
         requestBuilder.uri(URI.create(url));
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", "Bearer " + token);
+        requestBuilder.method("GET", HttpRequest.BodyPublishers.noBody());
         client.sendAsync(requestBuilder.build(),
                 HttpResponse.BodyHandlers.ofString()
         ).thenApply(

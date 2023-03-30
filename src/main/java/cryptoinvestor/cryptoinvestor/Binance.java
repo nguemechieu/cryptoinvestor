@@ -21,10 +21,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -151,11 +153,16 @@ public class Binance extends Exchange {
 //
 //
 //    }
+@Override
+public Set<Integer> getSupportedGranularities() {
+    return
+            new HashSet<>(Arrays.asList(
+                    60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24,
+                    3600 * 24 * 7, 3600 * 24 * 30, 3600 * 24 * 30 * 7, 3600 * 24 * 30 * 365
 
-    @Override
-    public Set<Integer> getSupportedGranularities() {
-        return
-                Set.of(1, 5, 15, 30, 60, 120, 180, 360, 720, 1440, 2160, 4320, 8640, 17280, 34560, 60480, 120960, 241920, 483840, 965680, 1921040, 3843200, 7686400, 15728000, 31536000, 62912000, 125920000, 251680000, 503360000, 1048576000);}
+            ));
+
+}
 
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
@@ -180,7 +187,7 @@ public class Binance extends Exchange {
             // burst.
             // We will know if we get rate limited if we get a 429 response code.
             for (int i = 0; !futureResult.isDone(); i++) {
-                String uriStr = "https://api.binance.us/api/v3";
+                String uriStr = "https://api.binance.com/api/v3";
                 uriStr += "trades?symbol=" + tradePair.toString('/') + "/";
 
                 if (i != 0) {
@@ -227,7 +234,7 @@ public class Binance extends Exchange {
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException e) {
+                } catch (TelegramApiException | ParseException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -277,7 +284,7 @@ public class Binance extends Exchange {
         return client.sendAsync(
                         requestBuilder
                                 .uri(URI.create(
-                                        "https://api.binance.us/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame
+                                        "https://api.binance.com/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame
                                 ))
                                 .GET().build(),
                         HttpResponse.BodyHandlers.ofString())
@@ -287,7 +294,7 @@ public class Binance extends Exchange {
                     JsonNode res;
                     try {
                         res = OBJECT_MAPPER.readTree(response);
-                        logger.info("BinanceUs response: ", response);
+                        logger.info("Binance response: ", response);
                     } catch (JsonProcessingException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -574,6 +581,11 @@ if (response.statusCode() == 200) {
                 ""
                 ) {
             @Override
+            public int compareTo(@NotNull Currency o) {
+                return 0;
+            }
+
+            @Override
             public int compareTo(java.util.@NotNull Currency o) {
                 return 0;
             }
@@ -601,7 +613,7 @@ if (response.statusCode() == 200) {
     }
 
     @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+    public List<TradePair> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException {
         ArrayList<TradePair> tradePairs = new ArrayList<>();
 
        for (Currency currency : getAvailableSymbols()) {
@@ -610,6 +622,16 @@ if (response.statusCode() == 200) {
        }
         return
                 tradePairs;
+    }
+
+    @Override
+    public void connect(String text, String text1, String userIdText) {
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
     }
 
     @Override
@@ -751,7 +773,7 @@ if (response.statusCode() == 200) {
 
             int startTime = Math.max(endTime.get() - (numCandles * secondsPerCandle), EARLIEST_DATA);
 
-            String uriStr = "https://api.binance.us/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame;
+            String uriStr = "https://api.binance.com/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame;
 
             if (startTime == EARLIEST_DATA) {
                 // signal more data is false

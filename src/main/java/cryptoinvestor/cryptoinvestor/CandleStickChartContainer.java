@@ -51,7 +51,6 @@ public class CandleStickChartContainer extends Region {
         secondsPerCandle = new SimpleIntegerProperty(3600);
         getStyleClass().add("candle-chart-container");
         setPrefSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        CandleDataSupplier candleDataSupplier = exchange.getCandleDataSupplier(secondsPerCandle.get(), tradePair);
 
 
         toolbar = new CandleStickChartToolbar(widthProperty(), heightProperty(), exchange.getSupportedGranularities());

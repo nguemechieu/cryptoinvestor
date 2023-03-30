@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +58,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
   public Trade(ENUM_ORDER_TYPE orderType, Long id, @NotNull TradePair instrument,  Side side, double price, Long openTime, int initialUnits, double initialMargin
                , String state, double currentUnits, double realizedPL, double financing, double dividendAdjustment,
-               String clientExtensions, double unrealizedPL, double marginUsed) {
+               String clientExtensions, double unrealizedPL, double marginUsed) throws IOException, ParseException, URISyntaxException, InterruptedException {
       order_type = orderType;
       Trade.id = id;
       this.instrument = instrument.getBaseCurrency() + "_" + instrument.getCounterCurrency();
@@ -115,7 +117,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
     private static Money fee;
 
     public Trade(TradePair tradePair, double price, Money amount, Side transactionType,
-                 long localTradeId, Instant timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException {
+                 long localTradeId, Instant timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException {
 
         Trade.tradePair = tradePair;
         Trade.price = price;
@@ -130,20 +132,20 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
     }
 
     public Trade(TradePair tradePair, @NotNull Money price, Money amount, Side transactionType,
-                 long localTradeId, Instant timestamp) throws TelegramApiException, IOException, InterruptedException {
+                 long localTradeId, Instant timestamp) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException {
         this(tradePair, price.toDouble(), amount, transactionType, localTradeId,
                 timestamp, DefaultMoney.NULL_MONEY);
     }
 
     public Trade(TradePair tradePair, @NotNull Money price, Money amount, Side transactionType,
-                 long localTradeId, long timestamp) throws TelegramApiException, IOException, InterruptedException {
+                 long localTradeId, long timestamp) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException {
         this(tradePair, price.toDouble(), amount, transactionType, localTradeId, Instant.ofEpochSecond(timestamp),
                 DefaultMoney.NULL_MONEY);
 
     }
 
     public Trade(TradePair tradePair, @NotNull Money price, Money amount, Side transactionType,
-                 long localTradeId, long timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException {
+                 long localTradeId, long timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException {
         this(tradePair, price.toDouble(), amount, transactionType, localTradeId, Instant.ofEpochSecond(timestamp), fee);
         Trade.fee = fee;
 
@@ -151,7 +153,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
     }
 
-    public Trade() {
+    public Trade() throws IOException, ParseException, URISyntaxException, InterruptedException {
 
     }
 

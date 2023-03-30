@@ -1,12 +1,13 @@
 package cryptoinvestor.cryptoinvestor;
 
-import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
@@ -121,14 +122,18 @@ public abstract class Exchange {
     public abstract void  createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException;
 
     public abstract void closeAllOrders() throws IOException, InterruptedException;
-    public abstract  List<TradePair> getTradePair() throws IOException, InterruptedException;
 
     public abstract void cancelOrder(long orderID) throws IOException, InterruptedException;
     public abstract void cancelAllOrders();
     public abstract void cancelAllOpenOrders();
 
 
-    public abstract ListView<Order> getOrderView() throws IOException, InterruptedException;
+    public abstract ListView<Order> getOrderView() throws IOException, InterruptedException, ParseException, URISyntaxException;
     public abstract List<Objects> getOrderBook();
 
+    public abstract List<TradePair> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException;
+
+    public abstract void connect(String text, String text1, String userIdText) throws IOException, InterruptedException;
+
+    public abstract boolean isConnected();
 }

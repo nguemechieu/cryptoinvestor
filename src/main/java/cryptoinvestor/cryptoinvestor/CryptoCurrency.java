@@ -32,4 +32,9 @@ public class CryptoCurrency extends Currency {
     public int compareTo(java.util.@NotNull Currency o) {
         return 0;
     }
+
+    @Override
+    public int compareTo(@NotNull Currency o) {
+        return 0;
+    }
 }

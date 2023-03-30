@@ -35,6 +35,10 @@ public abstract class FiatCurrency extends Currency {
         this.numericCode = numericCode;
     }
 
+    public FiatCurrency(CurrencyType currencyType, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {
+        super(currencyType, fullDisplayName, shortDisplayName, code, fractionalDigits, symbol, image);
+    }
+
     @Override
     public String toString() {
         return

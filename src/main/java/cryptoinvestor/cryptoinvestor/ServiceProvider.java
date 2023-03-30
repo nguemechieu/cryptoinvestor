@@ -2,12 +2,14 @@ package cryptoinvestor.cryptoinvestor;
 
 import javafx.scene.Node;
 import javafx.scene.Parent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ServiceLoader;
 
-import static cryptoinvestor.cryptoinvestor.TradePair.logger;
 
 public abstract class ServiceProvider extends Parent {
+    private static final Logger logger = LoggerFactory.getLogger(ServiceProvider.class);
     public ServiceProvider() {
         super();
         logger.info("ServiceProvider created");

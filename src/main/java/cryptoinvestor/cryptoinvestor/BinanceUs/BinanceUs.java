@@ -26,10 +26,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -54,8 +56,10 @@ public class BinanceUs extends Exchange {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-    private final String api_key;
+    private String api_key;
     private final HttpClient client=HttpClient.newHttpClient();
+    private boolean isConnected;
+
     public BinanceUs(  String apiKey, String apiSecret, String accountId) {
         super( null);
 
@@ -170,7 +174,10 @@ public class BinanceUs extends Exchange {
     @Override
     public Set<Integer> getSupportedGranularities() {
         return
-                new HashSet<>(Arrays.asList(1, 5, 15, 30, 60, 120, 180, 360, 720, 1440, 2160, 4320, 8640, 17280, 34560, 60480, 120960, 241920, 483840, 965840, 1926080, 3846160, 7776160, 15552160, 31744320, 63488640, 126197680, 252654432));
+                new HashSet<>(Arrays.asList(
+                        60, 60 * 5, 60 * 30, 3600, 3600 * 4, 3600 * 6,3600*24,
+                        3600 * 24 * 7, 3600 * 24 * 7*4, 3600 * 24 * 30 * 365
+                ));
 
     }
 
@@ -234,10 +241,14 @@ public class BinanceUs extends Exchange {
                                 futureResult.complete(tradesBeforeStopTime);
                                 break;
                             } else {
-                                tradesBeforeStopTime.add(new Trade(tradePair,
-                                        DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getCounterCurrency())),
-                                        DefaultMoney.ofCrypto(trade.get("size").asText(), String.valueOf(tradePair.getBaseCurrency())),
-                                        Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
+                                try {
+                                    tradesBeforeStopTime.add(new Trade(tradePair,
+                                            DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getCounterCurrency())),
+                                            DefaultMoney.ofCrypto(trade.get("size").asText(), String.valueOf(tradePair.getBaseCurrency())),
+                                            Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
+                                } catch (ParseException | URISyntaxException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                         }
                     }
@@ -2781,15 +2792,25 @@ if (jsonObject.has("symbols")) {
         currencies.add(new Currency(CurrencyType.CRYPTO, symbol, "", symbol,
                 Integer.parseInt(baseAssetPrecision), symbol, "") {
             @Override
+            public int compareTo(@NotNull Currency o) {
+                return 0;
+            }
+
+            @Override
             public int compareTo(java.util.@NotNull Currency o) {
                 return 0;
             }
-        });
+
+
+        }
+
+
+
+        );
+
     }
 
-}
-
-
+}else {logger.error("No symbols found");}
 
         return currencies;
     }
@@ -2805,7 +2826,7 @@ if (jsonObject.has("symbols")) {
     }
 
     @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+    public List<TradePair> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException {
         ArrayList<TradePair> tradePairs = new ArrayList<>();
 
         for (Currency currency : getAvailableSymbols()) {
@@ -2817,12 +2838,48 @@ if (jsonObject.has("symbols")) {
     }
 
     @Override
+    public void connect(String text, String text1, String userIdText) throws IOException, InterruptedException {
+requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("X-MBX-APIKEY", text);
+        requestBuilder.header("X-MBX-APISECRET", text1);
+        api_key=text;
+
+        HttpResponse<String> response = client.send(
+                requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        );
+        JSONObject json = new JSONObject(response);
+//        System.out.println(json);
+//        System.out.println(json.get("status"));
+//        System.out.println(json.get("message"));
+//        System.out.println(json.get("serverTime"));
+//        System.out.println(json.get("time"));
+        if (json.get("status").equals("ok")) {
+            System.out.println(json.get("serverTime"));
+            System.out.println(json.get("time"));
+            isConnected=true;
+        }else {
+            isConnected=false;
+        }
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return isConnected;
+
+    }
+
+    @Override
     public void cancelOrder(long orderID) throws IOException, InterruptedException {
 
     }
 
     @Override
     public void cancelAllOrders() {
+
 
     }
 

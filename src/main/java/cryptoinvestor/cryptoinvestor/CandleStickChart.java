@@ -81,7 +81,7 @@ public class CandleStickChart extends Region {
     private final CandleDataPager candleDataPager;
     private final CandleStickChartOptions chartOptions;
 
-    private final ConcurrentHashMap<CandleData,CandleData> onCandleDataUpdate=new ConcurrentHashMap<>();
+
 
 
 
@@ -122,7 +122,7 @@ public class CandleStickChart extends Region {
     private volatile boolean paging;
     private StackPane chartStackPane;
     boolean selectedAutoTrading;
-    private TelegramClient telegram;
+    private final TelegramClient telegram;
 
     /**
      * Creates a new {@code CandleStickChart}. This constructor is package-private because it should only
@@ -141,7 +141,7 @@ public class CandleStickChart extends Region {
      */
     CandleStickChart(Exchange exchange, CandleDataSupplier candleDataSupplier, TradePair tradePair,
                      boolean liveSyncing, int secondsPerCandle, ObservableNumberValue containerWidth,
-                     ObservableNumberValue containerHeight, String token) {
+                     ObservableNumberValue containerHeight, String token) throws TelegramApiException, IOException, InterruptedException {
         Objects.requireNonNull(exchange);
         Objects.requireNonNull(candleDataSupplier);
         Objects.requireNonNull(tradePair);
@@ -204,7 +204,7 @@ public class CandleStickChart extends Region {
                 containerHeight);
         containerWidth.addListener(sizeListener);
         containerHeight.addListener(sizeListener);
-
+        telegram=new TelegramClient(token);
         if (liveSyncing) {
             inProgressCandle = new InProgressCandle();
             updateInProgressCandleTask = new UpdateInProgressCandleTask();
@@ -235,7 +235,7 @@ public class CandleStickChart extends Region {
                         }
                     }
 
-                 //   updateInProgressCandleExecutor.scheduleAtFixedRate(updateInProgressCandleTask, 5, 5, SECONDS);
+                   updateInProgressCandleExecutor.scheduleAtFixedRate(updateInProgressCandleTask, 5, 5, SECONDS);
                 }
             });
         } else {
@@ -245,13 +245,10 @@ public class CandleStickChart extends Region {
         }
 
         assert inProgressCandle != null;
-        onCandleDataUpdate.put(inProgressCandle.snapshot(), inProgressCandle.snapshot());
-
         candlePageConsumer = new CandlePageConsumer();
         mouseDraggedHandler = new MouseDraggedHandler();
         scrollHandler = new ScrollEventHandler();
         keyHandler = new KeyEventHandler();
-
         // When the application starts up and tries to initialize a candle stick chart the size can
         // fluctuate. So we wait to get the "final" size before laying out the chart. After we get
         // the size, we remove this listener from the gotFirstSize property.
@@ -263,27 +260,15 @@ public class CandleStickChart extends Region {
                 chartWidth = (Math.floor(containerWidth.getValue().doubleValue() / candleWidth) * candleWidth) - 60 +
                         (float) (candleWidth / 2);
                 chartHeight = containerHeight.getValue().doubleValue();
-                canvas = new Canvas(chartWidth - 120, chartHeight - 120);
-                xAxis.setTranslateY(
-                        (containerHeight.getValue().doubleValue() - chartHeight) / 2
+                canvas = new Canvas(chartWidth - 110, chartHeight - 120);
+                xAxis.setTranslateY((containerHeight.getValue().doubleValue() - chartHeight) / 2
                 );
-
-
                 VBox.setVgrow(loadingIndicatorContainer, Priority.ALWAYS);
                 VBox.setVgrow(canvas, Priority.ALWAYS);
                 VBox.setVgrow(xAxis, Priority.ALWAYS);
                 VBox.setVgrow(yAxis, Priority.ALWAYS);
                 VBox.setVgrow(extraAxis, Priority.ALWAYS);
                 VBox.setVgrow(extraAxisExtension, Priority.ALWAYS);
-
-
-                try {
-                    telegram= new TelegramClient(token);
-                } catch (IOException | TelegramApiException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-
-
                 chartStackPane = new StackPane(canvas, loadingIndicatorContainer);
                 chartStackPane.setAlignment(Pos.CENTER);
                 chartStackPane.setPadding(new Insets(20, 20, 20, 10));
@@ -294,24 +279,8 @@ public class CandleStickChart extends Region {
                 Text status0 = new Text();
                 status0.setTextAlignment(TextAlignment.CENTER);
                 status0.setFill(Color.RED);
-                String messages1=
-                        String.format("Status: %s\n", "Offline");
 
-                status0.setText(
-                        messages1
-                );
 
-                status0.setTranslateX(1350);
-                status0.setTranslateY(32);
-                status0.setFill(Color.RED);
-                if (telegram.isOnline()){
-                    status0.setFill(Color.GREEN);
-                    messages1= String.format("Status: %s\n", "Online");
-
-                }
-                status0.setText(
-                        messages1
-                );
 
                 chartStackPane.setTranslateX(64); // Only necessary when wrapped in StackPane...why?
                 getChildren().addAll(chartStackPane, status0);
@@ -589,8 +558,8 @@ public class CandleStickChart extends Region {
 
             Text tradePairInfos = new Text(tradePair.getBaseCurrency().code + " / " + tradePair.getCounterCurrency().code + "  "
 
-                    + tradePair.getBaseCurrency().fullDisplayName
-            );
+                    + tradePair.getBaseCurrency().getFullDisplayName() + " / " + tradePair.getCounterCurrency().getFullDisplayName());
+
             tradePairInfos.setFont(Font.font(32));
             tradePairInfos.setFill(Color.rgb(189, 189, 189,0.6));
             tradePairInfos.setTextAlignment(TextAlignment.CENTER);
@@ -602,14 +571,12 @@ public class CandleStickChart extends Region {
             tradePairInfos.setTranslateX(500);
             tradePairInfos.setTranslateY(200);
 
-            if (telegram.isOnline()){telegram.run();}
 
 
             infoLabel.setTextAlignment(TextAlignment.CENTER);
 
-            ConcurrentHashMap<CryptoMarketData, CryptoMarketData> dat = CurrencyDataProvider.getMarketDataConcurrentHashMap();
 
-
+telegram.run();
             infoLabel.setText(
                     "Timeframe  " + secondsPerCandle + "  seconds. "  +  "   Mode: " + selectedAutoTrading
                             + "   BOT : " +   telegram.getUsername()+
@@ -634,25 +601,36 @@ public class CandleStickChart extends Region {
                             "   Low :  " +
                             inProgressCandle.getLowPriceSoFar() +
                             "   Volume :  " +
-                            inProgressCandle.getVolumeSoFar() +
-
-                            "\n"+"   Total Volume :  " +
-
-
-                            0+
-                            "   \nVolume24h :  " +
-                            0+
-                            "   High24h :  " +
-                            0+
-                            "   Low24h :  " +0
+                            inProgressCandle.getVolumeSoFar()
 
             );
 
+telegram.sendMessage(
+        "Timeframe  " + secondsPerCandle + "  seconds. "  +  "   Mode: " + selectedAutoTrading
+                + "   BOT : " +   telegram.getUsername()+
+
+                "    Current Price : " +inProgressCandle.getOpenPrice()+
+                "    Previous Price : " +
+                inProgressCandle.getLastPrice()
+
+                + "   Open : " +
+                inProgressCandle.getOpenPrice()+
+                "   Close : " +
+
+                                        inProgressCandle.getClosePriceSoFar() +
 
 
+                                "   Change %: " +
+                                ((inProgressCandle.getClosePriceSoFar() - inProgressCandle.getOpenPrice()) / inProgressCandle.getOpenPrice()) * 100 +
+                                "%"  +
 
-
-
+                                "   High :  " +
+                                inProgressCandle.getHighPriceSoFar() +
+                                "   Low :  " +
+                inProgressCandle.getLowPriceSoFar() +
+                "   Volume :  " +
+                inProgressCandle.getVolumeSoFar()
+);
             infoLabel.setTextAlignment(TextAlignment.CENTER);
             infoLabel.setTranslateX(80);
             infoLabel.setTranslateY(40);
@@ -695,14 +673,14 @@ public class CandleStickChart extends Region {
         double lowestCandleValue = Double.MAX_VALUE;
         int candleIndexOfHighest = -1;
         int candleIndexOfLowest = -1;
-        int volumeBarMaxHeight = 150;
+        int volumeBarMaxHeight = 100;
         double volumeScale = volumeBarMaxHeight / extraAxis.getUpperBound();
 
         double halfCandleWidth = candleWidth * 0.5;
         double lastClose = -1;
         for (CandleData candleDatum : candlesToDraw.descendingMap().values()) {
             // and use that here instead of iterating over the candle data again.
-            if (candleIndex < currZoomLevel.getNumVisibleCandles() + 2) {
+            if (candleIndex < currZoomLevel.getNumVisibleCandles() + 3) {
                 // We don't want to draw the high/low markers off-screen, so we guard it with the above condition.
                 if (candleDatum.getHighPrice() > highestCandleValue) {
                     highestCandleValue = candleDatum.getHighPrice();
@@ -776,7 +754,7 @@ public class CandleStickChart extends Region {
                 graphicsContext.setStroke(candleBorderColor);
                 graphicsContext.setLineWidth(2);
                 graphicsContext.stroke();
-                graphicsContext.beginPath(); // TODO(mike): Delete this line?
+                graphicsContext.beginPath(); // : Delete this line?
 
                 // Draw high line (skip draw if the open (or close) is the same as the high.
                 boolean drawHighLine = true;
@@ -1090,9 +1068,11 @@ public class CandleStickChart extends Region {
         xAxis.setTickLabelFormatter(currZoomLevel.getXAxisFormatter());
         putSlidingWindowExtrema(currZoomLevel.getExtremaForCandleRangeMap(), candleData,
                 (int) Math.round(currZoomLevel.getNumVisibleCandles()));
-        putExtremaForRemainingElements(currZoomLevel.getExtremaForCandleRangeMap(), candleData.subList(
+        putExtremaForRemainingElements(currZoomLevel.getExtremaForCandleRangeMap(),
+                candleData.subList(
                 candleData.size() - (int) Math.floor(currZoomLevel.getNumVisibleCandles() - (liveSyncing ? 1 : 0)),
-                candleData.size()));
+                candleData.size())
+        );
         setYAndExtraAxisBounds();
         data.putAll(candleData.stream().collect(Collectors.toMap(CandleData::getOpenTime, Function.identity())));
         drawChartContents();
@@ -1180,7 +1160,6 @@ public class CandleStickChart extends Region {
             ready = true;
             progressIndicator.setVisible(true);
 
-            TelegramClient.connect();
             logger.info(
                     "Successfully connected to Telegram API. " +
                             "Starting live syncing mode. " +

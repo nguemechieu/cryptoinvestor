@@ -14,14 +14,13 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.text.ParseException;
 import java.time.Instant;
 
 
 public class TradeView extends Region  {
     private static final Logger logger = LoggerFactory.getLogger(TradeView.class);
-
-
-    public TradeView(@NotNull Exchange exchange, String telegramToken) throws IOException, InterruptedException {
+    public TradeView(@NotNull Exchange exchange, String telegramToken){
 
         super();
         TabPane tradingTabPane = new TabPane();
@@ -39,38 +38,38 @@ public class TradeView extends Region  {
 //
 //                "https://discordapp.com/api/oauth2/authorize?client_id=80000000000000000&permissions=8&scope=bot",
 //        );
-
-
         //  Discord discord = new Discord("MTA4NzIxMDExOTA5NzQ5OTc1MQ.GTPtoi.IoKi82j9vnTZAe1VG8LHO60aFUGJzgfYG5blYo");
+
 
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
 
         AnchorPane anchorPane = new AnchorPane();
-        logger.debug(
-                "Creating TradeView"
-        );
-
-
-        ChoiceBox<String> symbolChoicebox =
-                new ChoiceBox<>();
-
+        logger.debug("Creating TradeView");
+        ChoiceBox<String> symbolChoicebox = new ChoiceBox<>();
         ChoiceBox<String> counterChoicebox = new ChoiceBox<>();
-        ChoiceBox<String> symbolChoiceboxOanda = new ChoiceBox<>();
-        ChoiceBox<String> counterChoiceboxOanda= new ChoiceBox<>();
+        try {
+
+           if (exchange instanceof Oanda) {
+               symbolChoicebox.getItems().addAll(exchange.getAvailableSymbols().stream().map(Currency::getCode).toList());
+           }else {
+               symbolChoicebox.getItems().addAll(CurrencyDataProvider.getInstance().stream().map(Currency::getCode).toList());
 
 
+           }
 
-        double price = 0;
-        double quantity =0.3;
+
+            logger.debug("SYMBOLS--> " + symbolChoicebox.getItems().toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+        final double[] price = new double[1];
+        double quantity = 0.3;
         long orderID = Math.round(Instant.now().getEpochSecond() * 1000000);
         double stopPrice = 100;
         double takeProfitPrice = 100;
-
-        counterChoicebox.setValue("USD");
-
-
-
 
 
         Button removeBtn = new Button("Remove");
@@ -81,43 +80,46 @@ public class TradeView extends Region  {
         counterChoicebox.getItems().addAll("USD", "BTC");
 
         Button AddBtn = new Button("LOAD NEW CHART");
+
+        String data1 = "EUR_USD";
+symbolChoicebox.setValue(data1);
+
+        final String[][] dat = new String[1][1];
+
+
+
+
         AddBtn.setOnAction(
                 event -> {
-                    DraggableTab tradeTab2 = new DraggableTab(symbolChoicebox.getValue()+ " / " + counterChoicebox.getValue(), "");
+                    if (exchange instanceof Oanda) {
+                        price[0] = 0.3;
+                        dat[0] =symbolChoicebox.getValue().split("_");
+
+                    } else {
+                        dat[0] = "EUR_USD".split("_");
+                        price[0] = 0;
+                        dat[0][0] = symbolChoicebox.getValue();
+                        dat[0][1] = counterChoicebox.getValue();
+
+                    }
+                    DraggableTab tradeTab2 = new DraggableTab(dat[0][0] + " / " + dat[0][1], "");
                     CandleStickChartContainer container2;
                     try {
-
-                        String data1;
-                        String data2;
-                        data1 = symbolChoicebox.getValue();
-
-
-                        String[] dat = data1.split("_");
-                        if (exchange instanceof Oanda) {
-                            data1 = dat[0];
-
-                            data2 = dat[1];
-                        } else {
-                            data1 = symbolChoicebox.getValue();
-                            data2 = counterChoicebox.getValue();
-                        }
-                        TradePair tradePair3 = new TradePair(data1,data2);
-                        container2 = new CandleStickChartContainer(exchange,  tradePair3,telegramToken,true
+                            TradePair tradePair3 = new TradePair(dat[0][0], dat[0][1]);
+                        container2 = new CandleStickChartContainer(exchange, tradePair3, telegramToken, true
                         );
 
-                        tradeTab2.setContent(
-                                container2
-                        );
-                        tradingTabPane.getTabs().add(tradeTab2);tradingTabPane.getSelectionModel().select(tradeTab2);
-
+                        tradeTab2.setContent(container2);
+                        tradingTabPane.getTabs().add(tradeTab2);
+                        tradingTabPane.getSelectionModel().select(tradeTab2);
                     } catch (URISyntaxException | IOException e) {
                         throw new RuntimeException(e);
                     }
                 });
 
 
-
         Button tradingBtn = new Button("TRADING BUTTONS");
+        String[] finalDat = dat[0];
         tradingBtn.setOnAction(
                 event -> {
 
@@ -139,9 +141,9 @@ public class TradeView extends Region  {
 
                                 try {
                                     exchange.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()),
+                                            new TradePair(finalDat[0], finalDat[1]),
                                             POSITION_FILL.DEFAULT_FILL,
-                                            price,
+                                            price[0],
                                             ENUM_ORDER_TYPE.MARKET
                                             , cryptoinvestor.cryptoinvestor.Side.BUY,
                                             quantity,
@@ -168,7 +170,7 @@ public class TradeView extends Region  {
                                                     counterChoicebox.getValue()
                                             ),
                                             POSITION_FILL.DEFAULT_FILL,
-                                            price,
+                                            price[0],
                                             ENUM_ORDER_TYPE.MARKET
                                             , cryptoinvestor.cryptoinvestor.Side.SELL,
                                             quantity,
@@ -177,7 +179,7 @@ public class TradeView extends Region  {
 
 
                                     );
-                                } catch (IOException | InterruptedException e) {
+                                } catch (IOException | InterruptedException  e) {
                                     throw new RuntimeException(e);
                                 }
                             }
@@ -203,7 +205,7 @@ public class TradeView extends Region  {
                         try {
                             exchange.createOrder(
                                     new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()),
-                                    POSITION_FILL.DEFAULT_FILL, price,
+                                    POSITION_FILL.DEFAULT_FILL, price[0],
                                     ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                     cryptoinvestor.cryptoinvestor.Side.SELL,
                                     quantity,
@@ -221,7 +223,7 @@ public class TradeView extends Region  {
                         try {
                             exchange.createOrder(
                                     new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()),
-                                    POSITION_FILL.DEFAULT_FILL, price,
+                                    POSITION_FILL.DEFAULT_FILL, price[0],
                                     ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                     cryptoinvestor.cryptoinvestor.Side.BUY,
                                     quantity,
@@ -256,13 +258,13 @@ public class TradeView extends Region  {
                                 try {
                                     exchange.createOrder(
                                             new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()),
-                                            POSITION_FILL.DEFAULT_FILL, price,
+                                            POSITION_FILL.DEFAULT_FILL, price[0],
                                             ENUM_ORDER_TYPE.STOP_LOSS,
                                             cryptoinvestor.cryptoinvestor.Side.SELL,
                                             quantity,
                                             stopPrice,
                                             takeProfitPrice);
-                                } catch (IOException | InterruptedException e) {
+                                } catch (IOException | InterruptedException  e) {
                                     throw new RuntimeException(e);
                                 }
                                 sellStopBtn.setOnAction(
@@ -270,7 +272,7 @@ public class TradeView extends Region  {
                                             try {
                                                 exchange.createOrder(
                                                         new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()),
-                                                        POSITION_FILL.DEFAULT_FILL, price,
+                                                        POSITION_FILL.DEFAULT_FILL, price[0],
                                                         ENUM_ORDER_TYPE.STOP_LOSS,
                                                         cryptoinvestor.cryptoinvestor.Side.SELL,
                                                         quantity,
@@ -301,111 +303,106 @@ public class TradeView extends Region  {
                                         });
 
 
-
                             });
 
                     stackPane.getChildren().add(gridPane);
 
                     Stage stage = new Stage();
-                    stage.setScene(new Scene(stackPane));
+                    stackPane.setId("stackPane");
+
+                    stackPane.setScaleShape(true);
+                    stackPane.setScaleX(0.8);
+
+                    stage.setTitle("Cryptoinvestor");
+                    stage.setScene(new Scene(stackPane, 600, 400));
+                    stage.setAlwaysOnTop(true);
                     stage.show();
                 });
 
-                    Button orderViewBtn = new Button("Order View");
-        TradePair tradePair = new TradePair("BTC", "USD");
-                    orderViewBtn.setOnAction(
-                            event3 -> {
+        Button orderViewBtn = new Button("Order View");
 
-                                TreeTableView<Trade> orders = new TreeTableView<>();
-
-
-                                orders.setEditable(true);
-                                  Scene scene = new Scene(orders, 1200, 300);
-                                Stage stage = new Stage();
-                                stage.setScene(scene);
-                                stage.show();
-                            });
-                    Button walletBtn = new Button(" WALLET  -- ");
-                    walletBtn.setOnAction(
-                            event7 -> {
-                                Stage stage = new Stage();
-                                stage.setScene(new Scene(new Wallet(exchange)));
-                                stage.show();
-                            });
+        orderViewBtn.setOnAction(
+                event3 -> {
+                    TreeTableView<Trade> orders = new TreeTableView<>();
+                    orders.setEditable(true);
+                    Scene scene = new Scene(orders, 1200, 300);
+                    Stage stage = new Stage();
+                    stage.setScene(scene);
+                    stage.show();
+                });
+        Button walletBtn = new Button(" WALLET  -- ");
+        walletBtn.setOnAction(
+                event7 -> {
+                    Stage stage = new Stage();
+                    stage.setScene(new Scene(new Wallet(exchange)));
+                    stage.show();
+                });
 
 
-                    Button orderHistoryBtn =
-                            new Button("ORDER HISTORY -- ");
-                    orderHistoryBtn.setOnAction(
-                            event9 -> {
-                                Stage stage = new Stage();
-                                try {
-                                    stage.setScene(new Scene(new OrderHistory(exchange)));
-                                } catch (IOException | InterruptedException e) {
-                                    throw new RuntimeException(e);
-                                }
-                                stage.show();
-                            });
-
-
-
-                    anchorPane.setPrefSize(1230, 780);
-                    tabPane.setPrefSize(1530, 630);
-                    tabPane.setTranslateY(25);
-                    tabPane.setSide(Side.BOTTOM);
-                    tabPane.getTabs().add(new Tab("Order View"));
-                    tabPane.getTabs().add(new Tab(exchange.getName() + " -->  Wallet"));
-                    tabPane.getTabs().add(new Tab("Stellar Network  Trading (XLM)"));
-                    tabPane.getTabs().get(2).setContent(new VBox(new Label("Stellar lumen's Ecosystem"), new VBox()));
-                    tabPane.getTabs().add(new Tab("Trading Window"));
-             tabPane.getSelectionModel().select(3);
-                    for (int i = 0; i < tabPane.getTabs().size(); i++) {
-                        tabPane.getTabs().get(i).setContent(tradingTabPane);
+        Button orderHistoryBtn =
+                new Button("ORDER HISTORY -- ");
+        orderHistoryBtn.setOnAction(
+                event9 -> {
+                    Stage stage = new Stage();
+                    try {
+                        stage.setScene(new Scene(new OrderHistory(exchange)));
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
                     }
-                    for (int i = 0; i < tradingTabPane.getTabs().size(); i++) {
-                        if (exchange instanceof Oanda oanda) {
-                            tradePair = new TradePair("EUR", "USD");
-                            try {
-                                tradingTabPane.getTabs().get(i).setContent(
-                                        new CandleStickChartContainer(oanda, tradePair, telegramToken, true)
-                                );
-                            } catch (URISyntaxException | IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        } else {
-                            try {
-                                tradingTabPane.getTabs().get(i).setContent(
-                                        new CandleStickChartContainer(exchange, tradePair, telegramToken, true)
-                                );
-                            } catch (URISyntaxException | IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        }
-                    }
+                    stage.show();
+                });
 
 
+        anchorPane.setPrefSize(1230, 780);
+        tabPane.setPrefSize(1530, 630);
+        tabPane.setTranslateY(25);
+        tabPane.setSide(Side.BOTTOM);
+        tabPane.getTabs().add(new Tab("ORDERS VIEW"));
+        tabPane.getTabs().add(new Tab(exchange.getName() + " -->  Wallet"));
+        tabPane.getTabs().add(new Tab("Stellar Network  Trading (XLM)"));
+
+        tabPane.getTabs().get(2).setContent(new VBox(new Label("STELLAR LUMEN 'S "), new VBox(
 
 
-            symbolChoicebox.setValue("SELECT A COUNTER CURRENCY");
+        )));
+        tabPane.getTabs().add(new Tab("TRADING VIEW"));
+        tabPane.getSelectionModel().select(3);
+        for (int i = 0; i < tabPane.getTabs().size(); i++) {
+            tabPane.getTabs().get(i).setContent(tradingTabPane);
+        }
+        for (int i = 0; i < tradingTabPane.getTabs().size(); i++) {
+            if (exchange instanceof Oanda oanda) {
+
+                try {
+                    tradingTabPane.getTabs().get(i).setContent(
+                            new CandleStickChartContainer(oanda, new TradePair(dat[0][0], dat[0][1]), telegramToken, true)
+                    );
+                } catch (URISyntaxException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                try {
+                    tradingTabPane.getTabs().get(i).setContent(new CandleStickChartContainer(exchange, new TradePair(
+                            dat[0][0], dat[0][1]
+                    ), telegramToken, true));
+                } catch (URISyntaxException | IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
 
 
-          if (exchange instanceof Oanda) {
-
-               symbolChoicebox.getItems().addAll(exchange.getAvailableSymbols().stream().map(Currency::getCode).toList());
-     }//
-     else
-         {
-            symbolChoicebox.getItems().addAll(CurrencyDataProvider.getInstance().stream().map(Currency::getCode).toList());
-           }
-
-        HBox hBox = new HBox(removeBtn, AddBtn, tradingBtn, new HBox(symbolChoicebox, counterChoicebox),orderHistoryBtn,orderViewBtn);
+        Button connexionBtn = new Button("CONNECTION");
+        connexionBtn.setOnAction(
+                event8 -> new ConnectionScene(exchange));
+        HBox hBox = new HBox(removeBtn, AddBtn, tradingBtn, new HBox(symbolChoicebox, counterChoicebox), orderHistoryBtn, orderViewBtn, connexionBtn, walletBtn);
 
         setPadding(new Insets(10, 10, 10, 10));
 
         hBox.setPrefSize(1500, 20);
-                    anchorPane.getChildren().addAll(hBox, tabPane);
-                    tabPane.getSelectionModel().select(tabPane.getTabs().size() - 1);
-                    getChildren().add(anchorPane);
+        anchorPane.getChildren().addAll(hBox, tabPane);
+        tabPane.getSelectionModel().select(tabPane.getTabs().size() - 1);
+        getChildren().add(anchorPane);
 
 
-                }}
+    }}

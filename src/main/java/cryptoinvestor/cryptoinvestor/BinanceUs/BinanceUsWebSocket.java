@@ -18,8 +18,10 @@ import javax.websocket.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.Set;
@@ -102,7 +104,8 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
                                         tradePair.getBaseCurrency()),
                                 side, messageJson.at("trade_id").asLong(),
                                 Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
-                    } catch (TelegramApiException | IOException | InterruptedException e) {
+                    } catch (TelegramApiException | IOException | InterruptedException | ParseException |
+                             URISyntaxException e) {
                         throw new RuntimeException(e);
                     }
                     liveTradeConsumers.get(tradePair).acceptTrades(Collections.singletonList(newTrade));
