@@ -9,8 +9,5 @@
         <module name="cryptoinvestor" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="cryptoinvestor" target="20" />
-    </bytecodeTargetLevel>
   </component>
 </project>
