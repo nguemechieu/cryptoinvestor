@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d1c81200-6c74-4a9a-a0c9-29990434128d" name="Changes" comment="run well">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="d1c81200-6c74-4a9a-a0c9-29990434128d" name="Changes" comment="Run well">
+      <change afterPath="$PROJECT_DIR$/cryptoinvestor-master/src/main/java/cryptoinvestor/cryptoinvestor/ConnectionScene.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -99,8 +100,8 @@
 }</component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
-      <recent name="cryptoinvestor.cryptoinvestor.Coinbase" />
       <recent name="cryptoinvestor.cryptoinvestor" />
+      <recent name="cryptoinvestor.cryptoinvestor.Coinbase" />
       <recent name="cryptoinvestor.cryptoinvestor.oanda" />
       <recent name="tradeexpert.tradeexpert" />
     </key>
@@ -410,7 +411,14 @@
       <option name="project" value="LOCAL" />
       <updated>1679926345216</updated>
     </task>
-    <option name="localTasksCounter" value="19" />
+    <task id="LOCAL-00019" summary="good screen2">
+      <created>1680146029263</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1680146029263</updated>
+    </task>
+    <option name="localTasksCounter" value="20" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
