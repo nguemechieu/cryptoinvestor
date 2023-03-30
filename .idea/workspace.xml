@@ -5,9 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="d1c81200-6c74-4a9a-a0c9-29990434128d" name="Changes" comment="Run well">
-      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/cryptoinvestor-master/src/test/java/cryptoinvestor/cryptoinvestor/CryptoInvestorTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cryptoinvestor-master/src/main/java/cryptoinvestor/cryptoinvestor/ConnectionScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/cryptoinvestor-master/src/main/java/cryptoinvestor/cryptoinvestor/ConnectionScene.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -22,6 +22,7 @@
         <option value="Interface" />
         <option value="Enum" />
         <option value="Class" />
+        <option value="JUnit5 Test Class" />
       </list>
     </option>
   </component>
@@ -68,36 +69,39 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ASKED_ADD_EXTERNAL_FILES&quot;: &quot;true&quot;,
-    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;true&quot;,
-    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;ignore.preview.features.used&quot;: &quot;true&quot;,
-    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;20&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/nguem/OneDrive/Documents/cryptoinvestor/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.47816092&quot;,
-    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
-    &quot;spring.configuration.checksum&quot;: &quot;a819bbbc8cb4895a092ac143b4da1dc6&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
+    "Downloaded.Files.Path.Enabled": "true",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
+    "com.intellij.testIntegration.createTest.CreateTestDialog.includeInheritedMembers": "true",
+    "ignore.preview.features.used": "true",
+    "jdk.selected.JAVA_MODULE": "20",
+    "last_opened_file_path": "C:/Users/nguem/OneDrive/Documents/cryptoinvestor/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.47816092",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "spring.configuration.checksum": "a819bbbc8cb4895a092ac143b4da1dc6",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
       <recent name="cryptoinvestor.cryptoinvestor" />
@@ -113,10 +117,16 @@
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\nguem\source\tradeexpert" />
     </key>
+    <key name="CreateTestDialog.Recents.Supers">
+      <recent name="" />
+    </key>
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="tradeexpert.tradeexpert" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="cryptoinvestor.cryptoinvestor" />
+    </key>
+    <key name="CreateTestDialog.RecentsKey">
       <recent name="cryptoinvestor.cryptoinvestor" />
     </key>
   </component>
@@ -125,7 +135,7 @@
       <command value="mvn test" />
     </option>
   </component>
-  <component name="RunManager" selected="Application.CryptoInvestor">
+  <component name="RunManager" selected="Docker.cryptoinvestor-master/cryptoinvestor.Dockerfile">
     <configuration default="true" type="AZURE_FUNCTION_SUPPORT" factoryName="Run Functions">
       <option name="appName" />
       <option name="appServicePlanName" />
@@ -153,19 +163,6 @@
       <option name="resourceGroup" />
       <option name="stagingFolder" />
       <option name="subscription" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="CoinbaseView" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="cryptoinvestor.cryptoinvestor.CoinbaseView" />
-      <module name="cryptoinvestor" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="cryptoinvestor.cryptoinvestor.JsonToCsv.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -221,25 +218,37 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="TradePairDataProvider" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
-      <option name="MAIN_CLASS_NAME" value="cryptoinvestor.cryptoinvestor.TradePairDataProvider" />
-      <module name="cryptoinvestor" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="cryptoinvestor.cryptoinvestor.JsonToCsv.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="CryptoinvestorServerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="cryptoinvestor-server" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="org.cryptoinvestorserver.cryptoinvestorserver.CryptoinvestorServerApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
+    </configuration>
+    <configuration name="Docker Image" type="docker-deploy" factoryName="docker-image" singleton="false" temporary="true" server-name="Docker">
+      <deployment type="docker-image">
+        <settings>
+          <option name="imageTag" value="cryptoinvestor:latest" />
+          <option name="containerName" value="" />
+        </settings>
+      </deployment>
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="docker-deploy" factoryName="docker-image" temporary="true">
+      <deployment type="docker-image" />
+      <method v="2" />
+    </configuration>
+    <configuration default="true" type="docker-deploy" factoryName="dockerfile" temporary="true">
+      <deployment type="dockerfile" />
+      <method v="2" />
+    </configuration>
+    <configuration name="cryptoinvestor-master/cryptoinvestor.Dockerfile" type="docker-deploy" factoryName="dockerfile" temporary="true" server-name="Docker">
+      <deployment type="dockerfile">
+        <settings>
+          <option name="sourceFilePath" value="cryptoinvestor-master/cryptoinvestor.Dockerfile" />
+        </settings>
+      </deployment>
+      <method v="2" />
     </configuration>
     <configuration name="cryptoinvestor" type="docker-deploy" factoryName="dockerfile" server-name="Docker">
       <deployment type="dockerfile">
@@ -254,20 +263,20 @@
     </configuration>
     <list>
       <item itemvalue="Application.SimpleDocking" />
-      <item itemvalue="Application.CoinbaseView" />
       <item itemvalue="Application.TelegramClient" />
-      <item itemvalue="Application.TradePairDataProvider" />
       <item itemvalue="Application.CryptoInvestor" />
       <item itemvalue="Docker.cryptoinvestor" />
+      <item itemvalue="Docker.Docker Image" />
+      <item itemvalue="Docker.cryptoinvestor-master/cryptoinvestor.Dockerfile" />
       <item itemvalue="Spring Boot.CryptoinvestorServerApplication" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Docker.cryptoinvestor-master/cryptoinvestor.Dockerfile" />
+        <item itemvalue="Docker.Docker Image" />
         <item itemvalue="Application.CryptoInvestor" />
         <item itemvalue="Application.SimpleDocking" />
         <item itemvalue="Application.TelegramClient" />
-        <item itemvalue="Application.CoinbaseView" />
-        <item itemvalue="Application.TradePairDataProvider" />
       </list>
     </recent_temporary>
   </component>
@@ -425,7 +434,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680182912336</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="Run well">
+      <created>1680191150807</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1680191150807</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

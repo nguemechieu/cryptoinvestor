@@ -3,7 +3,7 @@
     Copyright (c) 2017    TechExpert Solutions.Inc.
 
 
-![alt image](C:\Users\nguem\OneDrive\Documents\cryptoinvestor\src\main\resources\photo\FacebookProfile.png)
+![alt image](src/main/resources/photo/400JpgdpiLogo.jpg)
 Description : CryptoInvestor is a professional investment and utilities software.
 
 ## Getting Started with CryptoInvestor
