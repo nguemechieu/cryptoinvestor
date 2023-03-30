@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="d1c81200-6c74-4a9a-a0c9-29990434128d" name="Changes" comment="Run well">
-      <change afterPath="$PROJECT_DIR$/cryptoinvestor-master/src/test/java/cryptoinvestor/cryptoinvestor/CryptoInvestorTest.java" afterDir="false" />
+    <list default="true" id="d1c81200-6c74-4a9a-a0c9-29990434128d" name="Changes" comment="Run wells">
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,6 +71,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "ASKED_ADD_EXTERNAL_FILES": "true",
+    "ASKED_MARK_IGNORED_FILES_AS_EXCLUDED": "true",
     "Downloaded.Files.Path.Enabled": "true",
     "Repository.Attach.Annotations": "false",
     "Repository.Attach.JavaDocs": "false",
@@ -135,7 +135,7 @@
       <command value="mvn test" />
     </option>
   </component>
-  <component name="RunManager" selected="Docker.cryptoinvestor-master/cryptoinvestor.Dockerfile">
+  <component name="RunManager" selected="Application.CryptoInvestor">
     <configuration default="true" type="AZURE_FUNCTION_SUPPORT" factoryName="Run Functions">
       <option name="appName" />
       <option name="appServicePlanName" />
@@ -272,9 +272,9 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.CryptoInvestor" />
         <item itemvalue="Docker.cryptoinvestor-master/cryptoinvestor.Dockerfile" />
         <item itemvalue="Docker.Docker Image" />
-        <item itemvalue="Application.CryptoInvestor" />
         <item itemvalue="Application.SimpleDocking" />
         <item itemvalue="Application.TelegramClient" />
       </list>
@@ -441,7 +441,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680191150807</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Run wells">
+      <created>1680195734788</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1680195734788</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -470,7 +477,8 @@
     <MESSAGE value="good screen" />
     <MESSAGE value="good screen2" />
     <MESSAGE value="Run well" />
-    <option name="LAST_COMMIT_MESSAGE" value="Run well" />
+    <MESSAGE value="Run wells" />
+    <option name="LAST_COMMIT_MESSAGE" value="Run wells" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
