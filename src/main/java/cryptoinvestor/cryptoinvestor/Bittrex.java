@@ -1,6 +1,7 @@
 package cryptoinvestor.cryptoinvestor;
 
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
+import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
@@ -50,14 +51,17 @@ public class Bittrex extends Exchange {
     public Set<Integer> getSupportedGranularities() {
         return
                 new HashSet<>(Arrays.asList(
-                        60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24,
-                        3600 * 24 * 7, 3600 * 24 * 30, 3600 * 24 * 30 * 7, 3600 * 24 * 30 * 30, 3600 * 24 * 30 * 30 * 7, 3600 * 24 * 30 * 30
+                        60, 60 * 5, 60 * 15, 3600, 3600 * 4, 3600 * 12, 3600 * 24,
+                        3600 * 24 * 7, 3600 * 24 * 30, 3600 * 24 * 30 * 7,
+                        3600 * 24 * 7 * 4, 3600 * 24 * 365
                 ));
     }
 
     @Override
     public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
-        return null;
+        return
+
+                null;
     }
 
     @Override
@@ -72,16 +76,19 @@ public class Bittrex extends Exchange {
 
     @Override
     public void onMessage(String message) {
+        System.out.println(message);
 
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
+        System.out.println(code + " " + reason);
 
     }
 
     @Override
-    public void onError(Exception ex) {
+    public void onError(@NotNull Exception ex) {
+        ex.printStackTrace();
 
     }
 
@@ -233,6 +240,11 @@ public class Bittrex extends Exchange {
     @Override
     public boolean isConnected() {
         return false;
+    }
+
+    @Override
+    public Node getAllOrders() throws IOException, InterruptedException {
+        return null;
     }
 
     @Override

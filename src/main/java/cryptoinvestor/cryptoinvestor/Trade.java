@@ -13,6 +13,7 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -21,10 +22,10 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
 
     Side side;
-    Order order=new Order((long) (Math.random()*100000), new TradePair("BTC", "USD"),
-            Instant.now(),
-            ENUM_ORDER_TYPE.BUY,Side.BUY,0,0,price,0,0,0
-            );
+    Order order=new Order((long) (Math.random() * 100000), new TradePair("BTC", "USD"),
+            new Date().toString(),
+            ENUM_ORDER_TYPE.BUY, Side.BUY, 0, 0, price, 0, 0, 0
+    );
 
     ArrayList<Order> orders = new ArrayList<>();
     ConcurrentHashMap<String, Order> orderMap = new ConcurrentHashMap<>();
@@ -79,7 +80,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
 
       this.order=new Order(
-              id, instrument,timestamp,
+              id, instrument, timestamp.toString(),
               orderType,
               side,
               currentUnits,

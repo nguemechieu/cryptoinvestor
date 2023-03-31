@@ -10,6 +10,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
@@ -47,7 +48,7 @@ public class Poloniex extends Exchange {
 
     String host = "https://poloniex.com";
     String url = "https://poloniex.com/public?command=returnTicker";
-    private String apiKey;
+    private final String apiKey;
 
     public Poloniex(String POLONIEX_API_KEY ) throws TelegramApiException, IOException, ParseException, InterruptedException {
         super(null);
@@ -619,7 +620,7 @@ public class Poloniex extends Exchange {
     //       GET
     //https://api.exchange.coinbase.com/orders
 
-    public void getAllOrders() throws IOException, InterruptedException {
+    public Node getAllOrders() throws IOException, InterruptedException {
         String uriStr = "https://api.exchange.coinbase.com/orders";
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
@@ -635,6 +636,7 @@ public class Poloniex extends Exchange {
             System.out.println(response.statusCode());
             System.out.println(response.body());
         }
+        return null;
     }
 
 

@@ -1,25 +1,17 @@
 package cryptoinvestor.cryptoinvestor;
 
-import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
-import javafx.scene.Parent;
 import javafx.scene.layout.StackPane;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
 public class OrderHistory extends StackPane {
-    public OrderHistory(Exchange exchange) throws IOException, InterruptedException {
+    public OrderHistory(@NotNull Exchange exchange) throws IOException, InterruptedException {
         super();
-
         StackPane stackPane = new StackPane();
-        stackPane.setStyle("-fx-background-color: Black;");
-        stackPane.setStyle("-fx-border-color: rgb(50,234,234);");
-        stackPane.setStyle("-fx-border-width: 2px;");
-        stackPane.setStyle("-fx-border-radius: 5px;");
-       stackPane.setPrefSize(400, 300);
-   if (exchange instanceof Coinbase coinbase){
-
-       stackPane.getChildren().add(coinbase.getAllOrders());
-   }
-        this.getChildren().add(stackPane);
+        stackPane.setStyle("-fx-border-color: rgb(115,134,213,1);");
+        stackPane.setPrefSize(800, 300);
+        stackPane.getChildren().add(exchange.getAllOrders());
+        getChildren().add(stackPane);
     }
 }

@@ -340,16 +340,18 @@ symbolChoicebox.setValue(data1);
 
 
         Button orderHistoryBtn =
-                new Button("ORDER HISTORY -- ");
+                new Button("ORDERS -- ");
         orderHistoryBtn.setOnAction(
                 event9 -> {
                     Stage stage = new Stage();
                     try {
-                        stage.setScene(new Scene(new OrderHistory(exchange)));
-                    } catch (IOException | InterruptedException e) {
+                        Scene scene = new Scene(new OrdersDisplay(exchange));
+                        stage.setScene(scene);
+                        stage.show();
+                    } catch (IOException | InterruptedException | ParseException | URISyntaxException e) {
                         throw new RuntimeException(e);
                     }
-                    stage.show();
+
                 });
 
 

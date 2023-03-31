@@ -44,7 +44,7 @@ public class NewsManager {
 
         for (int i = 0; i < length; i++) {
             JSONObject json = jsonArray.getJSONObject(i);
-            String title = "hello";
+            String title = null;
             if (json.has("title")) {
                 title = json.getString("title");
                 news1.setTitle(title);
@@ -76,11 +76,10 @@ public class NewsManager {
             if (json.has("previous")) {
                 previous = json.getString("previous");
                 news1.setPrevious(previous);
+                news.add(i, new News(title, country, impact, StringToDate(date), forecast, previous));
+            } else {
+                news.add(i, new News(title, country, impact, StringToDate(date), forecast, previous));
             }
-            assert date != null;
-
-            news.add(i, new News(title, country, impact, StringToDate(date), forecast, previous));
-
             out.println("New" + news1);
 
 

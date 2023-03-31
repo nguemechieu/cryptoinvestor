@@ -13,6 +13,7 @@ import cryptoinvestor.cryptoinvestor.*;
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
@@ -82,16 +83,15 @@ public class BinanceUs extends Exchange {
     }
 
 
-
-    public void createOrder(TradePair tradePair,double price1, ENUM_ORDER_TYPE type1, Side side1, double quantity1, double stopLoss1, double takeProfit1) throws IOException, InterruptedException {
+    public void createOrder(TradePair tradePair, double price, ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss1, double takeProfit1) throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(
                 "https://api.binance.us/api/v3/order"
         ));
 
-   logger.info("BinanceUs " + nanoTime());
+        logger.info("BinanceUs " + nanoTime());
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         logger.info("BinanceUs " + nanoTime());
-        if (response.statusCode()!= 200) {
+        if (response.statusCode() != 200) {
             logger.error("BinanceUs " + nanoTime());
             logger.error("BinanceUs " + response.statusCode());
             logger.error("BinanceUs " + response.body());
@@ -106,6 +106,8 @@ public class BinanceUs extends Exchange {
             logger.info("BinanceUs " + response.body());
 
             JsonNode jsonNode = OBJECT_MAPPER.readTree(response.body());
+            logger.info("BinanceUs " + nanoTime());
+            logger.info("BinanceUs " + jsonNode.toString());
 
         }
 
@@ -315,7 +317,7 @@ public class BinanceUs extends Exchange {
                     JsonNode res;
                     try {
                         res = OBJECT_MAPPER.readTree(response);
-                        logger.info("BinanceUs response: ", response);
+                        logger.info(response);
                     } catch (JsonProcessingException ex) {
                         throw new RuntimeException(ex);
                     }
@@ -2870,6 +2872,11 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
     public boolean isConnected() {
         return isConnected;
 
+    }
+
+    @Override
+    public Node getAllOrders() throws IOException, InterruptedException {
+        return null;
     }
 
     @Override

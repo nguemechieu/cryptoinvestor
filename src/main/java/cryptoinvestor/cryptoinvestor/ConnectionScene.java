@@ -16,22 +16,15 @@ import java.io.IOException;
 
 public class ConnectionScene extends Parent {
     public ConnectionScene(@NotNull Exchange exchange) {
-
         StackPane stackPane = new StackPane();
         GridPane gridPane=new GridPane();
         gridPane.setHgap(10);
         gridPane.setVgap(10);
         gridPane.setPadding(new javafx.geometry.Insets(10, 10, 10,10));
-
-
         gridPane.add(new Label("USER ID :"),0,0);
         TextField userId=new TextField();
         userId.setPromptText("Enter your user id");
-
         gridPane.add(userId,1,0);
-
-
-
         gridPane.add(new Label("API KEY :"),0,1);
         TextField textField = new TextField();
         textField.setPromptText("Enter your API key");

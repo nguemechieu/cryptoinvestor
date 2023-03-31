@@ -12,6 +12,7 @@ public class MoneyAxisFormatter extends StringConverter<Number> {
 
     public MoneyAxisFormatter(Currency currency) {
         this(currency, currency.getFractionalDigits());
+
     }
 
     public MoneyAxisFormatter(Currency currency, int precision) {

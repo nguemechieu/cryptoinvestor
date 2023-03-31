@@ -10,6 +10,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
@@ -632,6 +633,11 @@ if (response.statusCode() == 200) {
     @Override
     public boolean isConnected() {
         return false;
+    }
+
+    @Override
+    public Node getAllOrders() throws IOException, InterruptedException {
+        return null;
     }
 
     @Override

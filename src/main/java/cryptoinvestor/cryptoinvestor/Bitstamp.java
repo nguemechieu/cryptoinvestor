@@ -10,6 +10,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
@@ -585,7 +586,7 @@ public class Bitstamp extends Exchange {
     //       GET
     //https://api.exchange.coinbase.com/orders
 
-    public void getAllOrders() throws IOException, InterruptedException {
+    public Node getAllOrders() throws IOException, InterruptedException {
         String uriStr = "https://api.bitstamp.com/orders";
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
@@ -601,6 +602,7 @@ public class Bitstamp extends Exchange {
             System.out.println(response.statusCode());
             System.out.println(response.body());
         }
+        return null;
     }
 
 

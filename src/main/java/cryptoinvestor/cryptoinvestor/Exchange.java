@@ -1,6 +1,7 @@
 package cryptoinvestor.cryptoinvestor;
 
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
+import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
@@ -129,6 +130,7 @@ public abstract class Exchange {
 
 
     public abstract ListView<Order> getOrderView() throws IOException, InterruptedException, ParseException, URISyntaxException;
+
     public abstract List<Objects> getOrderBook();
 
     public abstract List<TradePair> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException;
@@ -136,4 +138,6 @@ public abstract class Exchange {
     public abstract void connect(String text, String text1, String userIdText) throws IOException, InterruptedException;
 
     public abstract boolean isConnected();
+
+    public abstract Node getAllOrders() throws IOException, InterruptedException;
 }

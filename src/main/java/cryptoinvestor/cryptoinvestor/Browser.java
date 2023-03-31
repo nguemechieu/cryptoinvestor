@@ -2,6 +2,7 @@ package cryptoinvestor.cryptoinvestor;
 
 import javafx.concurrent.Worker;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
@@ -27,7 +28,7 @@ public class Browser extends Region {
 
 tabPane.setTranslateY(34);
         webEngine.load("https://www.google.com/search?q=");
-webView.setPrefSize(1500,780);
+        webView.setPrefSize(1520, 780);
         WebEngine webEngine = webView.getEngine();
         webEngine.setJavaScriptEnabled(true);
         webEngine.getLoadWorker().stateProperty().addListener((observable, oldValue, newValue) -> {
@@ -43,12 +44,12 @@ webView.setPrefSize(1500,780);
         TextField searchBar =new TextField();
         searchBar.setPromptText("Search here... ");
 
-        searchBar.setPrefWidth(1500);
+        searchBar.setPrefWidth(1520);
         searchBar.textProperty().addListener((observable, oldValue, newValue) -> webEngine.load(
                 "https://www.google.com/search?q=" + newValue
         ));
         WebView web=new WebView();
-        web.setPrefSize(1500,780);
+        web.setPrefSize(1520, 780);
         web.getEngine().load(
                 "https://www.google.com/search?q="
         );
@@ -99,35 +100,24 @@ webView.setPrefSize(1500,780);
                         )
                 )
         );
-       HBox hBox = new HBox();
-       hBox.setPadding(new Insets(10, 10, 10, 10));
-       hBox.getChildren().add(downloadButton());
-       hBox.getChildren().add(removeButton());Button addButton = new Button("+");
-       hBox.getChildren().add(addButton);
+        HBox hBox = new HBox();
+        hBox.setPadding(new Insets(10, 10, 10, 10));
+        hBox.getChildren().add(downloadButton());
+        hBox.getChildren().add(removeButton());
+        Button addButton = new Button("+");
+        hBox.getChildren().add(addButton);
+        addButton.setOnAction(e -> {
+            tabPane.getTabs().add(new DraggableTab("Tab" + tabPane.getTabs().size(), ""));
+            WebView web0 = new WebView();
+            web0.setPrefSize(1530, 780);
 
-
-
-
-
-            addButton.setOnAction(e ->
-
-            {tabPane.getTabs().add(new DraggableTab("Tab"+tabPane.getTabs().size(),""));
-
-        WebView web0=new WebView();
-        web0.setPrefSize(1530,780);
-              web0.getEngine().load(
-                      "https://www.google.com/search?q="
-              );
-
-        tabPane.getTabs().get(tabPane.getTabs().size()-1).setContent(new VBox(searchBar, web0));});
-
-            hBox.getChildren().add(downloadButton());
-
-
+            tabPane.getTabs().get(tabPane.getTabs().size() - 1).setContent(new VBox(searchBar, new Separator(Orientation.VERTICAL), web0));
+        });
+        hBox.getChildren().add(downloadButton());
         hBox.getChildren().add(refreshButton());
-       hBox.getChildren().add(goBack());
-       hBox.getChildren().add(goForward());
-       hBox.getChildren().add(screenShotButton());
+        hBox.getChildren().add(goBack());
+        hBox.getChildren().add(goForward());
+        hBox.getChildren().add(screenShotButton());
        hBox.getChildren().add(createLink("https://www.google.com/"));
        hBox.getChildren().add(createLink("https://www.youtube.com/"));
        hBox.getChildren().add(createLink("https://www.facebook.com/"));

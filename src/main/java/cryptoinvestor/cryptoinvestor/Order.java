@@ -3,27 +3,111 @@ package cryptoinvestor.cryptoinvestor;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Date;
 
 public class Order extends RecursiveTreeObject<Order> {
-    ArrayList<Order> orders=new ArrayList<>();
-    private  TradePair tradePair;
-   private Instant timestamp;
-  private   ENUM_ORDER_TYPE order_type;
-    private  double remaining;
- private    double fee;
-  private double lotSize;
 
-  private double stopLoss;
-private String symbol;
-  private ENUM_ORDER_TYPE type;
+    protected String created;
+    String clientTradeID1;
+    String triggerCondition, createTime,//": "2023-03-30T20:00:00.583871679Z",
+            price,//": "1.08063",
+            clientTradeID,//": "140930333",
+
+    state,//": "PENDING",
+
+    timeInForce,//": "GTC",
+            tradeID;//": "143118"
+    private String executedQty;
+    private String origQty;
+    private String cummulativeQuoteQty;
+    private String icebergQty;
+    private TradePair tradePair;
+    private String timestamp;
+    private ENUM_ORDER_TYPE order_type;
+    private double remaining;
+    private double fee;
+    private double lotSize;
+    private double stopLoss;
+    private String symbol;
+    private ENUM_ORDER_TYPE type;
+    private JSONArray orders;
+    public Order(String clientTradeID, String triggerCondition, String createTime, String price, String clientTradeID1, String state, String timeInForce, String tradeID) {
+        this.clientTradeID = clientTradeID;
+        this.triggerCondition = triggerCondition;
+        this.createTime = createTime;
+        this.price = price;
+        this.clientTradeID1 = clientTradeID1;
+        this.state = state;
+        this.timeInForce = timeInForce;
+        this.tradeID = tradeID;
+    }
+    public Order(Long id, @NotNull TradePair tradePair, String timestamp, ENUM_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price
+
+            , double stopLoss, double takeProfit
+    ) {
+        this.id = id;
+        this.timestamp = timestamp;
+        this.order_type = order_type;
+        this.remaining = remaining;
+        this.fee = fee;
+        this.lotSize = lotSize;
+        this.price = String.valueOf(price);
+        this.stopLoss = stopLoss;
+        this.symbol = tradePair.getCounterCurrency().symbol;
+        this.type = order_type;
+
+        this.currency = tradePair.getCounterCurrency().symbol;
+        this.created = String.valueOf(new Date());
+        this.takeProfit = takeProfit;
+        this.updated = new Date();
+        this.side = side;
+        this.tradePair = tradePair;
+
+
+
+    }
+
+    @Override
+    public String toString() {
+        return "Order " +
+                "clientTradeID1='" + clientTradeID1 + '\'' + ", id=" + id +
+                ", triggerCondition='" + triggerCondition + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", price='" + price + '\'' + ", status='" + status + '\'' +
+                ", clientTradeID='" + clientTradeID + '\'' +
+                ", state='" + state + '\'' +
+                ", timeInForce='" + timeInForce + '\'' +
+                ", tradeID='" + tradeID + '\'' +
+                ", order_type=" + order_type +
+                ", takeProfit=" + takeProfit +
+                ", stopLoss=" + stopLoss +
+                ", lotSize=" + lotSize +
+                ", type=" + type +
+                ", orderID=" + orderID +
+                ", ticket=" + ticket +
+                ", created='" + created + '\'' + ", updated=" + updated +
+                ", closed=" + closed +
+
+                ", side=" + side +
+                ", filled='" + filled + '\'' +
+                ", unit='" + unit + '\'' +
+                ", orders=" + orders;
+    }
+
+    public String getExecutedQty() {
+        return executedQty;
+    }
+
+    public void setExecutedQty(String executedQty) {
+        this.executedQty = executedQty;
+    }
 
     private static int lastError;
     private int orderID;
@@ -32,7 +116,10 @@ private String symbol;
     protected Long id;
     protected double total;
     protected String currency;
-    protected Date created;
+
+    public String getOrigQty() {
+        return origQty;
+    }
     protected double takeProfit;
     protected Date updated;
     protected Date closed;
@@ -41,39 +128,10 @@ private String symbol;
     private String filled;
     private String unit;
 
-    public Order(JSONObject jsonObject) throws IOException, ParseException, URISyntaxException, InterruptedException {
-        this.id = jsonObject.getLong("id");
-        this.tradePair = new TradePair("EUR", "USD");
-        this.timestamp = Instant.ofEpochMilli(jsonObject.getLong("timestamp"));
-        this.order_type = ENUM_ORDER_TYPE.valueOf(jsonObject.getString("orderType"));
-        this.remaining = jsonObject.getDouble("remaining");
-        this.fee = jsonObject.getDouble("fee");
-        this.lotSize = jsonObject.getDouble("lotSize");
-        this.stopLoss = jsonObject.getDouble("stopLoss");
-        this.symbol = jsonObject.getString("symbol");
-        this.type = ENUM_ORDER_TYPE.valueOf(jsonObject.getString("type"));
-        this.side = Side.valueOf(jsonObject.getString("side"));
-        this.filled = jsonObject.getString("filled");
-        this.unit = jsonObject.getString("unit");
-        this.total = jsonObject.getDouble("total");
+    public void setOrigQty(String origQty) {
+        this.origQty = origQty;
     }
 
-    public Order(String orderId, String clientOrderId, String symbol, String side, String status, String type, String timeInForce, String price, String origQty, String executedQty, String cummulativeQuoteQty, String icebergQty) throws IOException, ParseException, URISyntaxException, InterruptedException {
-        this.id = Long.valueOf(orderId);
-        this.tradePair = new TradePair("EUR", "USD");
-        this.timestamp = Instant.ofEpochMilli(Long.parseLong(timeInForce));
-        this.order_type = ENUM_ORDER_TYPE.valueOf(type);
-        this.remaining = Double.parseDouble(origQty);
-        this.fee = Double.parseDouble(price);
-        this.lotSize = Double.parseDouble(executedQty);
-        this.stopLoss = Double.parseDouble(cummulativeQuoteQty);
-        this.symbol = symbol;
-        this.side = Side.valueOf(side);
-        this.status = status;
-        this.type = ENUM_ORDER_TYPE.valueOf(type);
-        this.created = Date.from(Instant.ofEpochMilli(Long.parseLong(timeInForce)));
-        this.updated = Date.from(Instant.ofEpochMilli(Long.parseLong(timeInForce)));
-    }
 
     public int getOrderID() {
         return orderID;
@@ -92,12 +150,16 @@ private String symbol;
         this.filled = filled;
     }
 
-    public ArrayList<Order> getOrders() {
-        return orders;
+    public String getCummulativeQuoteQty() {
+        return cummulativeQuoteQty;
     }
 
-    public void setOrders(ArrayList<Order> orders) {
-        this.orders = orders;
+    public void setCummulativeQuoteQty(String cummulativeQuoteQty) {
+        this.cummulativeQuoteQty = cummulativeQuoteQty;
+    }
+
+    public JSONArray getOrders() {
+        return orders;
     }
 
     public ENUM_ORDER_TYPE getOrder_type() {
@@ -120,34 +182,11 @@ private String symbol;
         this.unit = unit;
     }
 
-    public Order(Long id, @NotNull TradePair tradePair, Instant timestamp, ENUM_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price
-
-    , double stopLoss, double takeProfit
-    ) {
-        this.id = id;
-        this.timestamp = timestamp;
-        this.order_type = order_type;
-        this.remaining = remaining;
-        this.fee = fee;
-        this.lotSize = lotSize;
-        this.price = price;
-        this.stopLoss = stopLoss;
-        this.symbol = tradePair.getCounterCurrency().symbol;
-        this.type = order_type;
-
-        this.currency = tradePair.getCounterCurrency().symbol;
-        this.created = new Date();
-        this.takeProfit = takeProfit;
-        this.updated = new Date();
-        this.side = side;
-        this.tradePair = tradePair;
-
- orders.add(this);
-
-
+    public void setOrders(JSONArray orders) {
+        this.orders = orders;
     }
 
-    public Instant getOpenTime() {
+    public String getOpenTime() {
         return timestamp;
     }
 
@@ -183,7 +222,7 @@ private String symbol;
     }
 
     public  double getOpenPrice() {
-        return price;
+        return Double.parseDouble(price);
     }
 
     public  String getSymbol() {
@@ -202,20 +241,6 @@ private String symbol;
         this.type = type;
     }
 
-    @Override
-    public String toString() {
-        return "Order{" +
-                "id=" + id +
-                ", total=" + total +
-                ", currency='" + currency + '\'' +
-                ", created=" + created +
-                ", takeProfit=" + takeProfit +
-                ", updated=" + updated +
-                ", closed=" + closed +
-                ", status='" + status + '\'' +
-                '}';
-    }
-
     public double getTakeProfit() {
         return takeProfit;
     }
@@ -224,11 +249,11 @@ private String symbol;
         this.takeProfit = takeProfit;
     }
 
-    public Instant getTimestamp() {
+    public String getTimestamp() {
         return timestamp;
     }
 
-    public void setTimestamp(Instant timestamp) {
+    public void setTimestamp(String timestamp) {
         this.timestamp = timestamp;
     }
 
@@ -241,11 +266,11 @@ private String symbol;
     }
 
     public double getPrice() {
-        return price;
+        return Double.parseDouble(price);
     }
 
     public void setPrice(double price) {
-        this.price = price;
+        this.price = String.valueOf(price);
     }
 
     public double getTotal() {
@@ -280,12 +305,12 @@ private String symbol;
         this.currency = currency;
     }
 
-    public Date getCreated() {
-        return created;
+    public void setPrice(String price) {
+        this.price = price;
     }
 
-    public void setCreated(Date created) {
-        this.created = created;
+    public String getCreated() {
+        return created;
     }
 
     public Date getUpdated() {
@@ -341,8 +366,8 @@ private String symbol;
         this.tradePair = tradePair;
     }
 
-    public Instant getTime() {
-        return timestamp;
+    public void setCreated(String created) {
+        this.created = created;
     }
 
     public String getOrderId() {
@@ -361,14 +386,68 @@ private String symbol;
         return "GTC";
     }
 
+    public String getTime() {
+        return timestamp;
+    }
+
+    public String getTriggerCondition() {
+        return triggerCondition;
+    }
+
+    public void setTriggerCondition(String triggerCondition) {
+        this.triggerCondition = triggerCondition;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+
+    public String getClientTradeID() {
+        return clientTradeID;
+    }
+
+    public void setClientTradeID(String clientTradeID) {
+        this.clientTradeID = clientTradeID;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public void setTimeInForce(String timeInForce) {
+        this.timeInForce = timeInForce;
+    }
+
+    public String getTradeID() {
+        return tradeID;
+    }
+
+    public void setTradeID(String tradeID) {
+        this.tradeID = tradeID;
+    }
+
     public String getStopPrice() {
         return String.valueOf(stopLoss);
     }
+
     public void setStopPrice(double stopLoss) {
         this.stopLoss = stopLoss;
     }
 
 
+    public String getIcebergQty() {
+        return icebergQty;
+    }
 
-  private double  price;
+    public void setIcebergQty(String icebergQty) {
+        this.icebergQty = icebergQty;
+    }
 }

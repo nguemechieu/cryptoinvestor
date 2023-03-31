@@ -1,6 +1,7 @@
 package cryptoinvestor.cryptoinvestor.oanda;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,6 +12,9 @@ import cryptoinvestor.cryptoinvestor.Currency;
 import cryptoinvestor.cryptoinvestor.*;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
@@ -38,11 +42,14 @@ import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+import static javax.swing.UIManager.put;
 
 
 public class Oanda extends Exchange {
@@ -52,7 +59,7 @@ public class Oanda extends Exchange {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    private static Set<TradePair> tradePair;
+    private static final Set<TradePair> tradePair;
 
     static {
 
@@ -66,8 +73,9 @@ public class Oanda extends Exchange {
 
     private static final ExchangeWebSocketClient websocke =
             new OandaWebSocket(
-                 tradePair
+                    tradePair
             );
+    private final String apiKey;
 
 
     public String getAccountID() {
@@ -77,41 +85,7 @@ public class Oanda extends Exchange {
     private final String accountID;
    public static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     private static final HttpClient client=         HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
-
-
-    public Oanda(String apiKey, String accountID)
-            throws TelegramApiException, IOException, NoSuchAlgorithmException {
-        super(websocke);
-
-
-        this.accountID = accountID;
-        requestBuilder.header("Authorization", "Bearer " + apiKey);
-        requestBuilder.header("Content-Type", "application/json");
-        requestBuilder.header("Accept", "application/json");
-        requestBuilder.header("Origin", "https://api-fxtrade.oanda.com");
-        requestBuilder.header("Referer", "https://api-fxtrade.oanda.com/v3/accounts/" + accountID );
-        requestBuilder.header("Sec-Fetch-Dest", "empty");
-        requestBuilder.header("Sec-Fetch-Mode", "cors");
-        requestBuilder.header("Sec-Fetch-Site", "same-origin");
-        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
-        requestBuilder.header("Access-Control-Allow-Credentials", "true");
-        requestBuilder.header(
-                "Access-Control-Allow-Headers",
-                "Origin, X-Requested-With, Content-Type, Accept"
-        );
-        requestBuilder.header(
-                "Access-Control-Allow-Methods",
-                "GET, POST, PUT, DELETE, OPTIONS"
-        );
-
-
-
-
-
-
-        logger.info("Oanda initialized");
-
-    }
+    ConcurrentHashMap<Order, Order> orders = new ConcurrentHashMap<>();
 
     @Contract(pure = true)
     public static @NotNull String getCoinbaseMessage() {
@@ -343,45 +317,39 @@ public class Oanda extends Exchange {
     }
 
 
-    public JSONObject getJSON() {
-
-        JSONObject jsonObject = new JSONObject();
-        try {
-            String url = "https://api-fxtrade.oanda.com/v2/exchange-rates";
-            HttpsURLConnection conn = (HttpsURLConnection) URI.create(url).toURL().openConnection();
-            conn.setRequestMethod("GET");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestProperty("charset", "utf-8");
-            conn.setRequestProperty("Accept-Charset", "utf-8");
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10)");
-              String timestamp = new Date().toString();
-
-            conn.setRequestProperty("CB-ACCESS-SIGN", timestamp + "GET" + url);
-            //"base64-encoded signature (see Signing a Message)");
-            conn.setRequestProperty("CB-ACCESS-TIMESTAMP", new Date().toString());//    Timestamp for your request
+    public Oanda(String apiKey, String accountID)
+            throws TelegramApiException, IOException, NoSuchAlgorithmException {
+        super(websocke);
 
 
-            conn.connect();
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-            String inputLine;
-            StringBuilder response = new StringBuilder();
-            while ((inputLine = in.readLine()) != null) {
-                response.append(inputLine);
+        this.accountID = accountID;
+        requestBuilder.header("Authorization", "Bearer " + apiKey);
+        this.apiKey = apiKey;
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Origin", "https://api-fxtrade.oanda.com");
+        requestBuilder.header("Referer", "https://api-fxtrade.oanda.com/v3/accounts/" + accountID );
+        requestBuilder.header("Sec-Fetch-Dest", "empty");
+        requestBuilder.header("Sec-Fetch-Mode", "cors");
+        requestBuilder.header("Sec-Fetch-Site", "same-origin");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        requestBuilder.header("Access-Control-Allow-Credentials", "true");
+        requestBuilder.header(
+                "Access-Control-Allow-Headers",
+                "Origin, X-Requested-With, Content-Type, Accept"
+        );
+        requestBuilder.header(
+                "Access-Control-Allow-Methods",
+                "GET, POST, PUT, DELETE, OPTIONS"
+        );
 
-            }
-            in.close();
-
-            out.println(response);
-            //Put data into json file
-            jsonObject = new JSONObject(response.toString());
-            out.println(jsonObject.toString(4));
 
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        out.println(jsonObject.toString(4));
-        return jsonObject;
+
+
+
+        logger.info("Oanda initialized");
+
     }
 
     @Override
@@ -542,25 +510,106 @@ public class Oanda extends Exchange {
         System.out.println(jsonObject.toString(4));
     }
 
+    public JSONObject getJSON() {
+
+        JSONObject jsonObject = new JSONObject();
+        try {
+            String url = "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair.stream().map(c -> c.getBaseCurrency().getCode()).collect(Collectors.joining("_")) + "/candles?count=6&price=M&granularity=M30";
+            HttpsURLConnection conn = (HttpsURLConnection) URI.create(url).toURL().openConnection();
+            conn.setRequestMethod("GET");
+            conn.setRequestProperty("Accept", "application/json");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setRequestProperty(
+                    "Authorization",
+                    "Bearer " + apiKey);
+
+            conn.setRequestProperty("charset", "utf-8");
+            conn.setRequestProperty("Accept-Charset", "utf-8");
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10)");
+            String timestamp = new Date().toString();
+
+
+            conn.setRequestProperty("CB-ACCESS-SIGN", timestamp + "GET" + url);
+            //"base64-encoded signature (see Signing a Message)");
+            conn.setRequestProperty("CB-ACCESS-TIMESTAMP", new Date().toString());//    Timestamp for your request
+
+
+            conn.connect();
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            String inputLine;
+            StringBuilder response = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                response.append(inputLine);
+
+            }
+            in.close();
+
+            out.println(response);
+            //Put data into json file
+            jsonObject = new JSONObject(response.toString());
+            out.println(jsonObject.toString(4));
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        out.println(jsonObject.toString(4));
+        return jsonObject;
+    }
+
     // Get all orders
     //       GET
-    public void getAllOrders() throws IOException, InterruptedException {
+    public Node getAllOrders() throws IOException, InterruptedException {
         String uriStr =
-                "https://api-fxtrade.oanda.com/v3/accounts/orders";
+                "https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders";
 
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+
         requestBuilder.uri(URI.create(uriStr));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         System.out.println(response.statusCode());
         System.out.println(response.body());
-
+        JSONObject jsonObject = new JSONObject(response.body());
         if (response.statusCode() == 200) {
-            JSONObject jsonObject = new JSONObject(response.body());
+
             System.out.println(jsonObject.toString(4));
         } else {
             System.out.println(response.statusCode());
             System.out.println(response.body());
         }
+
+
+        JSONArray dat = jsonObject.getJSONArray("orders");
+
+        ObservableList<Order> ob =
+                FXCollections.observableArrayList();
+        for (int i = 0; i < dat.length(); i++) {
+            JSONObject obj = dat.getJSONObject(i);
+
+            String triggerCondition, createTime,//": "2023-03-30T20:00:00.583871679Z",
+                    price,//": "1.08063",
+                    clientTradeID,//": "140930333",
+
+                    state,//": "PENDING",
+
+                    timeInForce,//": "GTC",
+                    tradeID;//": "14311
+            Order order = new Order(
+                    obj.getString("clientTradeID"),
+                    obj.getString("triggerCondition"),
+                    obj.getString("createTime"),
+                    obj.getString("price"),
+                    obj.getString("clientTradeID"),
+                    obj.getString("state"),
+                    obj.getString("timeInForce"),
+                    obj.getString("tradeID")
+            );
+            orders.put(order, order);
+            ob.add(order);
+        }
+
+        return new ListView<>(ob);
+
+
     }
 
 
@@ -745,40 +794,45 @@ public class Oanda extends Exchange {
     }
 
     @Override
-    public ListView<Order> getOrderView() throws IOException, ParseException, URISyntaxException, InterruptedException {
-        ListView<Order> orderView = new ListView<>();
-        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/"+accountID+"/orders";
-        System.out.println(uriStr);
-        requestBuilder.uri(URI.create(uriStr));
-        requestBuilder.GET();
-        HttpResponse<String> response;
-        try {
-            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        } catch (IOException | InterruptedException e) {
-
-            throw new RuntimeException(e);
-        }
-        System.out.println(response.statusCode());
-        System.out.println(response.body());
-        if (response.statusCode()!= 200) {
-            System.out.println(response.statusCode());
-            System.out.println(response.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText(response.body());
-            alert.showAndWait();
-        }else {
-            JSONObject jsonObject = new JSONObject(response.body());
-            JSONArray jsonArray = jsonObject.getJSONArray("orders");
-            for (int i = 0; i < jsonArray.length(); i++) {
-                Order order = new Order(jsonArray.getJSONObject(i));
-                orderView.getItems().add(order);
-            }
-        }
-
-        return orderView;
+    public ListView<Order> getOrderView() throws IOException, InterruptedException, ParseException, URISyntaxException {
+        return null;
     }
+
+//    @Override
+//    public ListView<Order> getOrderView() throws IOException, ParseException, URISyntaxException, InterruptedException {
+//        ListView<Order> orderView = new ListView<>();
+//        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/"+accountID+"/orders";
+//        System.out.println(uriStr);
+//        requestBuilder.uri(URI.create(uriStr));
+//        requestBuilder.GET();
+//        HttpResponse<String> response;
+//        try {
+//            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+//        } catch (IOException | InterruptedException e) {
+//
+//            throw new RuntimeException(e);
+//        }
+//        System.out.println(response.statusCode());
+//        System.out.println(response.body());
+//        if (response.statusCode()!= 200) {
+//            System.out.println(response.statusCode());
+//            System.out.println(response.body());
+//            Alert alert = new Alert(Alert.AlertType.ERROR);
+//            alert.setTitle("Error");
+//            alert.setHeaderText(null);
+//            alert.setContentText(response.body());
+//            alert.showAndWait();
+//        }else {
+//            JSONObject jsonObject = new JSONObject(response.body());
+//            JSONArray jsonArray = jsonObject.getJSONArray("orders");
+//            for (int i = 0; i < jsonArray.length(); i++) {
+//                Order order = new Order(jsonArray.getJSONObject(i));
+//                orderView.getItems().add(order);
+//            }
+//        }
+//
+//        return orderView;
+//    }
 
     @Override
     public List<Objects> getOrderBook() {
@@ -786,9 +840,8 @@ public class Oanda extends Exchange {
     }
 
 
-
     public @NotNull List<Currency> getAvailableSymbols() {
-        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/"+accountID+"/instruments";
+        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/instruments";
         System.out.println(uriStr);
 
         requestBuilder.uri(URI.create(uriStr));
@@ -831,10 +884,11 @@ Instruments instruments = new Instruments(
         50,
         100.000,
         100.000,
-        0,
-                "",
+        5,
+        "",
         ""
 );
+        out.println("Instruments " + instruments);
 ArrayList<Currency> instrumentsList = new ArrayList<>();
 
         if (response.statusCode()!= 200) {
@@ -850,17 +904,11 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
             } catch (JsonProcessingException e) {
                 throw new RuntimeException(e);
             }
-
             JsonNode instrumentsNode = jsonNode.get("instruments");
            // String name, String type, String displayName, int pipLocation, int displayPrecision, int tradeUnitsPrecision, int minimumTradeSize, int maximumTrailingStopDistance, int minimumTrailingStopDistance, double maximumPositionSize, double maximumOrderUnits, double marginRate, String guaranteedStopLossOrderMode, String tags
-
-
             logger.info("Instruments:  " + instrumentsNode.toString());
-
-
             for(JsonNode instrumentNode : instrumentsNode) {
                 instrumentsList.add(new Currency(CurrencyType.FIAT,
-
                         instrumentNode.get("displayName").asText(),
                         instrumentNode.get("name").asText(),
                         instrumentNode.get("name").asText(),
@@ -879,11 +927,14 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
                 });
             }
 
-       }
-
+        }
 
 
         return instrumentsList;
+    }
+
+    public String getApiKey() {
+        return apiKey;
     }
 
     static abstract class OandaCandleDataSupplier extends CandleDataSupplier {
@@ -896,8 +947,6 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
         OandaCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
             super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
         }
-
-
         @Override
         public List<CandleData> getCandleData() {
             return new ArrayList<>();
@@ -945,23 +994,18 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
                                 // Remove the current in-progress candle
                                 int time=0;
 
-                                    logger.info("time: " + time + ", endTime: " + endTime.get()
-                                    );
-                                    time = (int) Date.from(Instant.parse(res.get("time").asText())).getTime();
+                                logger.info("time: " + time + ", endTime: " + endTime.get());
+                                time = (int) Date.from(Instant.parse(res.get("time").asText())).getTime();
 
 //                                    time = (int) Date.from(Instant.parse(res.get(i).get("time").asText())).getTime();
                                 //endTime.set(stTime);
-                                logger.info(
-                                        "time: " + time + ", endTime: " + endTime.get()
-                                );
+                                logger.info("time: " + time + ", endTime: " + endTime.get());
                                 if (time+ secondsPerCandle > endTime.get()) {
                                     ((ArrayNode) res).remove(0);
                                 }
+                                endTime.set(time + secondsPerCandle);
 
-
-                                ArrayList<CandleData> candleData=
-                                        new ArrayList<>();
-
+                                ArrayList<CandleData> candleData = new ArrayList<>();
                                 for (JsonNode candle : res.get("candles").get("mid")) {
                                     candleData.add(new CandleData(
                                             candle.get("o").asDouble(),  // open price
@@ -971,22 +1015,19 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
                                             time,     // open time
                                             res.get("candle").get("volume").asDouble()   // volume
                                     ));
-
-                                   out.println (        "time: " + time + ", endTime: " + endTime.get()
+                                    out.println("time: " + time + ", endTime: " + endTime.get());
+                                    out.println("o: " + candle.get("o").asDouble() +
+                                            ", c: " + candle.get("c").asDouble() +
+                                            ", h: " + candle.get("h").asDouble() +
+                                            ", l: " + candle.get("l").asDouble() +
+                                            ", v: " + candle.get("volume").asDouble()
                                     );
-
-
-
                                 }
-                                logger.info(
-                                        "CandleData :--> " + candleData
-                                );
+                                logger.info("CandleData :--> " + candleData);
                                 candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
                                 return candleData;
-
-                            }else {logger.info(
-                                    "Empty response"
-                            );
+                            } else {
+                                logger.info("Empty response");
                                 return Collections.emptyList();
                             }
                         } catch (Exception ex) {

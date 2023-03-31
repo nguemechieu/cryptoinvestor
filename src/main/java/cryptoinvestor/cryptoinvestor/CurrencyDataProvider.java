@@ -220,20 +220,16 @@ public class CurrencyDataProvider {
             marketData.add(new CryptoMarketData(id.toUpperCase(), symbol.toUpperCase(), name.toUpperCase(), image, current_price, market_cap,
                     market_cap_rank, fully_diluted_valuation, total_volume, high_24h, low_24h, price_change_24h,
                     price_change_percentage_24h, market_cap_change_24h, market_cap_change_percentage_24h,
-                    circulating_supply, total_supply, max_supply, ath, ath_change_percentage, ath_date, atl, atl_change_percentage, atl_date,
-                    roi));
+                    circulating_supply, total_supply, max_supply, ath, ath_change_percentage, ath_date, atl, atl_change_percentage, atl_date, roi));
         }
 
 
         for (CryptoMarketData data : marketData) {
-
-
             coinsToRegister.add(new Currency(CurrencyType.CRYPTO, data.name, data.id, data.symbol, data.roi.percentage.length(), data.symbol, data.image) {
                 @Override
                 public int compareTo(@NotNull Currency o) {
                     return 0;
                 }
-
                 @Override
                 public int compareTo(@NotNull java.util.Currency o) {
                     if (!o.getCurrencyCode().equals(this.getCode())) {
@@ -244,12 +240,9 @@ public class CurrencyDataProvider {
                         }
                         return this.getCode().compareTo(o.getCurrencyCode());
                     }
-
                     return 0;
                 }
-
             });
-
             coinsToRegister.iterator().next().setImage(data.image);
             MARKET_DATA_CONCURRENT_HASH_MAP.put(data, data);
         }
