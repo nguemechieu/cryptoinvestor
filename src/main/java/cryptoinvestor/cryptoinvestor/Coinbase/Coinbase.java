@@ -59,8 +59,7 @@ public class Coinbase extends Exchange {
         @NotNull Set<TradePair> tradePair=
                 new HashSet<>(List.of(
                         new TradePair("BTC", "USD")));
-        websocket = new CoinbaseWebSocketClient(
-                tradePair);
+        websocket = new CoinbaseWebSocketClient(tradePair);
     }
 
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
@@ -752,16 +751,23 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
                     Log.info("Coinbase response: ", response);
                     JsonNode res;
                     try {
-                        res = OBJECT_MAPPER.readTree(response);
 
+
+                        res = OBJECT_MAPPER.readTree(response);
+                        if (res.has("message")) {
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setTitle("Coinbase Error");
+                            alert.setHeaderText("Coinbase Error");
+                            alert.setContentText(res.get("message").asText());
+                            alert.showAndWait();
+                            return Optional.empty();
+                        }
 
                     } catch (JsonProcessingException ex) {
                         throw new RuntimeException(ex);
                     }
 
-                    if (res.isEmpty()) {
-                        return Optional.empty();
-                    }
+
 
                     JsonNode currCandle;
                     Iterator<JsonNode> candleItr = res.iterator();
@@ -823,9 +829,13 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
           System.out.println(response.headers());
 
           if (response.statusCode()!= 200) {
-              logger.info(
-                      String.format("Coinbase response: %d %s", response.statusCode(), response.body())
-              );
+
+              Alert alert = new Alert(Alert.AlertType.WARNING);
+              alert.setTitle("Coinbase Error");
+              alert.setHeaderText("Coinbase Error");
+              alert.setContentText(response.body());
+              alert.showAndWait();
+              return jsonObject;
           }else {
               jsonObject.put("rates", response.body());
           }
@@ -1280,17 +1290,17 @@ public void CloseAllOrders() throws IOException, InterruptedException {
                                 String min_withdrawal_amount = "";
                                 String max_withdrawal_amount = "";
                                 for (int i = 0; i < jsonObject.length(); i++) {
-                                    System.out.println(jsonObject.getJSONObject(i).get("id").toString());
-                                    if (jsonObject.getJSONObject(i).get("id").toString().equals("VGX")) {
-                                        JSONObject jsonObject1 = jsonObject.getJSONObject(i);
-                                        id = jsonObject1.get("id").toString();
-                                        name = jsonObject1.get("name").toString();
-                                        //min_size= Integer.parseInt(jsonObject1.get("min_size").toString());
-                                        status = jsonObject1.get("status").toString();
-                                        message = jsonObject1.get("message").toString();
-                                        max_precision = Double.parseDouble(jsonObject1.get("max_precision").toString());
 
-                                    } else if (jsonObject.getJSONObject(i).has("details")) {
+                                    JSONObject jsonObject1 = jsonObject.getJSONObject(i);
+                                    id = jsonObject1.get("id").toString();
+                                    name = jsonObject1.get("name").toString();
+                                    //min_size= Integer.parseInt(jsonObject1.get("min_size").toString());
+                                    status = jsonObject1.get("status").toString();
+                                    message = jsonObject1.get("message").toString();
+                                    max_precision = Double.parseDouble(jsonObject1.get("max_precision").toString());
+
+
+                                    if (jsonObject.getJSONObject(i).has("details")) {
                                         JSONObject jsonObject2 = jsonObject.getJSONObject(i).getJSONObject("details");
                                         String type = jsonObject2.get("type").toString();
                                         symbol = jsonObject2.get("symbol").toString();
@@ -1318,14 +1328,16 @@ public void CloseAllOrders() throws IOException, InterruptedException {
                                             return 0;
                                         }
                                     };
-                                 symbols.add(currency);
-                                }
+                                    symbols.add(currency);
 
+                                }
+                                CurrencyDataProvider.getInstance().addAll(symbols);
                             }
-                             logger.info("Coinbase Currencies: " + symbols);
+                            logger.info("Coinbase Currencies: " + symbols);
                             return symbols;
                         });
-        return symbols;
+        return new ArrayList<>();
+
     }
 
     @Override
@@ -1336,7 +1348,6 @@ public void CloseAllOrders() throws IOException, InterruptedException {
         params.put("type", "limit");
         params.put("side", "buy");
         params.put("price", String.valueOf(price));
-
         params.put("quantity", String.valueOf(quantity));
         params.put("stop_price", String.valueOf(stopPrice));
         params.put("take_profit_price", String.valueOf(takeProfitPrice));
@@ -1421,7 +1432,6 @@ public void CloseAllOrders() throws IOException, InterruptedException {
                     .thenApply(response -> {
 
 
-                        Log.info("coinbase response: ", response);
                         JsonNode res;
                         try {
                             res = OBJECT_MAPPER.readTree(response);

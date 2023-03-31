@@ -101,12 +101,16 @@ public class CandleStickChartContainer extends Region {
         }
 
 
-        candleStickChart = new CandleStickChart(exchange, exchange.getCandleDataSupplier(secondsPerCandle, tradePair),
-                tradePair, liveSyncing, secondsPerCandle, widthProperty(), heightProperty(),telegramToken);
-        candleChartContainer.getChildren().setAll(candleStickChart);
-        animateInNewChart(candleStickChart);
-        toolbar.setChartOptions(candleStickChart.getChartOptions());
+        if (tradePair != null) {
 
+            candleStickChart = new CandleStickChart(exchange, exchange.getCandleDataSupplier(secondsPerCandle, tradePair),
+                    tradePair, liveSyncing, secondsPerCandle, widthProperty(), heightProperty(), telegramToken);
+            candleChartContainer.getChildren().setAll(candleStickChart);
+            animateInNewChart(candleStickChart);
+            toolbar.setChartOptions(candleStickChart.getChartOptions());
+        } else {
+            throw new IllegalArgumentException("tradePair must not be null");
+        }
 
     }
 

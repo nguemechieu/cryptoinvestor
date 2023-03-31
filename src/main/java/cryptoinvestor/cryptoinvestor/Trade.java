@@ -3,7 +3,6 @@ package cryptoinvestor.cryptoinvestor;
 import com.google.gson.Gson;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.scene.control.TreeItem;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,11 +20,314 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
 
-    Side side;
-    Order order=new Order((long) (Math.random() * 100000), new TradePair("BTC", "USD"),
+    Order order = new Order((long) (Math.random() * 100000), new TradePair("BTC", "USD"),
             new Date().toString(),
             ENUM_ORDER_TYPE.BUY, Side.BUY, 0, 0, price, 0, 0, 0
     );
+    private boolean isBestMatch;
+    private boolean isMaker;
+    private boolean isBuyer;
+    private long time;
+    private String commissionAsset;
+    private String commission;
+    private double quoteQty;
+    private double qty;
+    private long orderListId;
+    private long orderId;
+
+    public Trade(String symbol, long id, long orderId, long orderListId, String price, String qty, String quoteQty, String commission, String commissionAsset, long time, boolean isBuyer, boolean isMaker, boolean isBestMatch) {
+        this.instrument = symbol;
+        Trade.id = id;
+        this.orderId = orderId;
+        this.orderListId = orderListId;
+        Trade.price = Double.parseDouble(price);
+        this.qty = Double.parseDouble(qty);
+        this.quoteQty = Double.parseDouble(quoteQty);
+        this.commission = commission;
+        this.commissionAsset = commissionAsset;
+        this.time = time;
+        this.isBuyer = isBuyer;
+        this.isMaker = isMaker;
+        this.isBestMatch = isBestMatch;
+    }
+
+    public static void setTrades(List<Trade> trades) {
+        Trade.trades = trades;
+    }
+
+    public static CandleData getCandle() {
+        return candle;
+    }
+
+    public static void setCandle(CandleData candle) {
+        Trade.candle = candle;
+    }
+
+    public static Logger getLogger() {
+        return logger;
+    }
+
+    public static void setLogger(Logger logger) {
+        Trade.logger = logger;
+    }
+
+    public static List<Order> getOrderList() {
+        return orderList;
+    }
+
+    public static void setOrderList(List<Order> orderList) {
+        Trade.orderList = orderList;
+    }
+
+    public static Money getFee() {
+        return fee;
+    }
+
+    public static void setFee(Money fee) {
+        Trade.fee = fee;
+    }
+
+    public boolean isBestMatch() {
+        return isBestMatch;
+    }
+
+    public void setBestMatch(boolean bestMatch) {
+        isBestMatch = bestMatch;
+    }
+
+    public boolean isMaker() {
+        return isMaker;
+    }
+
+    public void setMaker(boolean maker) {
+        isMaker = maker;
+    }
+
+    public boolean isBuyer() {
+        return isBuyer;
+    }
+
+    public void setBuyer(boolean buyer) {
+        isBuyer = buyer;
+    }
+
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    public String getCommissionAsset() {
+        return commissionAsset;
+    }
+
+    public void setCommissionAsset(String commissionAsset) {
+        this.commissionAsset = commissionAsset;
+    }
+
+    public String getCommission() {
+        return commission;
+    }
+
+    public void setCommission(String commission) {
+        this.commission = commission;
+    }
+
+    public double getQuoteQty() {
+        return quoteQty;
+    }
+
+    public void setQuoteQty(double quoteQty) {
+        this.quoteQty = quoteQty;
+    }
+
+    public double getQty() {
+        return qty;
+    }
+
+    public void setQty(double qty) {
+        this.qty = qty;
+    }
+
+    public long getOrderListId() {
+        return orderListId;
+    }
+
+    public void setOrderListId(long orderListId) {
+        this.orderListId = orderListId;
+    }
+
+    public long getOrderId() {
+        return orderId;
+    }
+
+    public void setOrderId(long orderId) {
+        this.orderId = orderId;
+    }
+
+    public Side getSide() {
+        return side;
+    }
+
+    public void setSide(Side side) {
+        this.side = side;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    public void setOrders(ArrayList<Order> orders) {
+        this.orders = orders;
+    }
+
+    public ConcurrentHashMap<String, Order> getOrderMap() {
+        return orderMap;
+    }
+
+    public void setOrderMap(ConcurrentHashMap<String, Order> orderMap) {
+        this.orderMap = orderMap;
+    }
+
+    public ENUM_ORDER_TYPE getOrder_type() {
+        return order_type;
+    }
+
+    public void setOrder_type(ENUM_ORDER_TYPE order_type) {
+        this.order_type = order_type;
+    }
+
+    public double getSize() {
+        return size;
+    }
+
+    public double getCurrentUnits() {
+        return currentUnits;
+    }
+
+    public double getInitialMargin() {
+        return initialMargin;
+    }
+
+    public void setInitialMargin(double initialMargin) {
+        this.initialMargin = initialMargin;
+    }
+
+    public double getInitialUnits() {
+        return initialUnits;
+    }
+
+    public double getInitialMarginRequired() {
+        return initialMarginRequired;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public long getLastTransactionID() {
+        return lastTransactionID;
+    }
+
+    public String getClientExtensions() {
+        return clientExtensions;
+    }
+
+    public double getUnrealizedPL() {
+        return unrealizedPL;
+    }
+
+    public double getMarginUsed() {
+        return marginUsed;
+    }
+
+    public double getFinancing() {
+        return financing;
+    }
+
+    public double getDividendAdjustment() {
+        return dividendAdjustment;
+    }
+
+    public double getRealizedPL() {
+        return realizedPL;
+    }
+
+    public double getMarginBalance() {
+        return marginBalance;
+    }
+
+    public void setMarginBalance(double marginBalance) {
+        this.marginBalance = marginBalance;
+    }
+
+    public double getMarginAvailable() {
+        return marginAvailable;
+    }
+
+    public void setMarginAvailable(double marginAvailable) {
+        this.marginAvailable = marginAvailable;
+    }
+
+    public double getMarginBalanceAvailable() {
+        return marginBalanceAvailable;
+    }
+
+    public void setMarginBalanceAvailable(double marginBalanceAvailable) {
+        this.marginBalanceAvailable = marginBalanceAvailable;
+    }
+
+    public void setOpenTime(long openTime) {
+        this.openTime = openTime;
+    }
+
+    public void setCloseTime(long closeTime) {
+        this.closeTime = closeTime;
+    }
+
+    public ConcurrentHashMap<Long, Trade> getTradeMap() {
+        return tradeMap;
+    }
+
+    public void setTradeMap(ConcurrentHashMap<Long, Trade> tradeMap) {
+        this.tradeMap = tradeMap;
+    }
+
+    public Exchange getExchange() {
+        return exchange.get();
+    }
+
+    public void setExchange(Exchange exchange) {
+        this.exchange.set(exchange);
+    }
+
+    public SimpleObjectProperty<Exchange> exchangeProperty() {
+        return exchange;
+    }
+
+    public void setAmount(Money amount) {
+        this.amount = amount;
+    }
+
+    public void setTransactionType(Side transactionType) {
+        this.transactionType = transactionType;
+    }
+
+    public long getLocalTradeId() {
+        return localTradeId;
+    }
+
+    Side side;
+
+    public void setLocalTradeId(long localTradeId) {
+        this.localTradeId = localTradeId;
+    }
 
     ArrayList<Order> orders = new ArrayList<>();
     ConcurrentHashMap<String, Order> orderMap = new ConcurrentHashMap<>();
@@ -156,6 +458,10 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
     public Trade() throws IOException, ParseException, URISyntaxException, InterruptedException {
 
+    }
+
+    public void setTimestamp(Instant timestamp) {
+        this.timestamp = timestamp;
     }
 
 

@@ -357,32 +357,26 @@ public class Oanda extends Exchange {
 
 
         System.out.println("Connected");
-        JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4) + " " + handshake);
+
 
     }
 
     @Override
     public void onMessage(String message) {
         System.out.println(message);
-        JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4));
 
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
         System.out.println("Disconnected");
-        JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4));
+
 
     }
 
     @Override
     public void onError(Exception ex) {
         System.out.println("Error");
-        JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4));
 
     }
 
@@ -504,17 +498,14 @@ public class Oanda extends Exchange {
     @Override
     public void withdraw(Double value) {
 
-        JSONObject jsonObject = getJSON();
-        System.out.println(jsonObject.toString(4));
-        System.out.println(value);
-        System.out.println(jsonObject.toString(4));
+
     }
 
-    public JSONObject getJSON() {
+    public JSONObject getJSON(TradePair tradePair) {
 
         JSONObject jsonObject = new JSONObject();
         try {
-            String url = "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair.stream().map(c -> c.getBaseCurrency().getCode()).collect(Collectors.joining("_")) + "/candles?count=6&price=M&granularity=M30";
+            String url = "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair.toString('_') + "/candles?count=6&price=M&granularity=M30";
             HttpsURLConnection conn = (HttpsURLConnection) URI.create(url).toURL().openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
@@ -664,7 +655,7 @@ public class Oanda extends Exchange {
         }
     }
     private void  getOrderHistory(@NotNull TradePair tradePair) throws IOException, InterruptedException {
-        String symbol = tradePair.toString('-');
+        String symbol = tradePair.toString('_');
         String uriStr =
                 "https://api-fxtrade.oanda.com/v3/accounts/orders?product_id=" + symbol + "&limit=100";
 
@@ -689,7 +680,7 @@ public class Oanda extends Exchange {
         // JSONObject jsonObject = getJSON();
         //   System.out.println(jsonObject.toString(4));
 
-        String symbol = tradePair.toString('-');
+        String symbol = tradePair.toString('_');
 
         String uriStr = "https://api-fxtrade.oanda.com/v3/account/orders";
 
@@ -726,16 +717,15 @@ public class Oanda extends Exchange {
     }
 
 
-
-    public void createOrder(@NotNull TradePair tradePair, Side buy, ENUM_ORDER_TYPE trailingStopSell, double quantity, int i, @NotNull Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException {
-        JSONObject jsonObject = getJSON();
+    public void createOrder(@NotNull TradePair tradePair, Side buy, ENUM_ORDER_TYPE trailingStopSell, double quantity, int i, @NotNull Date timestamp, long orderID, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException {
+        JSONObject jsonObject = getJSON(tradePair);
         System.out.println(jsonObject.toString(4));
 
-        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" +accountID+"/orders";
+        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" + accountID + "/orders";
         String params = String.format(
                 "{\"order_id\": \"%s\", \"side\": \"%s\", \"type\": \"%s\", \"quantity\": %f, \"stop-price\": %f, \"take-profit-price\": %f, \"timestamp\": \"%s\", \"order-id\": %d}",
-                tradePair.toString('-'), buy, trailingStopSell, quantity, stopPrice, takeProfitPrice,
-                timestamp.toEpochMilli() / 1000L, orderID);
+                tradePair.toString('_'), buy, trailingStopSell, quantity, stopPrice, takeProfitPrice,
+                timestamp, orderID);
 
 
         System.out.println(uriStr);
@@ -978,7 +968,7 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
                             HttpResponse.BodyHandlers.ofString())
                     .thenApply(HttpResponse::body)
                     .thenApply(response -> {
-                        Log.info("Oanda response:--> ", response);
+
                         JsonNode res;
                         try {
                             res = OBJECT_MAPPER.readTree(response);
@@ -986,26 +976,17 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
                                     "Oanda response :--> " + res.toString()
                             );
 
-                        } catch (JsonProcessingException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                        try {
+
                             if (!res.isEmpty()) {
+                                int time = (int) Date.from(Instant.parse(res.get("time").asText())).getTime();
+                                logger.info("time: " + time);
+
                                 // Remove the current in-progress candle
-                                int time=0;
-
-                                logger.info("time: " + time + ", endTime: " + endTime.get());
-                                time = (int) Date.from(Instant.parse(res.get("time").asText())).getTime();
-
-//                                    time = (int) Date.from(Instant.parse(res.get(i).get("time").asText())).getTime();
-                                //endTime.set(stTime);
-                                logger.info("time: " + time + ", endTime: " + endTime.get());
-                                if (time+ secondsPerCandle > endTime.get()) {
+                                if (time + secondsPerCandle > endTime.get()) {
                                     ((ArrayNode) res).remove(0);
                                 }
-                                endTime.set(time + secondsPerCandle);
-
-                                ArrayList<CandleData> candleData = new ArrayList<>();
+                                endTime.set(startTime);
+                                List<CandleData> candleData = new ArrayList<>();
                                 for (JsonNode candle : res.get("candles").get("mid")) {
                                     candleData.add(new CandleData(
                                             candle.get("o").asDouble(),  // open price
@@ -1015,19 +996,16 @@ ArrayList<Currency> instrumentsList = new ArrayList<>();
                                             time,     // open time
                                             res.get("candle").get("volume").asDouble()   // volume
                                     ));
-                                    out.println("time: " + time + ", endTime: " + endTime.get());
-                                    out.println("o: " + candle.get("o").asDouble() +
-                                            ", c: " + candle.get("c").asDouble() +
-                                            ", h: " + candle.get("h").asDouble() +
-                                            ", l: " + candle.get("l").asDouble() +
-                                            ", v: " + candle.get("volume").asDouble()
+                                    out.println("CandleData " + candleData);
+                                    logger.info(
+                                            "CandleData: " + candleData
                                     );
                                 }
-                                logger.info("CandleData :--> " + candleData);
+
                                 candleData.sort(Comparator.comparingInt(CandleData::getOpenTime));
                                 return candleData;
                             } else {
-                                logger.info("Empty response");
+                                logger.info("Oanda Empty response");
                                 return Collections.emptyList();
                             }
                         } catch (Exception ex) {

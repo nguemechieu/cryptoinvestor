@@ -119,36 +119,42 @@ symbolChoicebox.setValue(data1);
 
 
         Button tradingBtn = new Button("TRADING BUTTONS");
-        String[] finalDat = dat[0];
         tradingBtn.setOnAction(
                 event -> {
 
 
-                    StackPane stackPane = new StackPane();
-                    stackPane.setPrefSize(500, 230);
                     GridPane gridPane = new GridPane();
-                    gridPane.setPrefSize(500, 230);
-                    gridPane.setHgap(10);
-                    gridPane.setVgap(10);
+                    gridPane.setHgap(20);
+
+
+                    gridPane.add(
+                            new Label(exchange.getName()), 0, 0
+                    );
+                    gridPane.setVgap(20);
                     gridPane.setPadding(new Insets(10, 10, 10, 10));
                     Spinner<Double> spinner = new Spinner<>(0.01, 100000, 0);
-                    gridPane.add(spinner, 1, 0);
+                    spinner.setEditable(true);
+                    spinner.setValueFactory(new SpinnerValueFactory.DoubleSpinnerValueFactory(0.01, 100000, 0));
+
+                    gridPane.add(spinner, 1, 1);
                     Button btnBuy = new Button("BUY");
 
 
                     btnBuy.setOnAction(
                             event1 -> {
-
                                 try {
                                     exchange.createOrder(
-                                            new TradePair(finalDat[0], finalDat[1]),
+                                            new TradePair(
+                                                    dat[0][0], dat[0][1]
+                                            ),
                                             POSITION_FILL.DEFAULT_FILL,
-                                            price[0],
+                                            0,
                                             ENUM_ORDER_TYPE.MARKET
                                             , cryptoinvestor.cryptoinvestor.Side.BUY,
                                             quantity,
                                             stopPrice,
                                             takeProfitPrice
+
                                     );
                                 } catch (IOException | InterruptedException e) {
                                     throw new RuntimeException(e);
@@ -165,9 +171,7 @@ symbolChoicebox.setValue(data1);
                             event1 -> {
                                 try {
                                     exchange.createOrder(
-                                            new TradePair(
-                                                    symbolChoicebox.getValue(),
-                                                    counterChoicebox.getValue()
+                                            new TradePair(dat[0][0], dat[0][1]
                                             ),
                                             POSITION_FILL.DEFAULT_FILL,
                                             price[0],
@@ -186,7 +190,7 @@ symbolChoicebox.setValue(data1);
                     );
 
 
-                    gridPane.add(btnSell, 1, 1);
+                    gridPane.add(btnSell, 1, 2);
 
                     Button closeAll = new Button("CLOSE ALL");
                     closeAll.setOnAction(event1 -> {
@@ -197,14 +201,14 @@ symbolChoicebox.setValue(data1);
                         }
                     });
 
-                    gridPane.add(closeAll, 3, 0);
+                    gridPane.add(closeAll, 3, 2);
                     Button trailingBuy = new Button("TRAILING BUY");
                     Button trailingSell = new Button("TRAILING SELL");
                     trailingSell.setOnAction(event2 -> {
 
                         try {
                             exchange.createOrder(
-                                    new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()),
+                                    new TradePair(dat[0][0], dat[0][1]),
                                     POSITION_FILL.DEFAULT_FILL, price[0],
                                     ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
                                     cryptoinvestor.cryptoinvestor.Side.SELL,
@@ -222,7 +226,7 @@ symbolChoicebox.setValue(data1);
 
                         try {
                             exchange.createOrder(
-                                    new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()),
+                                    new TradePair(dat[0][0], dat[0][1]),
                                     POSITION_FILL.DEFAULT_FILL, price[0],
                                     ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
                                     cryptoinvestor.cryptoinvestor.Side.BUY,
@@ -238,26 +242,26 @@ symbolChoicebox.setValue(data1);
                     });
 
 
-                    gridPane.add(trailingBuy, 4, 0);
-                    gridPane.add(trailingSell, 4, 1);
+                    gridPane.add(trailingBuy, 4, 1);
+                    gridPane.add(trailingSell, 4, 2);
 
                     Button buyStopBtn = new Button("BUY STOP");
                     Button sellStopBtn = new Button("SELL STOP");
                     Button sellCancelBtn = new Button("SELL CANCEL");
                     Button buyCancelBtn = new Button("BUY CANCEL");
                     Button cancelAllBtn = new Button("CANCEL ALL");
-                    gridPane.add(buyStopBtn, 0, 6);
-                    gridPane.add(sellStopBtn, 2, 6);
-                    gridPane.add(sellCancelBtn, 2, 7);
-                    gridPane.add(buyCancelBtn, 0, 8);
-                    gridPane.add(cancelAllBtn, 3, 8);
+                    gridPane.add(buyStopBtn, 0, 7);
+                    gridPane.add(sellStopBtn, 2, 7);
+                    gridPane.add(sellCancelBtn, 2, 8);
+                    gridPane.add(buyCancelBtn, 0, 9);
+                    gridPane.add(cancelAllBtn, 3, 9);
 
 
                     buyStopBtn.setOnAction(
                             event3 -> {
                                 try {
                                     exchange.createOrder(
-                                            new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()),
+                                            new TradePair(dat[0][0], dat[0][1]),
                                             POSITION_FILL.DEFAULT_FILL, price[0],
                                             ENUM_ORDER_TYPE.STOP_LOSS,
                                             cryptoinvestor.cryptoinvestor.Side.SELL,
@@ -271,7 +275,7 @@ symbolChoicebox.setValue(data1);
                                         event4 -> {
                                             try {
                                                 exchange.createOrder(
-                                                        new TradePair(symbolChoicebox.getValue(), counterChoicebox.getValue()),
+                                                        new TradePair(dat[0][0], dat[0][1]),
                                                         POSITION_FILL.DEFAULT_FILL, price[0],
                                                         ENUM_ORDER_TYPE.STOP_LOSS,
                                                         cryptoinvestor.cryptoinvestor.Side.SELL,
@@ -305,16 +309,13 @@ symbolChoicebox.setValue(data1);
 
                             });
 
-                    stackPane.getChildren().add(gridPane);
+                    gridPane.setStyle("-fx-background-color: #000000;");
 
                     Stage stage = new Stage();
-                    stackPane.setId("stackPane");
 
-                    stackPane.setScaleShape(true);
-                    stackPane.setScaleX(0.8);
 
                     stage.setTitle("Cryptoinvestor");
-                    stage.setScene(new Scene(stackPane, 600, 400));
+                    stage.setScene(new Scene(gridPane, 800, 300));
                     stage.setAlwaysOnTop(true);
                     stage.show();
                 });

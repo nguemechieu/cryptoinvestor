@@ -21,7 +21,8 @@ public class ConnectionScene extends Parent {
         gridPane.setHgap(10);
         gridPane.setVgap(10);
         gridPane.setPadding(new javafx.geometry.Insets(10, 10, 10,10));
-        gridPane.add(new Label("USER ID :"),0,0);
+        gridPane.add(new Label("USER ID :"), 0, 0);
+        gridPane.add(new Label(exchange.getName()), 3, 0);
         TextField userId=new TextField();
         userId.setPromptText("Enter your user id");
         gridPane.add(userId,1,0);
@@ -53,37 +54,34 @@ gridPane.add(btnConnect,1,3);
         }
 
             try {
-                exchange.connect(finalTextField.getText(), finalTextField.getText(),userId.getText());
+                exchange.connect(finalTextField.getText(), finalTextField.getText(), userId.getText());
             } catch (IOException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
             if (exchange.isConnected()) {
-            btnConnect.setBackground(
-                    Background.fill(javafx.scene.paint.Color.GREEN)
-            );
-        }btnConnect.setText(exchange.isConnected()? "Disconnect" : "Connect");
+                btnConnect.setBackground(
+                        Background.fill(javafx.scene.paint.Color.GREEN)
+                );
+            }
+            btnConnect.setText(exchange.isConnected() ? "Disconnect" : "Connect");
 
         });
 
 gridPane.setPadding(new javafx.geometry.Insets(10, 10, 10,10));
 gridPane.setHgap(10);
 gridPane.setVgap(10);
-gridPane.setAlignment(javafx.geometry.Pos.CENTER);
-gridPane.setPrefSize(600, 300);
-stackPane.setPrefSize(
-        gridPane.getPrefWidth(),
-        gridPane.getPrefHeight()
-);
+        gridPane.setAlignment(javafx.geometry.Pos.CENTER);
+        gridPane.setPrefSize(600, 300);
 
-        gridPane.setStyle("-fx-background-color:BLACK");
-        stackPane.setStyle("-fx-background-color:BLACK");
+        gridPane.setStyle("-fx-background-color: rgb(25,255,25,1);");
 
-stackPane.getChildren().add(gridPane);
-        getChildren().add(stackPane);
+        getChildren().add(gridPane);
         Scene scene = new Scene(this);
         Stage stage = new Stage();
         stage.setTitle("Cryptoinvestor");
         stage.setScene(scene);
+        stage.setResizable(false);
+        stage.centerOnScreen();
         stage.show();
 
     }

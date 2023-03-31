@@ -13,9 +13,11 @@ import cryptoinvestor.cryptoinvestor.*;
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.scene.Node;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
+import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -42,6 +44,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
+import static cryptoinvestor.cryptoinvestor.CurrencyDataProvider.getTradePairs;
+
 import static java.lang.System.nanoTime;
 import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
@@ -55,14 +59,18 @@ public class BinanceUs extends Exchange {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final ExchangeWebSocketClient websocket0 =
+            new BinanceUsWebSocket(getTradePairs());
 
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+    private final HttpClient client = HttpClient.newHttpClient();
     private String api_key;
-    private final HttpClient client=HttpClient.newHttpClient();
+    private String accountId;
     private boolean isConnected;
 
-    public BinanceUs(  String apiKey, String apiSecret, String accountId) {
-        super( null);
+
+    public BinanceUs(String apiKey, String apiSecret, String accountId) {
+        super(websocket0);
 
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             logger.error("BinanceUs " + nanoTime());
@@ -71,26 +79,411 @@ public class BinanceUs extends Exchange {
         });
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
-        requestBuilder.header(  "Origin", "https://api.binance.us");
+        requestBuilder.header("Origin", "https://api.binance.us");
         requestBuilder.header("Referer", "https://api.binance.us");
         requestBuilder.header("Sec-Fetch-Dest", "empty");
         requestBuilder.header("Sec-Fetch-Mode", "cors");
         requestBuilder.header("Accept", "application/json");
         requestBuilder.header("Authorization", "Bearer " + apiKey);
         logger.info("BinanceUs " + nanoTime());
-        this .api_key = apiKey;
+        this.api_key = apiKey;
+        this.isConnected = false;
+        this.accountId = accountId;
+
+
+    }
+
+    //api/v3/account
+    public Account getAccount() throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(
+                "https://api.binance.us/api/v3/account"
+        ));
+        requestBuilder.GET();
+        logger.info("BinanceUs " + nanoTime());
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info("BinanceUs " + nanoTime());
+        if (response.statusCode() == 200) {
+            {
+//                "makerCommission":15,
+//                    "takerCommission":15,
+//                    "buyerCommission":0,
+//                    "sellerCommission":0,
+//                    "commissionRates":{
+//                "maker":"0.00150000",
+//                        "taker":"0.00150000",
+//                        "buyer":"0.00000000",
+//                        "seller":"0.00000000"
+//            },
+//                "canTrade":true,
+//                    "canWithdraw":true,
+//                    "canDeposit":true,
+//                    "brokered":false,
+//                    "requireSelfTradePrevention":false,
+//                    "updateTime":123456789,
+//                    "accountType":"SPOT",
+//                    "balances":[
+//                {
+//                    "asset":"BTC",
+//                        "free":"4723846.89208129",
+//                        "locked":"0.00000000"
+//                },
+//                {
+//                    "asset":"LTC",
+//                        "free":"4763368.68006011",
+//                        "locked":"0.00000000"
+//                }
+//    ],
+//                "permissions":[
+//                "SPOT"
+//    ]
+                JsonNode jsonNode = OBJECT_MAPPER.readTree(response.body());
+                Account account = new Account();
+                account.setBalance(jsonNode.get("balances").get(0).get("free").asDouble());
+                account.setAsset(jsonNode.get("balances").get(0).get("asset").asText());
+                account.setCanTrade(jsonNode.get("canTrade").asBoolean());
+                account.setCanWithdraw(jsonNode.get("canWithdraw").asBoolean());
+                account.setCanDeposit(jsonNode.get("canDeposit").asBoolean());
+                account.setBrokered(jsonNode.get("brokered").asBoolean());
+                account.setRequireSelfTradePrevention(jsonNode.get("requireSelfTradePrevention").asBoolean());
+                account.setUpdateTime(jsonNode.get("updateTime").asLong());
+                account.setAccountType(jsonNode.get("accountType").asText());
+                account.setCommissionRates(jsonNode.get("commissionRates").get("maker").asDouble(),
+                        jsonNode.get("commissionRates").get("taker").asDouble(),
+                        jsonNode.get("commissionRates").get("buyer").asDouble(),
+                        jsonNode.get("commissionRates").get("seller").asDouble());
+                return account;
+
+
+            }
+        } else {
+            logger.error("BinanceUs " + nanoTime());
+            logger.error("BinanceUs " + response.statusCode());
+            logger.error("BinanceUs " + response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error");
+            alert.setContentText(response.body());
+            alert.showAndWait();
+        }
+        return
+                null;
+    }
+
+    //GET /sapi/v1/asset/query/trading-fee
+    public double getTradingFee() throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(
+                "https://api.binance.us/sapi/v1/asset/query/trading-fee"
+        ));
+        requestBuilder.GET();
+        logger.info("BinanceUs " + nanoTime());
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info("BinanceUs " + nanoTime());
+
+        if (response.statusCode() != 200) {
+            logger.error("BinanceUs " + nanoTime());
+            logger.error("BinanceUs " + response.statusCode());
+            logger.error("BinanceUs " + response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error");
+            alert.setContentText(response.body());
+            alert.showAndWait();
+        }
+//        [
+//        {
+//            "symbol": "1INCHUSD",
+//                "makerCommission": "0.004",
+//                "takerCommission": "0.006"
+//        },
+//        {
+//            "symbol": "1INCHUSDT",
+//                "makerCommission": "0.004",
+//                "takerCommission": "0.006"
+//        }
+//]
+        JsonNode jsonNode = OBJECT_MAPPER.readTree(response.body());
+
+        String symbol = jsonNode.get(0).get("symbol").asText();
+        double makerCommission = jsonNode.get(0).get("makerCommission").asDouble();
+        double takerCommission = jsonNode.get(0).get("takerCommission").asDouble();
+
+
+        logger.info("BinanceUs " + nanoTime());
+        logger.info("BinanceUs " + response.statusCode());
+        logger.info("BinanceUs " + response.body());
+        logger.info("BinanceUs " + symbol);
+        logger.info("BinanceUs " + makerCommission);
+        logger.info("BinanceUs " + takerCommission);
+        return makerCommission + takerCommission;
+
+    }
+
+    // "GET" "$api_url/api/v3/order?orderId=$orderId&symbol=$symbol&timestamp=$timestamp&signature=$signature" \
+    //     -H "X-MBX-APIKEY: $api_key"
+    public List<Order> getOrder(@NotNull TradePair tradePair, String orderId) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(
+                "https://api.binance.us/api/v3/order/symbol=?" + tradePair.toString('/')
+        ));
+        requestBuilder.GET();
+        logger.info("BinanceUs " + nanoTime());
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info("BinanceUs " + nanoTime());
+        logger.info("BinanceUs " + response.statusCode());
+        logger.info("BinanceUs " + response.body());
+        logger.info("BinanceUs " + orderId);
+        if (response.statusCode() != 200) {
+            logger.error("BinanceUs " + nanoTime());
+            logger.error("BinanceUs " + response.statusCode());
+            logger.error("BinanceUs " + response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error");
+            alert.setContentText(response.body());
+            alert.showAndWait();
+        }
+        JsonNode jsonNode = OBJECT_MAPPER.readTree(response.body());
+
+
+        ArrayList<Order> orders = new ArrayList<>();
+        String symbol, orderListId;
+        for (int i = 0; i < jsonNode.size(); i++) {
+            if (jsonNode.get(i).has("symbol")) {
+                symbol = jsonNode.get(i).get("symbol").asText();
+                orderId = jsonNode.get(i).get("symbol").get("orderId").asText();
+                orderListId = String.valueOf(jsonNode.get(i).get("symbol").get("orderListId"));
+                logger.info(
+
+                        symbol
+                        ,
+                        orderId,
+                        orderListId
+                );
+
+            } else if (jsonNode.get(i).has("clientOrderId")) {
+
+//                "symbol": "LTCBTC",
+//                        "orderId": 1,
+//                        "orderListId": -1 //Unless part of an OCO, the value will always be -1.
+//                "clientOrderId": "myOrder1",
+//                        "price": "0.1",
+//                        "origQty": "1.0",
+//                        "executedQty": "0.0",
+//                        "cummulativeQuoteQty": "0.0",
+//                        "status": "NEW",
+//                        "timeInForce": "GTC",
+//                        "type": "LIMIT",
+//                        "side": "BUY",
+//                        "stopPrice": "0.0",
+//                        "icebergQty": "0.0",
+//                        "time": 1499827319559,
+//                        "updateTime": 1499827319559,
+//                        "isWorking": true,
+//                        "origQuoteOrderQty": "0.000000",
+//                        "workingTime":1507725176595,
+//                        "selfTradePreventionMode": "NONE"
+//            }
+
+                symbol = jsonNode.get(i).get("symbol").asText();
+                orderId = jsonNode.get(i).get("clientOrderId").asText();
+                orderListId = String.valueOf(jsonNode.get(i).get("clientOrderId").get("orderListId"));
+                String price = jsonNode.get(i).get("price").asText();
+                String origQty = jsonNode.get(i).get("origQty").asText();
+
+                String executedQty = jsonNode.get(i).get("executedQty").asText();
+                String cummulativeQuoteQty = jsonNode.get(i).get("cummulativeQuoteQty").asText();
+                String status = jsonNode.get(i).get("status").asText();
+                String timeInForce = jsonNode.get(i).get("timeInForce").asText();
+                String type = jsonNode.get(i).get("type").asText();
+                String side = jsonNode.get(i).get("side").asText();
+                String stopPrice = jsonNode.get(i).get("stopPrice").asText();
+                String icebergQty = jsonNode.get(i).get("icebergQty").asText();
+                String time = String.valueOf(jsonNode.get(i).get("time").asLong());
+                String updateTime = String.valueOf(jsonNode.get(i).get("updateTime").asLong());
+                String isWorking = String.valueOf(jsonNode.get(i).get("isWorking").asBoolean());
+                String origQuoteOrderQty = jsonNode.get(i).get("origQuoteOrderQty").asText();
+                String workingTime = String.valueOf(jsonNode.get(i).get("workingTime").asLong());
+                String selfTradePreventionMode = jsonNode.get(i).get("selfTradePreventionMode").asText();
+
+
+                Order order = new Order(symbol, orderId, orderListId,
+                        price, origQty, executedQty, cummulativeQuoteQty, status, timeInForce, type, side, stopPrice, icebergQty, time, updateTime, isWorking, origQuoteOrderQty, workingTime, selfTradePreventionMode);
+
+                orders.add(order);
+            }
+        }
+        logger.info("BinanceUs " + nanoTime());
+        logger.info("BinanceUs " + response.statusCode());
+        logger.info("BinanceUs " + response.body());
+
+        return orders;
+    }
+
+    //    Get Trades
+//    Example
+//
+//# Get HMAC SHA256 signature
+//
+//    timestamp=`date +%s000`
+//
+//    api_key=<your_api_key>
+//    secret_key=<your_secret_key>
+//
+//    api_url="https://api.binance.us"
+//
+//    signature=`echo -n "symbol=BNBBTC&timestamp=$timestamp" | openssl dgst -sha256 -hmac $secret_key`
+//
+//    curl -X "GET" "$api_url/api/v3/myTrades?symbol=BNBBTC&timestamp=$timestamp&signature=$signature" \
+//            -H "X-MBX-APIKEY: $api_key"
+//    Response
+//
+//[
+//    {
+//        "symbol": "BNBBTC",
+//            "id": 28457,
+//            "orderId": 100234,
+//            "orderListId": -1,
+//            "price": "4.00000100",
+//            "qty": "12.00000000",
+//            "quoteQty": "48.000012",
+//            "commission": "10.10000000",
+//            "commissionAsset": "BNB",
+//            "time": 1499865549590,
+//            "isBuyer": true,
+//            "isMaker": false,
+//            "isBestMatch": true
+//    }
+//]
+//    GET /api/v3/myTrades (HMAC SHA256)
+    public List<Trade> getTrades(@NotNull TradePair tradePair) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(
+                "https://api.binance.us/api/v3/myTrades?symbol=" + tradePair.toString('/')
+        ));
+        requestBuilder.GET();
+
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info("BinanceUs " + nanoTime());
+        logger.info("BinanceUs " + response.statusCode());
+        logger.info("BinanceUs " + response.body());
+        logger.info("BinanceUs " + tradePair);
+
+        List<Trade> trades = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode jsonNode = mapper.readTree(response.body());
+        for (int i = 0; i < jsonNode.size(); i++) {
+            Trade trade = new Trade(jsonNode.get(i).get("symbol").asText(),
+                    jsonNode.get(i).get("id").asLong(),
+                    jsonNode.get(i).get("orderId").asLong(),
+                    jsonNode.get(i).get("orderListId").asLong(),
+                    jsonNode.get(i).get("price").asText(),
+                    jsonNode.get(i).get("qty").asText(),
+                    jsonNode.get(i).get("quoteQty").asText(),
+                    jsonNode.get(i).get("commission").asText(),
+                    jsonNode.get(i).get("commissionAsset").asText(),
+                    jsonNode.get(i).get("time").asLong(),
+                    jsonNode.get(i).get("isBuyer").asBoolean(),
+                    jsonNode.get(i).get("isMaker").asBoolean(),
+                    jsonNode.get(i).get("isBestMatch").asBoolean());
+        }
+        return trades;
+    }
+
+    public void cancelOrder(@NotNull TradePair tradePair, long orderId) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(
+                "https://api.binance.us/api/v3/order/symbol=?" + tradePair.toString('/')
+        ));
+        requestBuilder.DELETE();
+        logger.info("BinanceUs " + nanoTime());
+
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info("BinanceUs " + nanoTime());
+        logger.info("BinanceUs " + response.statusCode());
+        logger.info("BinanceUs " + response.body());
+        logger.info("BinanceUs " + orderId);
+    }
+
+//    Cancel Open Orders for Symbol
+//            Example
+//
+//# Get HMAC SHA256 signature
+//
+//    timestamp=`date +%s000`
+//
+//    api_key=<your_api_key>
+//    secret_key=<your_secret_key>
+//    symbol=<symbol>
+//
+//    api_url="https://api.binance.us"
+//
+//    signature=`echo -n "symbol=$symbol&timestamp=$timestamp" | openssl dgst -sha256 -hmac $secret_key`
+//
+//    curl -X "DELETE" "$api_url/api/v3/openOrders?symbol=$symbol&timestamp=$timestamp&signature=$signature" \
+//            -H "X-MBX-APIKEY: $api_key"
+//    Response
+//
+//[
+//    {
+//        "symbol": "BTCUSDT",
+//            "origClientOrderId": "KZJijIsAFf5BU5oxkWTAU3",
+//            "orderId": 0,
+//            "orderListId": -1,
+//            "clientOrderId": "8epSIUMvNCknntXcSzWs7H",
+//            "price": "0.10000000",
+//            "origQty": "1.00000000",
+//            "executedQty": "0.00000000",
+//            "cummulativeQuoteQty": "0.00000000",
+//            "status": "CANCELED",
+//            "timeInForce": "GTC",
+//            "type": "LIMIT",
+//            "side": "BUY"
+//    }
+//]
+//    DELETE /api/v3/openOrders (HMAC SHA256)
+
+    public void cancelOpenOrder(@NotNull TradePair tradePair, long orderId) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(
+                "https://api.binance.us/api/v3/openOrders?symbol=?" + tradePair.toString('/')
+        ));
+        requestBuilder.DELETE();
+        logger.info("BinanceUs " + nanoTime());
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info("BinanceUs " + nanoTime());
+
+        if (response.statusCode() != 200) {
+            logger.error("BinanceUs " + nanoTime());
+            logger.error("BinanceUs " + response.statusCode());
+            logger.error("BinanceUs " + response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error");
+            alert.setContentText(response.body());
+            alert.showAndWait();
+        } else {
+            logger.info("BinanceUs " + nanoTime());
+            logger.info("BinanceUs " + response.statusCode());
+            logger.info("BinanceUs " + response.body());
+            logger.info("BinanceUs " + orderId);
+
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode jsonNode = mapper.readTree(response.body());
+
+
+        }
 
     }
 
 
-    public void createOrder(TradePair tradePair, double price, ENUM_ORDER_TYPE type, Side side, double quantity, double stopLoss1, double takeProfit1) throws IOException, InterruptedException {
+    public void createOrder(@NotNull TradePair tradePair, double price, @NotNull ENUM_ORDER_TYPE type, @NotNull Side side, double quantity, double stopLoss1, double takeProfit1) throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(
-                "https://api.binance.us/api/v3/order"
+                "https://api.binance.us/api/v3/order/symbol=?" + tradePair.toString('/')
         ));
-
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
+                "{\"symbol\":\"" + tradePair.toString('/') + "\",\"side\":\"" + side + "\",\"type\":\"" + type + "\",\"timeInForce\":\"GTC\",\"quantity\":\"" + quantity + "\",\"price\":\"" + price + "\",\"stopPrice\":\"" + stopLoss1 + "\",\"takeProfit\":\"" + takeProfit1 + "\"}"
+        ));
         logger.info("BinanceUs " + nanoTime());
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         logger.info("BinanceUs " + nanoTime());
+
+
         if (response.statusCode() != 200) {
             logger.error("BinanceUs " + nanoTime());
             logger.error("BinanceUs " + response.statusCode());
@@ -2747,13 +3140,7 @@ public class BinanceUs extends Exchange {
 
         JsonNode json = OBJECT_MAPPER.readTree(response.body());
       //  System.out.println(json);
-        System.out.println(json.get("symbols").toString());
-        System.out.println(json.get("symbols").get(0).get("status").asText());
-        System.out.println(json.get("symbols").get(0).get("baseAsset").asText());
-        System.out.println(json.get("symbols").get(0).get("baseAssetPrecision").asText());
-        System.out.println(json.get("symbols").get(0).get("quoteAsset").asText());
-        System.out.println(json.get("symbols").get(0).get("quotePrecision").asText());
-        System.out.println(json.get("symbols").get(0).get("quoteAssetPrecision").asText());
+
 
         List<Currency> currencies = new ArrayList<>();
 
@@ -2790,36 +3177,68 @@ if (jsonObject.has("symbols")) {
         String quoteOrderQtyMarketAllowed = jsonNode.get("quoteOrderQtyMarketAllowed").asText();
         String allowTrailingStop = jsonNode.get("allowTrailingStop").asText();
         String cancelReplaceAllowed = jsonNode.get("cancelReplaceAllowed").asText();
-
+        logger.info(
+                "symbol: " + symbol + "\n" +
+                        "status: " + status + "\n" +
+                        "baseAsset: " + baseAsset + "\n" +
+                        "baseAssetPrecision: " + baseAssetPrecision + "\n" +
+                        "quoteAsset: " + quoteAsset + "\n" +
+                        "quotePrecision: " + quotePrecision + "\n" +
+                        "quoteAssetPrecision: " + quoteAssetPrecision + "\n" +
+                        "baseCommissionPrecision: " + baseCommissionPrecision + "\n" +
+                        "quoteCommissionPrecision: " + quoteCommissionPrecision + "\n" +
+                        "orderTypes: " + orderTypes + "\n" +
+                        "icebergAllowed: " + icebergAllowed + "\n" +
+                        "ocoAllowed: " + ocoAllowed + "\n" +
+                        "quoteOrderQtyMarketAllowed: " + quoteOrderQtyMarketAllowed + "\n" +
+                        "allowTrailingStop: " + allowTrailingStop + "\n" +
+                        "cancelReplaceAllowed: " + cancelReplaceAllowed + "\n" +
+                        "isSpotTradingAllowed: " + jsonNode.get("isSpotTradingAllowed").asText() + "\n" +
+                        "isMarginTradingAllowed: " + jsonNode.get("isMarginTradingAllowed").asText() + "\n"
+        );
         currencies.add(new Currency(CurrencyType.CRYPTO, symbol, "", symbol,
-                Integer.parseInt(baseAssetPrecision), symbol, "") {
-            @Override
-            public int compareTo(@NotNull Currency o) {
-                return 0;
-            }
+                               Integer.parseInt(baseAssetPrecision), symbol, "") {
+                           @Override
+                           public int compareTo(@NotNull Currency o) {
+                               return 0;
+                           }
 
-            @Override
-            public int compareTo(java.util.@NotNull Currency o) {
-                return 0;
-            }
+                           @Override
+                           public int compareTo(java.util.@NotNull Currency o) {
+                               return 0;
+                           }
 
 
-        }
-
+                       }
 
 
         );
 
     }
-
+    logger.info(currencies.toString());
+    return currencies;
 }else {logger.error("No symbols found");}
 
         return currencies;
     }
 
     @Override
-    public void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) {
+    public void createOrder(@NotNull TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, @NotNull Side buy, double quantity, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException {
 
+        URI uri = URI.create("https://api.binance.us/api/v3/order/symbol?" + tradePair.toString('/')
+                + "&side=" + buy + "&type=LIMIT&timeInForce=GTC&quantity=" + quantity
+                + "&price=" + price + "&stopPrice=" + stopPrice + "&takeProfitPrice="
+                + takeProfitPrice + "&newClientOrderId=" + UUID.randomUUID());
+
+        requestBuilder.uri(uri);
+
+        HttpResponse<String> response = client.send(
+                requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        );
+        JSONObject json = new JSONObject(response.body());
+        System.out.println(json);
+        System.out.println(json.get("orderId"));
     }
 
     @Override
@@ -2875,23 +3294,134 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
     }
 
     @Override
-    public Node getAllOrders() throws IOException, InterruptedException {
+    public ListView<Order> getAllOrders() throws IOException, InterruptedException {
+
+        String uriStr = "https://api.binance.us/api/v3/orders";
+
+        requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.GET();
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+
+        JSONObject jsonObject = new JSONObject(response.body());
+        if (response.statusCode() == 200) {
+
+            System.out.println(jsonObject.toString(4));
+            ObservableList<Order> ob = FXCollections.observableArrayList();
+
+            for (
+                    int i = 0;
+                    i < jsonObject.getJSONArray("orders").length();
+                    i++
+            ) {
+
+                JSONObject obj = (JSONObject) jsonObject.getJSONArray("orders").get(i);
+                System.out.println(obj.toString());
+                Order order = new Order(
+                        obj.getString("clientTradeID"),
+                        obj.getString("triggerCondition"),
+                        obj.getString("createTime"),
+                        obj.getString("price"),
+                        obj.getString("clientTradeID"),
+                        obj.getString("state"),
+                        obj.getString("timeInForce"),
+                        obj.getString("tradeID")
+                );
+                // orders.put(order, order);
+                ob.add(order);
+                logger.info(order.toString());
+
+
+            }
+            return new ListView<>(ob);
+        } else {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+        }
         return null;
+
     }
+
 
     @Override
     public void cancelOrder(long orderID) throws IOException, InterruptedException {
+        requestBuilder.uri(
+                URI.create("https://api.binance.us/api/v3/order/" + orderID)
+        );
+        requestBuilder.DELETE();
+
+        HttpResponse<String> response = client.send(
+                requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        );
+        JSONObject json = new JSONObject(response.body());
+        System.out.println(json);
+        System.out.println(json.get("status"));
+        System.out.println(json.get("message"));
+        System.out.println(json.get("serverTime"));
+        System.out.println(json.get("time"));
+        if (json.get("status").equals("ok")) {
+            System.out.println(json.get("serverTime"));
+            System.out.println(json.get("time"));
+            isConnected = true;
+        } else {
+            isConnected = false;
+        }
 
     }
 
     @Override
-    public void cancelAllOrders() {
+    public void cancelAllOrders() throws IOException, InterruptedException {
+        requestBuilder.uri(
+                URI.create("https://api.binance.us/api/v3/orders")
+        );
+        requestBuilder.DELETE();
+
+        HttpResponse<String> response = client.send(
+                requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        );
+        JSONObject json = new JSONObject(response.body());
+        System.out.println(json);
+        System.out.println(json.get("status"));
+        System.out.println(json.get("message"));
+        System.out.println(json.get("serverTime"));
+        System.out.println(json.get("time"));
+        if (json.get("status").equals("ok")) {
+            System.out.println(json.get("serverTime"));
+            System.out.println(json.get("time"));
+            isConnected = true;
+        } else {
+            isConnected = false;
+        }
 
 
     }
 
     @Override
-    public void cancelAllOpenOrders() {
+    public void cancelAllOpenOrders() throws IOException, InterruptedException {
+        requestBuilder.uri(
+                URI.create("https://api.binance.us/api/v3/openOrders")
+        );
+        requestBuilder.DELETE();
+
+        HttpResponse<String> response = client.send(
+                requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        );
+        JSONObject json = new JSONObject(response.body());
+        System.out.println(json);
+        System.out.println(json.get("status"));
+        System.out.println(json.get("message"));
+        System.out.println(json.get("serverTime"));
+        System.out.println(json.get("time"));
+        if (json.get("status").equals("ok")) {
+            System.out.println(json.get("serverTime"));
+            System.out.println(json.get("time"));
+            isConnected = true;
+        } else {
+            isConnected = false;
+        }
 
     }
 
@@ -2900,50 +3430,84 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
         ListView<Order> orders = new ListView<>();
 
         requestBuilder.uri(
-                URI.create(
-                        "https://api.binance.us/api/v3/allOrders"
-                )
+                URI.create("https://api.binance.us/api/v3/orders")
         );
 
-            HttpResponse<String> response = client.send(
-                    requestBuilder.build(),
-                    HttpResponse.BodyHandlers.ofString()
-            );
-            JsonNode json = OBJECT_MAPPER.readTree(response.body());
-            System.out.println(json);
+        HttpResponse<String> response = client.send(
+                requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        );
+        JsonNode json = OBJECT_MAPPER.readTree(response.body());
+        System.out.println(json);
 //            System.out.println(json.get("orders").toString());
-//
-//            for (JsonNode jsonNode : json.get("orders")) {
-//                System.out.println(jsonNode.get("orderId").asText());
-//                System.out.println(jsonNode.get("clientOrderId").asText());
-//                System.out.println(jsonNode.get("symbol").asText());
-//                System.out.println(jsonNode.get("side").asText());
-//                System.out.println(jsonNode.get("status").asText());
-//                System.out.println(jsonNode.get("type").asText());
-//                System.out.println(jsonNode.get("timeInForce").asText());
-//                System.out.println(jsonNode.get("price").asText());
-//                System.out.println(jsonNode.get("origQty").asText());
-//                System.out.println(jsonNode.get("executedQty").asText());
-//                System.out.println(jsonNode.get("cummulativeQuoteQty").asText());
-//                System.out.println(jsonNode.get("icebergQty").asText());
-//
-//                String orderId = jsonNode.get("orderId").asText();
-//                String clientOrderId = jsonNode.get("clientOrderId").asText();
-//                String symbol = jsonNode.get("symbol").asText();
-//                String side = jsonNode.get("side").asText();
-//                String status = jsonNode.get("status").asText();
-//                String type = jsonNode.get("type").asText();
-//                String timeInForce = jsonNode.get("timeInForce").asText();
-//                String price = jsonNode.get("price").asText();
-//                String origQty = jsonNode.get("origQty").asText();
-//                String executedQty = jsonNode.get("executedQty").asText();
-//                String cummulativeQuoteQty = jsonNode.get("cummulativeQuoteQty").asText();
-//                String icebergQty = jsonNode.get("icebergQty").asText();
-//
-//                orders.getItems().add(new Order(orderId, clientOrderId, symbol, side, status, type,
-//                        timeInForce, price, origQty, executedQty, cummulativeQuoteQty, icebergQty));
-          //  }
+//[
+//  {
+//    "symbol": "LTCBTC",
+//    "orderId": 1,
+//    "orderListId": -1, //Unless OCO, the value will always be -1
+//    "clientOrderId": "myOrder1",
+//    "price": "0.1",
+//    "origQty": "1.0",
+//    "executedQty": "0.0",
+//    "cummulativeQuoteQty": "0.0",
+//    "status": "NEW",
+//    "timeInForce": "GTC",
+//    "type": "LIMIT",
+//    "side": "BUY",
+//    "stopPrice": "0.0",
+//    "icebergQty": "0.0",
+//    "time": 1499827319559,
+//    "updateTime": 1499827319559,
+//    "isWorking": true,
+//    "origQuoteOrderQty": "0.000000",
+//    "selfTradePreventionMode": "NONE"
+//  }
+//]
+        if (response.statusCode() == 200) {
+            ArrayNode arrayNode = (ArrayNode) json.get("orders");
+            for (int i = 0; i < arrayNode.size(); i++) {
 
+                JSONObject obj = new JSONObject(arrayNode.get(i).toString());
+                Order order = new Order(
+
+                        obj.getString("price"),
+                        obj.getString("timeInForce"),
+                        obj.getString("symbol"),
+                        obj.getString("orderId"),
+                        obj.getString("orderListId"),
+                        obj.getString("clientOrderId"),
+                        obj.getString("origQty"),
+                        obj.getString("executedQty"),
+                        obj.getString("cummulativeQuoteQty"),
+                        obj.getString("status"),
+                        obj.getString("type"),
+                        obj.getString("side"),
+                        obj.getString("stopPrice"),
+                        obj.getString("icebergQty"),
+                        obj.getString("time"),
+                        obj.getString("updateTime"),
+                        obj.getString("isWorking"),
+                        obj.getString("origQuoteOrderQty"),
+                        obj.getString("selfTradePreventionMode")
+
+
+                );
+                System.out.println(order);
+                orders.getItems().add(order);
+                logger.info(order.toString());
+
+            }
+
+        } else {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            return null;
+        }
 
         return orders;
 
@@ -2953,6 +3517,14 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
     @Override
     public List<Objects> getOrderBook() {
         return null;
+    }
+
+    public String getAccountId() {
+        return accountId;
+    }
+
+    public void setAccountId(String accountId) {
+        this.accountId = accountId;
     }
 
 

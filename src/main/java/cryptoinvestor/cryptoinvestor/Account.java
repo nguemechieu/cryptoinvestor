@@ -13,11 +13,60 @@ import java.util.Date;
 @Table(name = "Account")
 public class Account implements Serializable {
 
-String          uuid;
-//    string
+    String uuid;
+    //    string
 //    Unique identifier for account.
-String           name;
+    String name;
+    private String asset;
+    private boolean canTrade;
+    private boolean canWithdraw;
+    private boolean canDeposit;
+    private boolean brokered;
+    private boolean requireSelfTradePrevention;
+    private long updateTime;
+    private String accountType;
+    private double[] commissionRates;
+
+    public String getAsset() {
+        return asset;
+    }
     private double available;
+
+    public void setAsset(String asText) {
+        this.asset = asText;
+    }
+
+    public boolean isCanTrade() {
+        return canTrade;
+    }
+
+    public void setCanTrade(boolean canTrade) {
+        this.canTrade = canTrade;
+    }
+
+    public boolean isCanWithdraw() {
+        return canWithdraw;
+    }
+
+    public void setCanWithdraw(boolean canWithdraw) {
+        this.canWithdraw = canWithdraw;
+    }
+
+    public boolean isCanDeposit() {
+        return canDeposit;
+    }
+
+    public void setCanDeposit(boolean canDeposit) {
+        this.canDeposit = canDeposit;
+    }
+
+    public boolean isBrokered() {
+        return brokered;
+    }
+
+    public void setBrokered(boolean brokered) {
+        this.brokered = brokered;
+    }
 
     public String getUuid() {
         return uuid;
@@ -533,5 +582,41 @@ Object           hold;
 
     public void setAvailable(double available) {
         this.available = available;
+    }
+
+    public boolean isRequireSelfTradePrevention() {
+        return requireSelfTradePrevention;
+    }
+
+    public void setRequireSelfTradePrevention(boolean requireSelfTradePrevention) {
+        this.requireSelfTradePrevention = requireSelfTradePrevention;
+    }
+
+    public long getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(long updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getAccountType() {
+        return accountType;
+    }
+
+    public void setAccountType(String accountType) {
+        this.accountType = accountType;
+    }
+
+    public double[] getCommissionRates() {
+        return commissionRates;
+    }
+
+    public void setCommissionRates(double[] commissionRates) {
+        this.commissionRates = commissionRates;
+    }
+
+    public void setCommissionRates(double asDouble, double asDouble1, double asDouble2, double asDouble3) {
+        this.commissionRates = new double[]{asDouble, asDouble1, asDouble2, asDouble3};
     }
 }

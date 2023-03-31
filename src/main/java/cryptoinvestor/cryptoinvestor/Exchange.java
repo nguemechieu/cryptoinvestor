@@ -120,13 +120,16 @@ public abstract class Exchange {
 
     public abstract @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException;
 
-    public abstract void  createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException;
+    public abstract void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException;
 
     public abstract void closeAllOrders() throws IOException, InterruptedException;
 
+
     public abstract void cancelOrder(long orderID) throws IOException, InterruptedException;
-    public abstract void cancelAllOrders();
-    public abstract void cancelAllOpenOrders();
+
+    public abstract void cancelAllOrders() throws IOException, InterruptedException;
+
+    public abstract void cancelAllOpenOrders() throws IOException, InterruptedException;
 
 
     public abstract ListView<Order> getOrderView() throws IOException, InterruptedException, ParseException, URISyntaxException;

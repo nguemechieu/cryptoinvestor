@@ -46,7 +46,7 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
 
     public BinanceUsWebSocket(Set<TradePair> tradePairs) {
         super(URI.create(
-                "wss://stream.binance.us:9443/ws"
+                "wss://stream.binance.us:9443/ws/btcusdt@trade"
         ), new Draft_6455());
         logger.info("Binance us websocket client initialized");
     }

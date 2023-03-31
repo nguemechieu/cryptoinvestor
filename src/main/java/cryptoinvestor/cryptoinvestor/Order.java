@@ -14,6 +14,140 @@ import java.util.Date;
 
 public class Order extends RecursiveTreeObject<Order> {
 
+    String orderListId;
+    private String time;
+    private String clientOrderId;
+    private String selfTradePreventionMode;
+    private String updateTime;
+    private String origQuoteOrderQty;
+    private String isWorking;
+    private String stopPrice;
+    private String orderId;
+
+    public Order(String price, String timeInForce, String symbol, String orderId, String orderListId, String clientOrderId, String origQty, String executedQty, String cummulativeQuoteQty, String status, String type, String side, String stopPrice, String icebergQty, String time, String updateTime, String isWorking, String origQuoteOrderQty, String selfTradePreventionMode) {
+
+        this.price = price;
+        this.timeInForce = timeInForce;
+        this.symbol = symbol;
+        this.orderId = orderId;
+        this.orderListId = orderListId;
+        this.clientOrderId = clientOrderId;
+        this.origQty = origQty;
+        this.executedQty = executedQty;
+        this.cummulativeQuoteQty = cummulativeQuoteQty;
+        this.status = status;
+        this.type = ENUM_ORDER_TYPE.valueOf(type);
+        this.side = Side.valueOf(side);
+        this.stopPrice = stopPrice;
+        this.icebergQty = icebergQty;
+        this.time = time;
+        this.updateTime = updateTime;
+        this.isWorking = isWorking;
+        this.origQuoteOrderQty = origQuoteOrderQty;
+        this.selfTradePreventionMode = selfTradePreventionMode;
+    }
+
+    public Order(Long id, @NotNull TradePair tradePair, String timestamp, ENUM_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price
+
+            , double stopLoss, double takeProfit
+    ) {
+        this.id = id;
+        this.timestamp = timestamp;
+        this.order_type = order_type;
+        this.remaining = remaining;
+        this.fee = fee;
+        this.lotSize = lotSize;
+        this.price = String.valueOf(price);
+        this.stopLoss = stopLoss;
+        this.symbol = tradePair.getCounterCurrency().symbol;
+        this.type = order_type;
+
+        this.currency = tradePair.getCounterCurrency().symbol;
+        this.created = String.valueOf(new Date());
+        this.takeProfit = takeProfit;
+        this.updated = new Date();
+        this.side = side;
+        this.tradePair = tradePair;
+
+
+    }
+
+    public Order(String price, String timeInForce, String symbol, String orderId, String orderListId, String clientOrderId, String origQty, String executedQty, String cummulativeQuoteQty, String status, String type, String side, String stopPrice, String icebergQty, String updateTime, String isWorking, String origQuoteOrderQty, String selfTradePreventionMode) {
+        this.price = price;
+        this.timeInForce = timeInForce;
+        this.symbol = symbol;
+        this.orderId = orderId;
+        this.orderListId = orderListId;
+        this.clientOrderId = clientOrderId;
+        this.origQty = origQty;
+        this.executedQty = executedQty;
+        this.cummulativeQuoteQty = cummulativeQuoteQty;
+        this.status = status;
+        this.type = ENUM_ORDER_TYPE.valueOf(type);
+        this.side = Side.valueOf(side);
+        this.stopPrice = stopPrice;
+        this.icebergQty = icebergQty;
+        this.updateTime = updateTime;
+        this.isWorking = isWorking;
+        this.origQuoteOrderQty = origQuoteOrderQty;
+        this.selfTradePreventionMode = selfTradePreventionMode;
+    }
+
+    public String getClientOrderId() {
+        return clientOrderId;
+    }
+
+    public void setClientOrderId(String clientOrderId) {
+        this.clientOrderId = clientOrderId;
+    }
+
+    public String getSelfTradePreventionMode() {
+        return selfTradePreventionMode;
+    }
+
+    public void setSelfTradePreventionMode(String selfTradePreventionMode) {
+        this.selfTradePreventionMode = selfTradePreventionMode;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getOrigQuoteOrderQty() {
+        return origQuoteOrderQty;
+    }
+
+    public void setOrigQuoteOrderQty(String origQuoteOrderQty) {
+        this.origQuoteOrderQty = origQuoteOrderQty;
+    }
+
+    public String getIsWorking() {
+        return isWorking;
+    }
+
+    public void setIsWorking(String isWorking) {
+        this.isWorking = isWorking;
+    }
+
+    public String getOrderListId() {
+        return orderListId;
+    }
+
+    public void setOrderListId(String orderListId) {
+        this.orderListId = orderListId;
+    }
+
+    public void setStopPrice(String stopPrice) {
+        this.stopPrice = stopPrice;
+    }
+
+    public void setOrderId(String orderId) {
+        this.orderId = orderId;
+    }
     protected String created;
     String clientTradeID1;
     String triggerCondition, createTime,//": "2023-03-30T20:00:00.583871679Z",
@@ -48,30 +182,13 @@ public class Order extends RecursiveTreeObject<Order> {
         this.timeInForce = timeInForce;
         this.tradeID = tradeID;
     }
-    public Order(Long id, @NotNull TradePair tradePair, String timestamp, ENUM_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price
 
-            , double stopLoss, double takeProfit
-    ) {
-        this.id = id;
-        this.timestamp = timestamp;
-        this.order_type = order_type;
-        this.remaining = remaining;
-        this.fee = fee;
-        this.lotSize = lotSize;
-        this.price = String.valueOf(price);
-        this.stopLoss = stopLoss;
-        this.symbol = tradePair.getCounterCurrency().symbol;
-        this.type = order_type;
+    public String getClientTradeID1() {
+        return clientTradeID1;
+    }
 
-        this.currency = tradePair.getCounterCurrency().symbol;
-        this.created = String.valueOf(new Date());
-        this.takeProfit = takeProfit;
-        this.updated = new Date();
-        this.side = side;
-        this.tradePair = tradePair;
-
-
-
+    public void setClientTradeID1(String clientTradeID1) {
+        this.clientTradeID1 = clientTradeID1;
     }
 
     @Override
