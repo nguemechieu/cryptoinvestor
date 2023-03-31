@@ -45,14 +45,13 @@ import java.util.stream.Collectors;
 import static cryptoinvestor.cryptoinvestor.CandleStickChartUtils.*;
 import static cryptoinvestor.cryptoinvestor.ChartColors.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static javafx.scene.paint.Color.rgb;
 
 /**
  * A resizable chart that allows for analyzing the trading activity of a commodity over time. The chart is made up of
  * fixed-duration bars that range vertically from the price of the commodity at the beginning of the duration
  * (the open price) to the price at the end of the duration (the close price). Superimposed on these bars is a
  * line that ranges from the lowest price the commodity reached during the duration, to the highest price
- * reached. Hence, the name candle-stick chart (the line being the wick of a candle...although in this case it's
+ * reached. Hence the name candle-stick chart (the line being the wick of a candle...although in this case it's
  * a double-ended wick!). The candles are color-coded to represent the type of activity that occurred during the
  * duration of the candle, if the price of the commodity increased during the duration, the candle is colored
  * green and represents a "bullish" trading period. Conversely, if the price decreased then the candle is colored
@@ -85,7 +84,7 @@ public class CandleStickChart extends Region {
 
     /**
      * Maps an open time (as a Unix timestamp) to the computed candle data (high price, low price, etc.) for a trading
-     * period beginning with that opening time. Thus, the key "1601798498" would be mapped to the candle data for trades
+     * period beginning with that opening time. Thus the key "1601798498" would be mapped to the candle data for trades
      * from the period of 1601798498 to 1601798498 + secondsPerCandle.
      */
     private final NavigableMap<Integer, CandleData> data;
@@ -109,12 +108,12 @@ public class CandleStickChart extends Region {
     private final int secondsPerCandle;
     private Canvas canvas;
     private GraphicsContext graphicsContext;
-    private int candleWidth = 5;
+    private int candleWidth = 8;
     private double mousePrevX = -1;
     private double mousePrevY = -1;
     private double scrollDeltaXSum;
-    private double chartWidth = 900;
-    private double chartHeight = 700;
+    private double chartWidth = 800;
+    private double chartHeight = 600;
     private int inProgressCandleLastDraw = -1;
     private volatile ZoomLevel currZoomLevel;
     private volatile boolean paging;
@@ -131,7 +130,7 @@ public class CandleStickChart extends Region {
      *                           candle data, where successive supplies will be farther back in time
      * @param tradePair          the {@code TradePair} that this chart displays trading data for (the base (first) currency
      *                           will be the unit of the volume axis and the counter (second) currency will be the unit of the y-axis)
-     * @param liveSyncing        if {@literal true} the chart will be updated in real-time to reflect ongoing trading
+     * @param liveSyncing        if {@literal true} the chart will be updated in real-time to reflect on-going trading
      *                           activity
      * @param secondsPerCandle   the duration in seconds each candle represents
      * @param containerWidth     the width property of the parent node that contains the chart
@@ -179,7 +178,7 @@ public class CandleStickChart extends Region {
         )));
         yAxis.setTickLabelFormatter(new MoneyAxisFormatter(tradePair.getCounterCurrency()));
         extraAxis.setTickLabelFormatter(new MoneyAxisFormatter(tradePair.getBaseCurrency()));
-        Font axisFont = Font.font(FXUtils.getMonospacedFont(), 14);
+        Font axisFont = Font.font(FXUtils.getMonospacedFont(), 12);
         yAxis.setTickLabelFont(axisFont);
         xAxis.setTickLabelFont(axisFont);
         extraAxis.setTickLabelFont(axisFont);
@@ -190,7 +189,7 @@ public class CandleStickChart extends Region {
 
         // We want to extend the extra axis (volume) visually so that it encloses the chart area.
         extraAxisExtension = new Line();
-        Paint lineColor = rgb(195, 195, 195);
+        Paint lineColor = Color.rgb(195, 195, 195, 0.8);
         extraAxisExtension.setFill(lineColor);
         extraAxisExtension.setStroke(lineColor);
         extraAxisExtension.setSmooth(false);
@@ -214,7 +213,6 @@ public class CandleStickChart extends Region {
                 try {
                     websocketInitialized = exchange.getWebsocketClient().getInitializationLatch().await(
                             10, SECONDS);
-                    logger.info("Websocket client initialized " + exchange.getWebsocketClient().getInitializationLatch());
                 } catch (InterruptedException ex) {
                     logger.error("Interrupted while waiting for websocket client to be initialized: ", ex);
                 }
@@ -228,13 +226,13 @@ public class CandleStickChart extends Region {
                             exchange.getWebsocketClient().streamLiveTrades(tradePair, updateInProgressCandleTask);
 
                             updateInProgressCandleExecutor.scheduleAtFixedRate(updateInProgressCandleTask, 5, 5, SECONDS);
-                        logger.info("Started streaming live trades for " + tradePair);
+                            logger.info("Started streaming live trades for " + tradePair);
                         } catch (IOException | InterruptedException | ParseException e) {
                             throw new RuntimeException(e);
                         }
                     }
 
-                   updateInProgressCandleExecutor.scheduleAtFixedRate(updateInProgressCandleTask, 5, 5, SECONDS);
+                    updateInProgressCandleExecutor.scheduleAtFixedRate(updateInProgressCandleTask, 5, 5, SECONDS);
                 }
             });
         } else {
@@ -259,9 +257,11 @@ public class CandleStickChart extends Region {
                 chartWidth = (Math.floor(containerWidth.getValue().doubleValue() / candleWidth) * candleWidth) - 60 +
                         (float) (candleWidth / 2);
                 chartHeight = containerHeight.getValue().doubleValue();
-                canvas = new Canvas(chartWidth - 160, chartHeight);
-                xAxis.setTranslateY((containerHeight.getValue().doubleValue() - chartHeight) / 2
-                );
+                canvas = new Canvas(chartWidth - 160, chartHeight - 125);
+                //  xAxis.setTranslateY(chartHeight-160);
+
+                //yAxis.setTranslateX((containerWidth.getValue().doubleValue() - chartWidth+160) / 2);
+                //  extraAxis.setTranslateX((containerWidth.getValue().doubleValue() - chartWidth+160) / 2);
                 VBox.setVgrow(loadingIndicatorContainer, Priority.ALWAYS);
                 VBox.setVgrow(canvas, Priority.ALWAYS);
                 VBox.setVgrow(xAxis, Priority.ALWAYS);
@@ -411,7 +411,7 @@ public class CandleStickChart extends Region {
 
     /**
      * Sets the bounds of the x-axis either one full candle to the right or left, depending on the sign
-     * of deltaX. Currently, the magnitude of deltaX does not matter (each call to this method only moves
+     * of deltaX. Currently the magnitude of deltaX does not matter (each call to this method only moves
      * the duration of one full candle).
      *
      * @param deltaX set the bounds either one candle over to the right or left from the current position
@@ -465,10 +465,10 @@ public class CandleStickChart extends Region {
         extraAxisExtension.setStartX(-chartWidth + 37.5);
         extraAxisExtension.setEndX(-chartWidth + 37.5);
         extraAxisExtension.setStartY(0);
-        extraAxisExtension.setEndY((chartHeight) * 0.75);
+        extraAxisExtension.setEndY((chartHeight - yAxis.getHeight()) * 0.75);
 
         graphicsContext.setFill(Color.BLACK);
-        graphicsContext.fillRect(0, 0, chartWidth - 160, chartHeight - yAxis.getHeight());
+        graphicsContext.fillRect(0, 0, chartWidth - 100, chartHeight - 100);
         double top = snappedTopInset();
         double left = snappedLeftInset();
         top = snapPositionY(top);
@@ -476,7 +476,7 @@ public class CandleStickChart extends Region {
 
         // try and work out width and height of axes
         double xAxisWidth;
-        double xAxisHeight = 25; // guess x-axis height to start with
+        double xAxisHeight = 25; // guess x axis height to start with
         double yAxisWidth = 0;
         double yAxisHeight;
         for (int count = 0; count < 3; count++) {
@@ -504,7 +504,7 @@ public class CandleStickChart extends Region {
         left += yAxisWidth;
         xAxis.setLayoutX(left);
         yAxis.setLayoutX(yAxisX);
-        xAxis.setPrefSize(chartWidth - 20, xAxisHeight);
+        xAxis.setPrefSize(chartWidth - 120, xAxisHeight);
         yAxis.setPrefSize(yAxisWidth, chartHeight - 100);
         extraAxis.setPrefSize(yAxisWidth, (chartHeight - 100) * 0.25);
         yAxis.setTranslateX(chartWidth - 20);
@@ -560,7 +560,7 @@ public class CandleStickChart extends Region {
                     + tradePair.getBaseCurrency().getFullDisplayName() + " / " + tradePair.getCounterCurrency().getFullDisplayName());
 
             tradePairInfos.setFont(Font.font(32));
-            tradePairInfos.setFill(rgb(189, 189, 189, 0.6));
+            tradePairInfos.setFill(Color.rgb(189, 189, 189, 0.6));
             tradePairInfos.setTextAlignment(TextAlignment.CENTER);
             VBox.setVgrow(tradePairInfos, Priority.ALWAYS);
             Text infoLabel = new Text(numCandlesToSkip + " candles "+
@@ -575,25 +575,25 @@ public class CandleStickChart extends Region {
             infoLabel.setTextAlignment(TextAlignment.CENTER);
 
 
-telegram.run();
+            telegram.run();
             infoLabel.setText(
-                    "Timeframe  " + secondsPerCandle + "  seconds. "  +  "   Mode: " + selectedAutoTrading
-                            + "   BOT : " +   telegram.getUsername()+
+                    "Timeframe  " + secondsPerCandle + "  seconds. " + "   Mode: " + selectedAutoTrading
+                            + "   BOT : " + telegram.getUsername() +
 
-                            "    Current Price : " +inProgressCandle.getOpenPrice()+
+                            "    Current Price : " + inProgressCandle.getOpenPrice() +
                             "    Previous Price : " +
                             inProgressCandle.getLastPrice()
 
                             + "   Open : " +
-                            inProgressCandle.getOpenPrice()+
+                            inProgressCandle.getOpenPrice() +
                             "   Close : " +
 
-                                    inProgressCandle.getClosePriceSoFar() +
+                            inProgressCandle.getClosePriceSoFar() +
 
 
                             "   Change %: " +
                             ((inProgressCandle.getClosePriceSoFar() - inProgressCandle.getOpenPrice()) / inProgressCandle.getOpenPrice()) * 100 +
-                            "%"  +
+                            "%" +
 
                             "   High :  " +
                             inProgressCandle.getHighPriceSoFar() +
@@ -604,47 +604,43 @@ telegram.run();
 
             );
 
-telegram.sendMessage(
-        "Timeframe  " + secondsPerCandle + "  seconds. "  +  "   Mode: " + selectedAutoTrading
-                + "   BOT : " +   telegram.getUsername()+
+            telegram.sendMessage(
+                    "Timeframe  " + secondsPerCandle + "  seconds. " + "   Mode: " + selectedAutoTrading
+                            + "   BOT : " + telegram.getUsername() +
 
-                "    Current Price : " +inProgressCandle.getOpenPrice()+
-                "    Previous Price : " +
-                inProgressCandle.getLastPrice()
+                            "    Current Price : " + inProgressCandle.getOpenPrice() +
+                            "    Previous Price : " +
+                            inProgressCandle.getLastPrice()
 
-                + "   Open : " +
-                inProgressCandle.getOpenPrice()+
-                "   Close : " +
+                            + "   Open : " +
+                            inProgressCandle.getOpenPrice() +
+                            "   Close : " +
 
-                                        inProgressCandle.getClosePriceSoFar() +
+                            inProgressCandle.getClosePriceSoFar() +
 
 
-                "   Change %: " +
-                ((inProgressCandle.getClosePriceSoFar() - inProgressCandle.getOpenPrice()) / inProgressCandle.getOpenPrice()) * 100 +
-                "%" +
+                            "   Change %: " +
+                            ((inProgressCandle.getClosePriceSoFar() - inProgressCandle.getOpenPrice()) / inProgressCandle.getOpenPrice()) * 100 +
+                            "%" +
 
-                "   High :  " +
-                inProgressCandle.getHighPriceSoFar() +
-                "   Low :  " +
-                inProgressCandle.getLowPriceSoFar() +
-                "   Volume :  " +
-                inProgressCandle.getVolumeSoFar()
-);
-            telegram.run();
+                            "   High :  " +
+                            inProgressCandle.getHighPriceSoFar() +
+                            "   Low :  " +
+                            inProgressCandle.getLowPriceSoFar() +
+                            "   Volume :  " +
+                            inProgressCandle.getVolumeSoFar()
+            );
             infoLabel.setTextAlignment(TextAlignment.CENTER);
             infoLabel.setTranslateX(80);
             infoLabel.setTranslateY(40);
             infoLabel.setFill(Color.WHITE);
             infoLabel.setFont(Font.font(13));
             VBox.setVgrow(infoLabel, Priority.ALWAYS);
-
             getChildren().addAll(infoLabel, tradePairInfos);
-
         }
 
         graphicsContext.setFill(Color.BLACK);
-        graphicsContext.fillRect(0, 0, chartWidth - 160,
-                yAxis.getHeight() * chartHeight);
+        graphicsContext.fillRect(0, 0, chartWidth, chartHeight);
 
         double monetaryUnitsPerPixel = (yAxis.getUpperBound() - yAxis.getLowerBound()) / canvas.getHeight();
         double pixelsPerMonetaryUnit = 1d / monetaryUnitsPerPixel;
@@ -656,7 +652,7 @@ telegram.sendMessage(
         if (chartOptions.isHorizontalGridLinesVisible()) {
             // Draw horizontal grid lines aligned with y-axis major tick marks
             for (Axis.TickMark<Number> tickMark : yAxis.getTickMarks()) {
-                graphicsContext.setStroke(rgb(189, 189, 189, 0.7));
+                graphicsContext.setStroke(Color.rgb(189, 189, 189, 0.6));
                 graphicsContext.setLineWidth(1.5);
                 graphicsContext.strokeLine(0, tickMark.getPosition(), canvas.getWidth(), tickMark.getPosition());
             }
@@ -665,7 +661,7 @@ telegram.sendMessage(
         if (chartOptions.isVerticalGridLinesVisible()) {
             // Draw vertical grid lines aligned with x-axis major tick marks
             for (Axis.TickMark<Number> tickMark : xAxis.getTickMarks()) {
-                graphicsContext.setStroke(rgb(189, 189, 189, 0.6));
+                graphicsContext.setStroke(Color.rgb(189, 189, 189, 0.6));
                 graphicsContext.setLineWidth(1.5);
                 graphicsContext.strokeLine(tickMark.getPosition(), 0, tickMark.getPosition(), canvas.getHeight());
             }
@@ -683,7 +679,7 @@ telegram.sendMessage(
         double lastClose = -1;
         for (CandleData candleDatum : candlesToDraw.descendingMap().values()) {
             // and use that here instead of iterating over the candle data again.
-            if (candleIndex < currZoomLevel.getNumVisibleCandles() + 2) {
+            if (candleIndex < currZoomLevel.getNumVisibleCandles() + 3) {
                 // We don't want to draw the high/low markers off-screen, so we guard it with the above condition.
                 if (candleDatum.getHighPrice() > highestCandleValue) {
                     highestCandleValue = candleDatum.getHighPrice();
@@ -749,15 +745,15 @@ telegram.sendMessage(
 
                 // draw the candle bar
                 graphicsContext.beginPath();
-                graphicsContext.moveTo((canvas.getWidth() - (candleIndex * candleWidth)) + 1, candleYOrigin);
+                graphicsContext.moveTo((canvas.getWidth() - (candleIndex * candleWidth)) + 2, candleYOrigin);
                 graphicsContext.rect(canvas.getWidth() - (candleIndex * candleWidth), candleYOrigin,
-                        candleWidth - 1, candleHeight - 1);
+                        candleWidth - 2, candleHeight - 2);
                 graphicsContext.setFill(candleFillColor);
                 graphicsContext.fill();
                 graphicsContext.setStroke(candleBorderColor);
                 graphicsContext.setLineWidth(1);
                 graphicsContext.stroke();
-                graphicsContext.beginPath(); // : Delete this line?
+                //  graphicsContext.beginPath(); // : Delete this line?
 
                 // Draw high line (skip draw if the open (or close) is the same as the high.
                 boolean drawHighLine = true;
@@ -780,9 +776,9 @@ telegram.sendMessage(
                 if (drawHighLine) {
                     double candleHighValue = cartesianToScreenCoords((candleDatum.getHighPrice() -
                             yAxis.getLowerBound()) * pixelsPerMonetaryUnit);
-                    graphicsContext.moveTo(((canvas.getWidth() - (candleIndex * candleWidth)) + halfCandleWidth) - 1,
+                    graphicsContext.moveTo(((canvas.getWidth() - (candleIndex * (candleWidth - 100))) + halfCandleWidth) - 1,
                             candleYOrigin);
-                    graphicsContext.lineTo(((canvas.getWidth() - (candleIndex * candleWidth)) + halfCandleWidth) - 1,
+                    graphicsContext.lineTo(((canvas.getWidth() - (candleIndex * (candleWidth - 100))) + halfCandleWidth) - 1,
                             candleHighValue);
                     graphicsContext.stroke();
                 }
@@ -905,7 +901,7 @@ telegram.sendMessage(
             // We can use the minXValue of the current zoom level here because, given a sequence of zoom-levels
             // z(0), z(1), ... z(n) that the chart has gone through, z(x).minXValue <= z(y).minXValue for all x > y.
             // That is, if we are currently at a max/min zoom-level in zoomLevelMap, there is no other zoom-level that
-            // has a lower minXValue (assuming we did not start at the maximum or minimum zoom level).
+            // has a lower minXValue (assuming we did not start at the maximum or mimnimum zoom level).
             ZoomLevel newZoomLevel = new ZoomLevel(nextZoomLevelId, newCandleWidth, secondsPerCandle,
                     canvas.widthProperty(), getXAxisFormatterForRange(xAxis.getUpperBound() - newLowerBoundX),
                     currMinXValue);
@@ -914,7 +910,7 @@ telegram.sendMessage(
                     data.lastEntry().getValue().getOpenTime()) / secondsPerCandle, 0);
 
             // If there are less than numVisibleCandles on the screen, we want to be sure and check against what the
-            // lower bound *would be* if we had the full amount. Otherwise, we won't be able to calculate the correct
+            // lower bound *would be* if we had the full amount. Otherwise we won't be able to calculate the correct
             // extrema because the window size will be greater than the number of candles we have data for.
             if (newLowerBoundX - (numCandlesToSkip * secondsPerCandle) < currZoomLevel.getMinXValue()) {
                 // We need to try and request more data so that we can properly zoom out to this level.
@@ -1073,8 +1069,8 @@ telegram.sendMessage(
                 (int) Math.round(currZoomLevel.getNumVisibleCandles()));
         putExtremaForRemainingElements(currZoomLevel.getExtremaForCandleRangeMap(),
                 candleData.subList(
-                candleData.size() - (int) Math.floor(currZoomLevel.getNumVisibleCandles() - (liveSyncing ? 1 : 0)),
-                candleData.size())
+                        126 + candleData.size() - (int) Math.floor(currZoomLevel.getNumVisibleCandles() - (liveSyncing ? 1 : 0)),
+                        candleData.size())
         );
         setYAndExtraAxisBounds();
         data.putAll(candleData.stream().collect(Collectors.toMap(CandleData::getOpenTime, Function.identity())));
@@ -1097,7 +1093,7 @@ telegram.sendMessage(
             canvas.setWidth(chartWidth - 10);
             canvas.setHeight(chartHeight - 10);
 
-            // Because the chart has been resized, the number of visible candles has changed, and thus we must
+            // Because the chart has been resized, the number of visible candles has changed and thus we must
             // recompute the sliding window extrema where the size of the sliding window is the new number of
             // visible candles.
             int newLowerBoundX = (int) (xAxis.getUpperBound() - ((int) currZoomLevel.getNumVisibleCandles() *
@@ -1309,14 +1305,11 @@ telegram.sendMessage(
                     // limit of candles per page). This would give us 9 second candles that we can then sum. This will
                     // catch the data up to within 9 seconds of current time (or in this case roughly within 0.25% of
                     // current time).
-                    CompletableFuture<Optional<InProgressCandleData>> inProgressCandleDataOptionalFuture;
+                    CompletableFuture<Optional<InProgressCandleData>> inProgressCandleDataOptionalFuture = null;
                     inProgressCandleDataOptionalFuture = exchange
                             .fetchCandleDataForInProgressCandle(tradePair, Instant.ofEpochSecond(
                                             candleData.get(candleData.size() - 1).getOpenTime() + secondsPerCandle),
                                     secondsIntoCurrentCandle, secondsPerCandle);
-
-                    logger.info("Fetching in-progress candle data..." + candleData);
-
                     inProgressCandleDataOptionalFuture.whenComplete((inProgressCandleDataOptional, throwable) -> {
                         if (throwable == null) {
                             if (inProgressCandleDataOptional.isPresent()) {
@@ -1508,14 +1501,12 @@ telegram.sendMessage(
                 if (direction == 1.0d) {
                     try {
                         changeZoom(ZoomDirection.OUT);
-                        logger.info("zooming out");
                     } catch (IOException | ParseException | InterruptedException | TelegramApiException e) {
                         throw new RuntimeException(e);
                     }
                 } else if (direction == -1.0d) {
                     try {
                         changeZoom(ZoomDirection.IN);
-                        logger.info("zooming in");
                     } catch (IOException | ParseException | InterruptedException | TelegramApiException e) {
                         throw new RuntimeException(e);
                     }
