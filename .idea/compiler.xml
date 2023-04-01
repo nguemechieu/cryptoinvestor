@@ -12,7 +12,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="cryptoinvestor" options="--add-exports javafx.controls/com.sun.javafx.scene.control.skin.resources=cryptoinvestor.cryptoinvestor" />
+      <module name="cryptoinvestor" options="" />
     </option>
   </component>
 </project>

@@ -13,6 +13,26 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.9.2</junit.version>
     </properties>
+    <developers>
+        <developer>
+            <name>Noel M nguemechieu</name>
+        </developer>
+
+    </developers>
+
+    <organization>
+        <name>TechExpert-Solutions</name>
+        <url>https://github.com/techexpert-solutions</url>
+
+    </organization>
+
+    <scm>
+
+        <url>
+            https://github.com/nguemechieu/cryptoinvestor
+        </url>
+        <tag>latest</tag>
+    </scm>
 
     <dependencies>
         <dependency>
@@ -20,6 +40,7 @@
             <artifactId>jfoenix</artifactId>
             <version>9.0.10</version>
         </dependency>
+
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
@@ -97,15 +118,25 @@
             <version>24.0.1</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
-            <groupId>com.amazonaws</groupId>
-            <artifactId>aws-java-sdk-marketplacecatalog</artifactId>
-            <version>1.12.429</version>
-        </dependency>
-
-
 
     </dependencies>
+
+    <inceptionYear>2020</inceptionYear>
+    <licenses>
+        <license>
+            <name>Apache 2</name>
+            <url>
+                https://www.apache.org/licenses/
+            </url>
+        </license>
+
+
+    </licenses>
+    <mailingLists>
+        <mailingList>
+            <name>junit-jupiter</name>
+        </mailingList>
+    </mailingLists>
 
     <build>
         <plugins>
@@ -119,6 +150,8 @@
                     <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>
+
+
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>

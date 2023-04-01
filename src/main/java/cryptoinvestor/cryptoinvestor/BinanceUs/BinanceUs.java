@@ -98,7 +98,7 @@ public class BinanceUs extends Exchange {
                 "https://api.binance.us/api/v3/account"
         ));
         requestBuilder.GET();
-        logger.info("BinanceUs " + nanoTime());
+
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         logger.info("BinanceUs " + nanoTime());
         if (response.statusCode() == 200) {
@@ -569,8 +569,9 @@ public class BinanceUs extends Exchange {
     public Set<Integer> getSupportedGranularities() {
         return
                 new HashSet<>(Arrays.asList(
-                        60, 60 * 5, 60 * 30, 3600, 3600 * 4, 3600 * 6,3600*24,
-                        3600 * 24 * 7, 3600 * 24 * 7*4, 3600 * 24 * 30 * 365
+                        60, 60 * 5, 60 * 30, 3600, 3600 * 2, 3600 * 4,
+                        3600 * 6, 3600 * 12, 3600 * 24, 3600 * 24 * 7, 3600 * 24 * 7 * 4,
+                        3600 * 24 * 7 * 4 * 12
                 ));
 
     }

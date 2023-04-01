@@ -2,7 +2,7 @@ module cryptoinvestor.cryptoinvestor {
     requires javafx.controls;
     requires jakarta.persistence;
     requires org.hibernate.orm.core;
-    requires org.slf4j;
+
     requires org.jetbrains.annotations;
     requires com.fasterxml.jackson.annotation;
     requires com.jfoenix;
@@ -19,6 +19,7 @@ module cryptoinvestor.cryptoinvestor {
     requires com.fasterxml.jackson.dataformat.csv;
     requires java.prefs;
     requires java.scripting;
+    requires org.slf4j;
     exports cryptoinvestor.cryptoinvestor;
     exports cryptoinvestor.cryptoinvestor.JsonToCsv;
 }
