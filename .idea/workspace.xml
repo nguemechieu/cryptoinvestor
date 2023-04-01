@@ -5,8 +5,28 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4943c154-124d-45be-8fbc-163761f7194c" name="Changes" comment="run">
+      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUsAccount.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/CoinbaseAccount.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/test.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/CandleStickChart.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/CandleStickChart.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Account.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Account.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Binance.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Binance.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUs.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUs.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bitfinex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bitfinex.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bitstamp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bitstamp.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bittrex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bittrex.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/Coinbase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/Coinbase.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/CoinbaseWebSocketClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/CoinbaseWebSocketClient.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Currency.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Currency.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Exchange.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Exchange.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Kraken.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Kraken.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Kucoin.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Kucoin.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Poloniex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Poloniex.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Root.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Root.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/TradeView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/TradeView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/Oanda.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/Oanda.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/OandaWebSocket.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/OandaWebSocket.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +54,7 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="JUnit5 Test Class" />
+        <option value="Class" />
       </list>
     </option>
   </component>
@@ -88,12 +109,19 @@
   }
 }]]></component>
   <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="cryptoinvestor.cryptoinvestor.BinanceUs" />
+      <recent name="cryptoinvestor.cryptoinvestor.Coinbase" />
+    </key>
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\Users\nguem\source\cryptoinvestor\src\main\java\cryptoinvestor\cryptoinvestor" />
       <recent name="C:\Users\nguem\source\cryptoinvestor" />
     </key>
     <key name="CreateTestDialog.Recents.Supers">
       <recent name="" />
+    </key>
+    <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="cryptoinvestor.cryptoinvestor" />
     </key>
     <key name="CreateTestDialog.RecentsKey">
       <recent name="cryptoinvestor.cryptoinvestor" />
@@ -103,6 +131,19 @@
     <configuration name="CryptoInvestor" type="Application" factoryName="Application" nameIsGenerated="true">
       <option name="MAIN_CLASS_NAME" value="cryptoinvestor.cryptoinvestor.CryptoInvestor" />
       <module name="cryptoinvestor" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="test" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="cryptoinvestor.cryptoinvestor.test" />
+      <module name="cryptoinvestor" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="cryptoinvestor.cryptoinvestor.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -121,10 +162,12 @@
     </configuration>
     <list>
       <item itemvalue="Application.CryptoInvestor" />
+      <item itemvalue="Application.test" />
       <item itemvalue="Docker.cryptoinvestor.Dockerfile" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.test" />
         <item itemvalue="Docker.cryptoinvestor.Dockerfile" />
       </list>
     </recent_temporary>
@@ -138,7 +181,7 @@
       <option name="presentableId" value="Default" />
       <updated>1680211879730</updated>
       <workItem from="1680211880941" duration="480000" />
-      <workItem from="1680212391061" duration="58115000" />
+      <workItem from="1680212391061" duration="69655000" />
     </task>
     <task id="LOCAL-00001" summary="run">
       <created>1680213237448</created>
@@ -168,7 +211,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680281025015</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="run">
+      <created>1680298633148</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1680298633148</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -176,6 +226,17 @@
   </component>
   <component name="UpdateCopyrightCheckinHandler">
     <option name="UPDATE_COPYRIGHT" value="true" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
@@ -190,12 +251,17 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUs.java</url>
-          <line>474</line>
+          <line>473</line>
           <properties class="cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs" method="createOrder">
             <option name="EMULATED" value="true" />
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Account.java</url>
+          <line>27</line>
+          <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

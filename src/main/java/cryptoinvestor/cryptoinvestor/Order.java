@@ -4,6 +4,7 @@ import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -91,6 +92,18 @@ public class Order extends RecursiveTreeObject<Order> {
         this.isWorking = isWorking;
         this.origQuoteOrderQty = origQuoteOrderQty;
         this.selfTradePreventionMode = selfTradePreventionMode;
+    }
+
+    public Order(@NotNull JSONArray orders) {
+        this.orders = orders;
+        for (int i = 0; i < orders.length(); i++) {
+            try {
+                JSONObject order = orders.getJSONObject(i);
+                this.orders.put(order);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public String getClientOrderId() {

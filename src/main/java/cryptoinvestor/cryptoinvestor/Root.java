@@ -9,6 +9,8 @@ public class Root extends VBox {
     public String lastTransactionTime;
 
     public Root() {
+
+        getStyleClass().add("root");
     }
 
     public String getLastTransactionID() {

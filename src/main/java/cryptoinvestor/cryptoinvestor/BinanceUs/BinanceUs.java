@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cryptoinvestor.cryptoinvestor.Coinbase.CoinbaseAccount;
 import cryptoinvestor.cryptoinvestor.Currency;
 import cryptoinvestor.cryptoinvestor.*;
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
@@ -17,7 +18,6 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ListView;
-import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -599,23 +598,24 @@ public class BinanceUs extends Exchange {
             // burst.
             // We will know if we get rate limited if we get a 429 response code.
             for (int i = 0; !futureResult.isDone(); i++) {
-                String uriStr = "https://api.binance.us/api/v3";
-                uriStr += "trades?symbol=" + tradePair.toString('/') + "/";
+                String uriStr = "https://api.binance.us/api/v3/";
+                uriStr += "trades?symbol=" + tradePair.toString('/');
 
                 if (i != 0) {
                     uriStr += "?after=" + afterCursor.get();
                 }
                 requestBuilder.uri(URI.create(uriStr));
+                requestBuilder.GET();
                 try {
                     HttpResponse<String> response = client.send(requestBuilder.build()
                             ,
                             HttpResponse.BodyHandlers.ofString());
+                    Log.info("response headers-->: ", response.toString());
 
-                    Log.info("response headers-->: ", response.headers().toString());
                     if (response.headers().firstValue("CB-AFTER").isEmpty()) {
                         futureResult.completeExceptionally(new RuntimeException(
                                 "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.Oanda trades response did not contain header \"CB-AFTER\": " + response));
-                        return;
+
                     }
 
                     afterCursor.setValue(Integer.valueOf((response.headers().firstValue("CB-AFTER").get())));
@@ -771,8 +771,8 @@ public class BinanceUs extends Exchange {
 
         JSONObject jsonObject = new JSONObject();
         try {
-            URL url = new URL("https://api.binance.us/api/v2/exchange-rates");
-            HttpsURLConnection conn = (HttpsURLConnection) url.openConnection();
+            URI url = URI.create("https://api.binance.us/api/v2/exchange-rates");
+            HttpsURLConnection conn = (HttpsURLConnection) url.toURL().openConnection();
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
             conn.setRequestProperty("charset", "utf-8");
@@ -3236,13 +3236,43 @@ if (jsonObject.has("symbols")) {
                 requestBuilder.build(),
                 HttpResponse.BodyHandlers.ofString()
         );
-        JSONObject json = new JSONObject(response.body());
-        System.out.println(json);
-        System.out.println(json.get("orderId"));
+        if (response.statusCode() == 200) {
+            JSONObject json = new JSONObject(response.body());
+            System.out.println(json);
+            System.out.println(json.get("orderId"));
+        } else {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+        }
     }
 
     @Override
-    public void closeAllOrders() {
+    public void closeAllOrders() throws IOException, InterruptedException {
+        URI uri = URI.create("https://api.binance.us/api/v3/cancel");
+        requestBuilder.uri(uri);
+        requestBuilder.DELETE();
+        HttpResponse<String> response = client.send(
+                requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        );
+        if (response.statusCode() == 200) {
+            JSONObject json = new JSONObject(response.body());
+            System.out.println(json);
+            System.out.println(json.get("orderId"));
+        } else {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+        }
 
     }
 
@@ -3303,9 +3333,9 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         System.out.println(response.statusCode());
 
-        JSONObject jsonObject = new JSONObject(response.body());
         if (response.statusCode() == 200) {
 
+            JSONObject jsonObject = new JSONObject(response.body());
             System.out.println(jsonObject.toString(4));
             ObservableList<Order> ob = FXCollections.observableArrayList();
 
@@ -3337,9 +3367,41 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
         } else {
             System.out.println(response.statusCode());
             System.out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+
+            alert.setContentText(response.body());
+            alert.showAndWait();
         }
         return null;
 
+    }
+
+    @Override
+    public Account getAccounts() throws IOException, InterruptedException {
+
+        String uriStr = "https://api.binance.us/api/v3/accounts";
+        requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.GET();
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        JSONObject jsonObject;
+
+        if (response.statusCode() == 200) {
+            jsonObject = new JSONObject(response.body());
+            System.out.println(jsonObject.toString(4));
+            return new BinanceUsAccount(jsonObject);
+        } else {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+        }
+
+        return null;
     }
 
 
@@ -3575,11 +3637,11 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
             int startTime = Math.max(endTime.get() - (numCandles * secondsPerCandle), EARLIEST_DATA);
 
             String uriStr = "https://api.binance.us/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame;
-
-            if (startTime == EARLIEST_DATA) {
-                // signal more data is false
-                return CompletableFuture.completedFuture(Collections.emptyList());
-            }
+//
+//            if (startTime == EARLIEST_DATA) {
+//                // signal more data is false
+//                return CompletableFuture.completedFuture(Collections.emptyList());
+//            }
             requestBuilder.uri(URI.create(uriStr));
             //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
             return HttpClient.newHttpClient().sendAsync(

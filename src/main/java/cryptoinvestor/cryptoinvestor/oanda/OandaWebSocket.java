@@ -107,7 +107,7 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
         }
     }
 
-    private TradePair parseTradePair(JsonNode messageJson) throws CurrencyNotFoundException {
+    private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
         final String productId = messageJson.get("product_id").asText();
         final String[] products = productId.split("-");
         TradePair tradePair;
@@ -152,6 +152,7 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 
     @Override
     public void request(long n) {
+
 
     }
 

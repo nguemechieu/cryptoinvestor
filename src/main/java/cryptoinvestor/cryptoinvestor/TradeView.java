@@ -3,6 +3,7 @@ package cryptoinvestor.cryptoinvestor;
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -20,7 +21,8 @@ import java.time.Instant;
 
 public class TradeView extends Region  {
     private static final Logger logger = LoggerFactory.getLogger(TradeView.class);
-    public TradeView(@NotNull Exchange exchange, String telegramToken){
+
+    public TradeView(@NotNull Exchange exchange, String telegramToken) throws IOException, InterruptedException {
 
         super();
         TabPane tradingTabPane = new TabPane();
@@ -339,6 +341,8 @@ symbolChoicebox.setValue(data1);
                     stage.show();
                 });
 
+        symbolChoicebox.setValue(
+                "SELECT A SYMBOL");
 
         Button orderHistoryBtn =
                 new Button("ORDERS -- ");
@@ -361,13 +365,19 @@ symbolChoicebox.setValue(data1);
         tabPane.setTranslateY(25);
         tabPane.setSide(Side.BOTTOM);
         tabPane.getTabs().add(new Tab("ORDERS VIEW"));
-        tabPane.getTabs().add(new Tab(exchange.getName() + " -->  Wallet"));
+        tabPane.getTabs().get(0).setContent(new VBox(
+
+        ));
+
+
+        tabPane.getTabs().add(new Tab(exchange.getName() + " -->  WALLET"));
+        tabPane.getTabs().get(1).setContent(new VBox(new Separator(Orientation.HORIZONTAL), new VBox(new ListView<>(exchange.getAccounts()))));
+
         tabPane.getTabs().add(new Tab("Stellar Network  Trading (XLM)"));
 
-        tabPane.getTabs().get(2).setContent(new VBox(new Label("STELLAR LUMEN 'S "), new VBox(
+        tabPane.getTabs().get(2).setContent(new VBox(new Label("STELLAR LUMEN 'S "),
+                new VBox(new ListView<>(exchange.getAccounts()))));
 
-
-        )));
         tabPane.getTabs().add(new Tab("TRADING VIEW"));
         tabPane.getSelectionModel().select(3);
         for (int i = 0; i < tabPane.getTabs().size(); i++) {
@@ -398,13 +408,16 @@ symbolChoicebox.setValue(data1);
         Button connexionBtn = new Button("CONNECTION");
         connexionBtn.setOnAction(
                 event8 -> new ConnectionScene(exchange));
-        HBox hBox = new HBox(removeBtn, AddBtn, tradingBtn, new HBox(symbolChoicebox, counterChoicebox), orderHistoryBtn, orderViewBtn, connexionBtn, walletBtn);
+        HBox hBox = new HBox(removeBtn, AddBtn, tradingBtn, new HBox(symbolChoicebox, counterChoicebox), orderHistoryBtn,
+                connexionBtn, walletBtn);
 
         setPadding(new Insets(10, 10, 10, 10));
 
         hBox.setPrefSize(1500, 20);
         anchorPane.getChildren().addAll(hBox, tabPane);
         tabPane.getSelectionModel().select(tabPane.getTabs().size() - 1);
+
+        setPadding(new Insets(10, 10, 10, 10));
         getChildren().add(anchorPane);
 
 

@@ -598,6 +598,11 @@ public class Kucoin extends Exchange {
     }
 
     @Override
+    public Account getAccounts() throws IOException, InterruptedException {
+        return null;
+    }
+
+    @Override
     public void cancelOrder(long orderID) throws IOException, InterruptedException {
 
     }

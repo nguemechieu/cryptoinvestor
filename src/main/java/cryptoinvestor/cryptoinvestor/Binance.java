@@ -641,6 +641,11 @@ if (response.statusCode() == 200) {
     }
 
     @Override
+    public Account getAccounts() throws IOException, InterruptedException {
+        return null;
+    }
+
+    @Override
     public void cancelOrder(long orderID) throws IOException, InterruptedException {
 
     }

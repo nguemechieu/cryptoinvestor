@@ -143,4 +143,6 @@ public abstract class Exchange {
     public abstract boolean isConnected();
 
     public abstract Node getAllOrders() throws IOException, InterruptedException;
+
+    public abstract Account getAccounts() throws IOException, InterruptedException;
 }

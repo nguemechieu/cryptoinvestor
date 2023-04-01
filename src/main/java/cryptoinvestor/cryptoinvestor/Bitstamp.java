@@ -605,13 +605,18 @@ public class Bitstamp extends Exchange {
         return null;
     }
 
+    @Override
+    public Account getAccounts() throws IOException, InterruptedException {
+        return null;
+    }
+
 
     //  Get single order
     //      GET
     //https://api.exchange.coinbase.com/orders/{order_id}
 
 
-    public  void getOrder(String orderId) throws IOException, InterruptedException {
+    public void getOrder(String orderId) throws IOException, InterruptedException {
         String uriStr = "https://api.bitstamp.com/orders/" + orderId;
 
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();

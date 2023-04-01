@@ -1039,14 +1039,34 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
         return null;
     }
 
+    @Override
+    public Account getAccounts() throws IOException, InterruptedException {
+        String uriStr = url + "accounts";
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+        requestBuilder.uri(URI.create(uriStr));
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        JSONObject jsonObject;
+        if (response.statusCode() == 200) {
+            jsonObject = new JSONObject(response.body());
+            System.out.println(jsonObject.toString(4));
+            return new CoinbaseAccount(jsonObject);
+        } else {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+        }
+        return null;
+    }
 
-  //  Get single order
-      //      GET
+
+    //  Get single order
+    //      GET
     //https://api.exchange.coinbase.com/orders/{order_id}
 
 
-    public  void getOrder(String orderId) throws IOException, InterruptedException {
-        String uriStr = url+"orders/" + orderId;
+    public void getOrder(String orderId) throws IOException, InterruptedException {
+        String uriStr = url + "orders/" + orderId;
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         requestBuilder.uri(URI.create(uriStr));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -1078,6 +1098,7 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
             System.out.println(jsonObject.toString(4));
         }
         else {
+
             System.out.println(response.statusCode());
             System.out.println(response.body());
         }

@@ -42,13 +42,13 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     private static final Logger logger = LoggerFactory.getLogger(CoinbaseWebSocketClient.class);
 
 
-    public CoinbaseWebSocketClient(@NotNull Set<TradePair> tradePairs) {
-        super(URI.create("wss://ws-feed.pro.coinbase.com"), new Draft_6455());
+    public CoinbaseWebSocketClient(Set<TradePair> tradePairs) {
+        super(URI.create("wss://advanced-trade-ws.coinbase.com"), new Draft_6455());
         logger.info("Coinbase websocket client initialized");
 
-        for (TradePair tradePair : tradePairs) {
-            liveTradeConsumers.put(tradePair, new LiveTradeConsumer(tradePair));
-        }
+//        for (TradePair tradePair : tradePairs) {
+//            liveTradeConsumers.put(tradePair, new LiveTradeConsumer(tradePair));
+//        }
 
     }
 
@@ -66,6 +66,10 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
             if (messageJson.has("product_id") && messageJson.get("product_id").asText().equalsIgnoreCase("BTC-USD")) {
                 connectionEstablished.complete(true);
+
+                logger.info(
+                        "Coinbase websocket client connected to " + messageJson.get("product_id").asText()
+                );
             }
         }
 
@@ -104,7 +108,9 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
-         String productId = messageJson.get("product_id").asText();
+
+        logger.info("Coinbase websocket client: parsing trade pair: " + messageJson.get("product_id").asText());
+        String productId = messageJson.get("product_id").asText();
         final String[] products = productId.split("-");
         TradePair tradePair;
         if (products[0].equalsIgnoreCase("BTC")) {

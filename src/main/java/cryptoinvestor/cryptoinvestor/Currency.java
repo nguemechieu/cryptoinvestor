@@ -204,6 +204,10 @@ public abstract class Currency  implements Comparable<Currency> {
                 .findAny().orElse(NULL_FIAT_CURRENCY);
     }
 
+    public static String valueOf(String currency) {
+        return lookupBySymbol(currency).getCode();
+    }
+
     public CurrencyType getCurrencyType() {
         return this.currencyType;
     }
