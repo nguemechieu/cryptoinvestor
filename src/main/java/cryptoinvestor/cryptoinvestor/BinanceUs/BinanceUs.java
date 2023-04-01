@@ -613,9 +613,9 @@ public class BinanceUs extends Exchange {
                             HttpResponse.BodyHandlers.ofString());
                     Log.info("response headers-->: ", response.toString());
 
-                    if (response.headers().firstValue("CB-AFTER").isEmpty()) {
+                    if (response.headers().firstValue("date").isEmpty()) {
                         futureResult.completeExceptionally(new RuntimeException(
-                                "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.Oanda trades response did not contain header \"CB-AFTER\": " + response));
+                                "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.BinanceUs trades response did not contain header \"date\": " + response.body()));
 
                     }
 

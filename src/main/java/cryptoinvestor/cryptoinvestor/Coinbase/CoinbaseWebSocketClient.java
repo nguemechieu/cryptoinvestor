@@ -46,9 +46,11 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         super(URI.create("wss://advanced-trade-ws.coinbase.com"), new Draft_6455());
         logger.info("Coinbase websocket client initialized");
 
-//        for (TradePair tradePair : tradePairs) {
-//            liveTradeConsumers.put(tradePair, new LiveTradeConsumer(tradePair));
-//        }
+
+        tradePairs.stream().distinct().forEach(tradePair -> {
+            liveTradeConsumers.put(tradePair, new LiveTradeConsumer(tradePair));
+        });
+
 
     }
 
@@ -57,6 +59,9 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         JsonNode messageJson;
         try {
             messageJson = OBJECT_MAPPER.readTree(message);
+            logger.info(
+                    "Coinbase websocket client received message: " + messageJson.toPrettyString()
+            );
         } catch (JsonProcessingException ex) {
             logger.error("ex: ", ex);
             throw new RuntimeException(ex);
@@ -74,7 +79,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         }
 
 
-        TradePair tradePair = null;
+        TradePair tradePair = new TradePair("ETH", "BTC");
         try {
             tradePair = parseTradePair(messageJson);
         } catch (CurrencyNotFoundException exception) {
@@ -83,18 +88,19 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         }
 
         Side side = messageJson.has("side") ? Side.getSide(messageJson.get("side").asText()) : null;
-
         switch (messageJson.get("type").asText()) {
             case "heartbeat" ->
                     sendText(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", false).toPrettyString(),false);
             case "match" -> {
                 if (liveTradeConsumers.containsKey(tradePair)) {
-                    assert tradePair != null;
                     Trade newTrade = new Trade(tradePair,
                             DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
-                                    tradePair.getCounterCurrency()),
-                            DefaultMoney.of(new BigDecimal(messageJson.get("size").asText()),
-                                    tradePair.getBaseCurrency()),
+                                    messageJson.get("currency").asText())
+                            ,
+                            DefaultMoney.of(new BigDecimal(
+                                            messageJson.get("amount").asText()),
+                                    messageJson.get("currency").asText()
+                            ),
                             side, messageJson.at("trade_id").asLong(),
                             Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
                     liveTradeConsumers.get(tradePair).acceptTrades(Collections.singletonList(newTrade));
@@ -115,13 +121,20 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         TradePair tradePair;
         if (products[0].equalsIgnoreCase("BTC")) {
             tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
+            logger.info("Coinbase websocket client: parsed trade pair: " + tradePair);
         } else {
             // products[0] == "ETH"
             if (products[1].equalsIgnoreCase("usd")) {
                 tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
+
+                logger.info("Coinbase websocket client: parsing trade pair: " + tradePair);
             } else {
                 // productId == "ETH-BTC"
                 tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, CryptoCurrency.class));
+
+                logger.info(
+                        "Coinbase websocket client: parsing trade pair: " + messageJson.get("product_id").asText()
+                );
             }
         }
 
@@ -144,6 +157,12 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     @Override
     public boolean supportsStreamingTrades(TradePair tradePair) {
         return false;
+    }
+
+    @Override
+    protected @NotNull URI getURI() {
+        return
+                URI.create("wss://advanced-trade-ws.coinbase.com");
     }
 
     @Override

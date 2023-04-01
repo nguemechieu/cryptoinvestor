@@ -56,9 +56,26 @@ public class Coinbase extends Exchange {
     private static final ExchangeWebSocketClient websocket;
 
     static {
-        @NotNull Set<TradePair> tradePair=
+        @NotNull Set<TradePair> tradePair =
                 new HashSet<>(List.of(
-                        new TradePair("BTC", "USD")));
+                        new TradePair("ETH", "BTC"),
+                        new TradePair("BTC", "USD"),
+                        new TradePair("XLM", "USD"),
+                        new TradePair("BAT", "USD"),
+                        new TradePair("ADA", "USD"),
+                        new TradePair("LTC", "USD"),
+                        new TradePair("XRP", "USD"),
+                        new TradePair("ZEC", "USD"),
+                        new TradePair("DASH", "USD"),
+                        new TradePair("ETC", "USD"),
+                        new TradePair("XMR", "USD"),
+                        new TradePair("NEO", "USD"),
+                        new TradePair("XTZ", "USD"),
+                        new TradePair("ZRX", "USD"),
+                        new TradePair("BCH", "USD"),
+                        new TradePair("DASH", "USD"),
+                        new TradePair("ETC", "USD")
+                ));
         websocket = new CoinbaseWebSocketClient(tradePair);
     }
 
@@ -66,13 +83,12 @@ public class Coinbase extends Exchange {
     String apiKey;
 
      static String account_id;
-    private String secretKey;
 
 
     public Coinbase(String account_id,String apiKey, String api_secret) throws NoSuchAlgorithmException {
         super(websocket);
         this.apiKey = apiKey;//apiKey;
-        this.secretKey = api_secret;//api_secret;
+
 
         Coinbase.account_id =account_id;
         requestBuilder.header("CB-ACCESS-KEY", apiKey);
@@ -1137,7 +1153,6 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
         System.out.println(text);
         System.out.println(text1);
         apiKey=text;
-        secretKey=text1;
     }
 
     @Override

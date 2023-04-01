@@ -164,6 +164,14 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
     }
 
     @Override
+    protected @NotNull URI getURI() {
+        return
+                URI.create(
+                        "wss://stream.binance.us:9443/ws/btcusdt@trade"
+                );
+    }
+
+    @Override
     public CompletableFuture<WebSocket> sendText(CharSequence data, boolean last) {
         return null;
     }

@@ -62,13 +62,14 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
                         connectionEstablished.set(false);
                     }
                 });
-                logger.info("Connection established");
+                logger.info("Connection established " + this.getURI().toString());
             }
 
             @Override
             public void onMessage(String s) {
 
                 logger.info("Received message: " + s);
+
 
             }
 
@@ -87,7 +88,7 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
 
                     }
                 });
-                logger.info("Connection closed");
+
             }
 
             @Override
@@ -99,18 +100,19 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
                         webSocketInitializedLatch.await();
                     } catch (InterruptedException e1) {
                         e1.printStackTrace();
+
                     }
                     if (connectionEstablished.get()) {
                         connectionEstablished.set(false);
                     }
                 });
 
-                e.printStackTrace();
-
 
             }
         };
         webSocketClient.connect();
+        if (webSocketClient.getConnection().isOpen()) logger.info("Connection established ");
+        else logger.info("Connection closed ");
     }
 
     public CountDownLatch getInitializationLatch() {
@@ -161,11 +163,7 @@ public abstract class ExchangeWebSocketClient implements javax.websocket.WebSock
     public boolean supportsStreamingTrades(TradePair tradePair) {return liveTradeConsumers.containsKey(tradePair);}
 
 
-    @Contract(" -> new")
-    @NotNull URI getURI() {
-        return URI.create("wss://" + getURI().getHost() + ":" + getURI().getPort() + "/ws");
-    }
-
+    protected abstract @NotNull URI getURI();
 
     public void request(long n) {
         CompletableFuture.runAsync(() -> {

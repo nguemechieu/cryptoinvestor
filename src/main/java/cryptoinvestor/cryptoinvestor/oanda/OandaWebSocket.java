@@ -148,6 +148,11 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
         return !liveTradeConsumers.containsKey(tradePair);
     }
 
+    @Override
+    protected @NotNull URI getURI() {
+        return
+                URI.create("wss://stream-fxtrade.oanda.com/v3/accounts/001-001-2783446-002/pricing/stream?instruments=" + "EUR_USD&USD_CAD");
+    }
 
 
     @Override

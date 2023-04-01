@@ -3,12 +3,10 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>cryptoinvestor</groupId>
     <artifactId>cryptoinvestor</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>cryptoinvestor</name>
-
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <junit.version>5.9.2</junit.version>
@@ -17,30 +15,25 @@
         <developer>
             <name>Noel M nguemechieu</name>
         </developer>
-
     </developers>
 
     <organization>
         <name>TechExpert-Solutions</name>
         <url>https://github.com/techexpert-solutions</url>
-
     </organization>
 
     <scm>
-
         <url>
             https://github.com/nguemechieu/cryptoinvestor
         </url>
         <tag>latest</tag>
     </scm>
-
     <dependencies>
         <dependency>
             <groupId>com.jfoenix</groupId>
             <artifactId>jfoenix</artifactId>
             <version>9.0.10</version>
         </dependency>
-
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
@@ -51,7 +44,6 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.14.2</version>
         </dependency>
-
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
@@ -82,7 +74,6 @@
             <artifactId>gson</artifactId>
             <version>2.10.1</version>
         </dependency>
-
         <dependency>
             <groupId>com.tersesystems.logback</groupId>
             <artifactId>logback-core</artifactId>
@@ -98,8 +89,6 @@
             <artifactId>javafx-controls</artifactId>
             <version>20-ea+11</version>
         </dependency>
-
-
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
@@ -118,9 +107,12 @@
             <version>24.0.1</version>
             <scope>compile</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-jcl</artifactId>
+            <version>1.7.36</version>
+        </dependency>
     </dependencies>
-
     <inceptionYear>2020</inceptionYear>
     <licenses>
         <license>
@@ -129,15 +121,12 @@
                 https://www.apache.org/licenses/
             </url>
         </license>
-
-
     </licenses>
     <mailingLists>
         <mailingList>
             <name>junit-jupiter</name>
         </mailingList>
     </mailingLists>
-
     <build>
         <plugins>
             <plugin>
@@ -150,8 +139,6 @@
                     <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>
-
-
             <plugin>
                 <groupId>org.openjfx</groupId>
                 <artifactId>javafx-maven-plugin</artifactId>

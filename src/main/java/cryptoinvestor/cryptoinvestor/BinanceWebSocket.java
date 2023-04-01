@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import javafx.util.Pair;
-import org.java_websocket.drafts.Draft;
 import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.NotNull;
@@ -163,7 +162,10 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
 
     @Override
     protected @NotNull URI getURI() {
-        return  null;
+        return
+                URI.create(
+                        "wss://stream.binance.us:9443/ws"
+                );
     }
 
     @Override
