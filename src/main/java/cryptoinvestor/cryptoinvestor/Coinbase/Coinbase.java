@@ -63,7 +63,7 @@ public class Coinbase extends Exchange {
 //
 //    API	Method	Resource	Required Scope
 //    List Accounts	GET	/accounts	wallet:accounts:read
-    static String url = "https://api.coinbase.com/api/v3/brokerage/accounts/";
+    static String url = "https://api.pro.coinbase.com/api/v3/brokerage/accounts/";
 
     public Coinbase(String account_id, String apiKey, String api_secret) throws NoSuchAlgorithmException {
         super(coinbaseWebSocket(apiKey, api_secret, account_id));
@@ -97,8 +97,8 @@ public class Coinbase extends Exchange {
     }
 
     private static @NotNull ExchangeWebSocketClient coinbaseWebSocket(String apiKey, String apiSecret, String accountId) throws NoSuchAlgorithmException {
-        CoinbaseWebSocketClient coinbaseWebSocket = new CoinbaseWebSocketClient(
-                tradePairs
+        CoinbaseWebSocketClient coinbaseWebSocket = new CoinbaseWebSocketClient(URI.create("wss://advanced-trade-ws.coinbase.com" +
+                "/market_trades")
         );
         coinbaseWebSocket.addHeader(
                 "CB-ACCESS-KEY",
@@ -256,7 +256,7 @@ public class Coinbase extends Exchange {
 
     //    List Products	GET	/products	wallet:user:read
     public ArrayList<Product> listFills() throws IOException, InterruptedException {
-        ArrayList<Product> products = new ArrayList<>();
+        ArrayList<Product> products;
 
         requestBuilder.uri(URI.create(url + "orders/historical/fills"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());

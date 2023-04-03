@@ -99,7 +99,7 @@ public class Order extends RecursiveTreeObject<Order> {
         for (int i = 0; i < orders.length(); i++) {
             try {
                 JSONObject order = orders.getJSONObject(i);
-                this.orders.put(order);
+                this.orders = order.names();
             } catch (JSONException e) {
                 e.printStackTrace();
             }

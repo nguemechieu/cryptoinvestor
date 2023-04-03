@@ -27,6 +27,7 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -42,14 +43,10 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static final Logger logger = LoggerFactory.getLogger(CoinbaseWebSocketClient.class);
-    private final Set<TradePair> tradePairs;
-    private Account connectionEstablished;
 
-    public CoinbaseWebSocketClient(Set<TradePair> tradePairs) {
-        super(URI.create("wss://advanced-trade-ws.coinbase.com" +
-                "/market_trades"), new Draft_6455());
+    public CoinbaseWebSocketClient(URI webSocketClientUri) {
+        super(webSocketClientUri, new Draft_6455());
 
-        this.tradePairs = tradePairs;
     }
 
     @Override
@@ -62,10 +59,6 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
             throw new RuntimeException(ex);
         }
 
-        if (messageJson.has("event") && messageJson.get("event").asText().equalsIgnoreCase("info")) {
-            connectionEstablished.setValue(true);
-
-        }
 
         TradePair tradePair = null;
         try {
@@ -76,13 +69,16 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         }
 
         Side side = messageJson.has("side") ? Side.getSide(messageJson.get("side").asText()) : null;
-
+        logger.info(
+                "coinbase websocket client: received trade pair: " + tradePair +
+                        ", side: " + side + ", message: " + messageJson.toPrettyString()
+        );
         switch (messageJson.get("type").asText()) {
             case "heartbeat" ->
                     send(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString());
             case "match" -> {
                 if (liveTradeConsumers.containsKey(tradePair)) {
-                    Trade newTrade = null;
+                    Trade newTrade;
                     try {
                         assert tradePair != null;
                         newTrade = new Trade(tradePair,
@@ -106,8 +102,11 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         }
     }
 
-    private TradePair parseTradePair(JsonNode messageJson) throws CurrencyNotFoundException {
+    private @NotNull TradePair parseTradePair(JsonNode messageJson) throws CurrencyNotFoundException {
+
         final String productId = messageJson.get("product_id").asText();
+
+        logger.info("coinbase websocket client: parsing trade pair: " + productId);
         final String[] products = productId.split("-");
         TradePair tradePair;
         if (products[0].equalsIgnoreCase("BTC")) {
@@ -226,6 +225,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
     @Override
     public void setAsyncSendTimeout(long timeout) {
+        throw new UnsupportedOperationException();
 
     }
 
@@ -286,14 +286,29 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
+        logger.info(
+                "coinbase websocket client: closed connection with code: " + code + ", reason: " + reason + ", remote: " + remote
+        );
     }
 
     @Override
     public void onError(Exception ex) {
+        ex.printStackTrace();
 
     }
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
+        send(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "true").toPrettyString());
+
+        for (Map.Entry<TradePair, LiveTradesConsumer> entry : liveTradeConsumers.entrySet()) {
+            entry.getValue().acceptTrades(Collections.emptyList());
+        }
+        liveTradeConsumers.clear();
+        for (Currency currency : CurrencyDataProvider.getInstance()) {
+
+
+            send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe").put("product_id", currency.getCode() + "-USD").toPrettyString());
+        }
     }
 }

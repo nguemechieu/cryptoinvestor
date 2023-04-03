@@ -10,6 +10,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.geometry.VPos;
@@ -23,9 +24,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.input.*;
-import javafx.scene.layout.Region;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
@@ -123,6 +122,7 @@ public class CandleStickChart extends Region {
     private double chartWidth = 900;
     private double chartHeight = 700;
     private boolean isAutoTrading;
+    boolean selectedAutoTrading;
 
     /**
      * Creates a new {@code CandleStickChart}. This constructor is package-private because it should only
@@ -257,34 +257,63 @@ public class CandleStickChart extends Region {
                         (float) (candleWidth / 2);
                 chartHeight = containerHeight.getValue().doubleValue();
                 canvas = new Canvas(chartWidth - 100, chartHeight - 100);
-                Text labelsContainer = new Text();
-                labelsContainer.setFill(Color.WHITE);
+                Label labelsContainer = new Label();
+
                 labelsContainer.setFont(Font.font(11));
                 labelsContainer.setTranslateX(100);
-                labelsContainer.setTranslateY(27);
+                labelsContainer.setTranslateY(25);
                 labelsContainer.setTextAlignment(TextAlignment.CENTER);
                 if (telegram.isOnline()) {
                     try {
+                        telegram.run();
                         telegram.answerCallbackQuery();
-                    } catch (IOException | InterruptedException e) {
+                        telegram.sendMessage(
+                                "Hi! I'm Cryptoinvestor. I'm a bot. I can trade " + tradePair.getBaseCurrency().code + " and " +
+                                        tradePair.counterCurrency.code + " on " + exchange.getWebsocketClient().getURI().getHost() +
+                                        ".\n\n"
+                        );
+
+                    } catch (IOException | InterruptedException | ParseException e) {
                         throw new RuntimeException(e);
                     }
                 }
-                labelsContainer.setText(
-                        "Server:  " + exchange.getWebsocketClient().getURI().getHost() + "     Pair : "
-                                + tradePair.toString('/')
-                                +
-                                "  Telegram :" + telegram.getUsername() +
-                                "  Open : " + inProgressCandle.getOpenPrice()
-                                +
-                                "  High : " + inProgressCandle.getHighPriceSoFar() +
-                                "  Low : " + inProgressCandle.getLowPriceSoFar() +
-                                "  Close : " + inProgressCandle.getClosePriceSoFar() +
-                                "  Volume : " + inProgressCandle.getVolumeSoFar()
-                );
-                labelsContainer.setFill(Color.WHITE);
-                labelsContainer.setFont(Font.font(12));
 
+
+                labelsContainer.setTextAlignment(TextAlignment.CENTER);
+
+
+                labelsContainer.setText(
+
+
+                        "Date :" + new Date() + "  Server:  " + exchange.getWebsocketClient().getURI().getHost() + "     Pair : " +
+                                tradePair.getBaseCurrency() + " / " + tradePair.counterCurrency.code +
+                                "  Timeframe  " + secondsPerCandle + "  seconds. " + " Trade  Mode: " + selectedAutoTrading
+                                + "   BOT : " + telegram.getUsername() +
+                                "\n   Current Price : " + inProgressCandle.getLastPrice() +
+                                "   Open : " + inProgressCandle.getOpenPrice() +
+                                "    Previous Price : " + inProgressCandle.getLastPrice() +
+
+                                "   Close : " +
+
+                                inProgressCandle.getClosePriceSoFar() +
+
+
+                                "\n   Change %: " +
+                                ((inProgressCandle.getClosePriceSoFar() - inProgressCandle.getOpenPrice()) / inProgressCandle.getOpenPrice()) * 100 +
+
+
+                                "\n   High :  " +
+                                inProgressCandle.getHighPriceSoFar() +
+                                "\n   Low :  " +
+                                inProgressCandle.getLowPriceSoFar() +
+                                "\n   Volume :  " +
+                                inProgressCandle.getVolumeSoFar()
+
+
+                );
+
+
+                labelsContainer.setFont(Font.font(12));
 
                 try {
                     telegram.sendMessage(
