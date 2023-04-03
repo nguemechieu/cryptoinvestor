@@ -5,5 +5,10 @@ public enum Signal {
     DOWN,
 
     BUY,
-    SELL
+    SELL, STOP, CloseBUY, CloseSELL, ReduceSize;
+
+    public static Signal getSignal() {
+        return Signal.valueOf(Signal.class.getSimpleName());
+
+    }
 }

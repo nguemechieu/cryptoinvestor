@@ -240,16 +240,17 @@ public class Bitstamp extends Exchange {
                                 break;
                             } else {
                                 tradesBeforeStopTime.add(new Trade(tradePair,
-                                        DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getCounterCurrency())),
-                                        DefaultMoney.ofCrypto(trade.get("size").asText(), String.valueOf(tradePair.getBaseCurrency())),
+                                        trade.get("price").asDouble(),
+                                        trade.get("size").asDouble(),
                                         Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
+
                             }
                         }
                     }
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException | ParseException | URISyntaxException e) {
+                } catch (ParseException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -263,7 +264,7 @@ public class Bitstamp extends Exchange {
      */
     @Override
     public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
-            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+            @NotNull TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
         String startDateString1 = ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
                 currentCandleStartedAt, ZoneOffset.UTC));
         long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);

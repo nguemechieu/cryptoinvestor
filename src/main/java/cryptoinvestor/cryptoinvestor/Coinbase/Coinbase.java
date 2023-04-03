@@ -63,7 +63,7 @@ public class Coinbase extends Exchange {
 //
 //    API	Method	Resource	Required Scope
 //    List Accounts	GET	/accounts	wallet:accounts:read
-    static String url = "https://api.pro.coinbase.com/api/v3/brokerage/accounts/";
+    static String url = "https://api.coinbase.com/api/v3/brokerage/accounts/";
 
     public Coinbase(String account_id, String apiKey, String api_secret) throws NoSuchAlgorithmException {
         super(coinbaseWebSocket(apiKey, api_secret, account_id));
@@ -97,17 +97,15 @@ public class Coinbase extends Exchange {
     }
 
     private static @NotNull ExchangeWebSocketClient coinbaseWebSocket(String apiKey, String apiSecret, String accountId) throws NoSuchAlgorithmException {
-        CoinbaseWebSocketClient coinbaseWebSocket = new CoinbaseWebSocketClient(URI.create("wss://advanced-trade-ws.coinbase.com" +
-                "/market_trades")
-        );
-        coinbaseWebSocket.addHeader(
-                "CB-ACCESS-KEY",
-                apiKey
-        );
-        coinbaseWebSocket.addHeader(
-                "CB-ACCESS-PASSPHRASE",
-                apiSecret
-        );
+        CoinbaseWebSocketClient coinbaseWebSocket = new CoinbaseWebSocketClient(URI.create("wss://advanced-trade-ws.coinbase.com"));
+        coinbaseWebSocket.addHeader("CB-ACCESS-KEY", apiKey);
+        //  coinbaseWebSocket.addHeader(
+        //         "CB-ACCESS-PASSPHRASE",
+        //          apiSecret
+        //  );
+
+        // GET wss://ws-feed.exchange.coinbase.com
+        // Sec-WebSocket-Extensions: permessage-deflate
         coinbaseWebSocket.addHeader(
                 "CB-ACCESS-SIGN",
                 timestampSignature(apiKey, apiSecret)
@@ -116,7 +114,7 @@ public class Coinbase extends Exchange {
                 "CB-ACCESS-TIMESTAMP",
                 new Date().toString()
         );
-        coinbaseWebSocket.connect();
+        // coinbaseWebSocket.connect();
         return coinbaseWebSocket;
     }
 
@@ -732,8 +730,8 @@ public class Coinbase extends Exchange {
                                 break;
                             } else {
                                 tradesBeforeStopTime.add(new Trade(tradePair,
-                                        DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getCounterCurrency())),
-                                        DefaultMoney.ofCrypto(trade.get("size").asText(), String.valueOf(tradePair.getBaseCurrency())),
+                                        trade.get("price").asDouble(),
+                                        trade.get("size").asDouble(),
                                         Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
                             }
                         }
@@ -741,7 +739,7 @@ public class Coinbase extends Exchange {
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException | ParseException | URISyntaxException e) {
+                } catch (ParseException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }
@@ -1219,12 +1217,12 @@ public class Coinbase extends Exchange {
             alert.setHeaderText(null);
             alert.setContentText(response.body());
             alert.showAndWait();
-            telegramBot.sendMessage("Error: " + response.body());
+            TelegramClient.sendMessage("Error: " + response.body());
         }
         else {
             JSONObject jsonObject = new JSONObject(response.body());
 
-            telegramBot.sendMessage(jsonObject.toString(4));
+            TelegramClient.sendMessage(jsonObject.toString(4));
             System.out.println(jsonObject.toString(4));
         }
 
@@ -1269,7 +1267,7 @@ public class Coinbase extends Exchange {
             alert.setHeaderText(null);
             alert.setContentText(response.body());
             alert.showAndWait();
-            telegramBot.sendMessage("Error: " + response.body());
+            TelegramClient.sendMessage("Error: " + response.body());
         } else {
             JSONArray jsonObject = new JSONArray(response.body());
 

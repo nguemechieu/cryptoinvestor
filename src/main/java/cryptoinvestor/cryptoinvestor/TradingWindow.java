@@ -37,8 +37,8 @@ public class TradingWindow extends AnchorPane {
             if (i.getIcon() != null) {
                 tab.setGraphic(new ImageView((String) i.getIcon()));}
             tabPane.getTabs().add(tab);
-            @NotNull Exchange exchange = null;
-            String api_key = "";
+            @NotNull Exchange exchange;
+               String api_key = "";
             String api_secret = "";
             String account_id = "";
             switch (i) {
@@ -53,7 +53,7 @@ public class TradingWindow extends AnchorPane {
                     exchange = new BinanceUs(
                             api_key,
                             api_secret,
-                            account_id);
+                            account_id, new TradePair("ETH", "USD"));
                     break;
                 case BITSTAMP: {
 

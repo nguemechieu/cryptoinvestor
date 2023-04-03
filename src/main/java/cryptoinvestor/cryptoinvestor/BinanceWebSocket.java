@@ -23,6 +23,7 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -98,13 +99,14 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
                         Trade newTrade ;
                         try {
                             newTrade = new Trade(tradePair,
-                                    DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
-                                            tradePair.getCounterCurrency()),
-                                    DefaultMoney.of(new BigDecimal(messageJson.get("size").asText()),
-                                            tradePair.getBaseCurrency()),
-                                    side, messageJson.at("trade_id").asLong(),
-                                    Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
-                        } catch (TelegramApiException | IOException | InterruptedException | ParseException |
+                                    messageJson.get("p").asDouble(),
+
+                                    messageJson.get("q").asDouble(),
+
+                                    side, messageJson.at("E").asLong(),
+                                    Instant.from(ISO_INSTANT.parse(messageJson.get("t").asText())));
+
+                        } catch (IOException | InterruptedException | ParseException |
                                  URISyntaxException e) {
                             throw new RuntimeException(e);
                         }

@@ -68,6 +68,7 @@ public abstract class Currency  implements Comparable<Currency> {
 
 
     private String image;
+    private long orderListId;
 
     /**
      * Private constructor used only for the {@code NULL_CURRENCY}.
@@ -80,6 +81,7 @@ public abstract class Currency  implements Comparable<Currency> {
         this.fractionalDigits = 0;
         this.symbol = "";
         this.image = "";
+
     }
 
     /**
@@ -104,6 +106,7 @@ public abstract class Currency  implements Comparable<Currency> {
         this.fractionalDigits = fractionalDigits;
         this.symbol = symbol;
         this.image = "";
+        this.orderListId = -1;
     }
 
     public Currency(CurrencyType currencyType, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {
@@ -127,6 +130,7 @@ public abstract class Currency  implements Comparable<Currency> {
         this.symbol = symbol;
 
         this.image = image;
+        this.orderListId = Math.abs(code.hashCode());
     }
 
     protected static void registerCurrency(Currency currency) {
@@ -284,6 +288,14 @@ public abstract class Currency  implements Comparable<Currency> {
     }
 
     public abstract int compareTo(java.util.@NotNull Currency o);
+
+    public long getOrderListId() {
+        return orderListId;
+    }
+
+    public long getId() {
+        return orderListId;
+    }
 
     private static class NullCryptoCurrency extends CryptoCurrency {
         protected NullCryptoCurrency(CurrencyType currencyType, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {

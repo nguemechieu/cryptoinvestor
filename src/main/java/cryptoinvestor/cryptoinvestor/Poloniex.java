@@ -256,18 +256,19 @@ public class Poloniex extends Exchange {
                                 futureResult.complete(tradesBeforeStopTime);
                                 break;
                             } else {
-                                tradesBeforeStopTime.add(new Trade(tradePair,
-                                        DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getCounterCurrency())),
-                                        DefaultMoney.ofCrypto(trade.get("size").asText(), String.valueOf(tradePair.getBaseCurrency())),
-                                        Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
+//                                tradesBeforeStopTime.add(new Trade(tradePair,
+//                                        messageJson.get("p").asDouble(),
+//
+//                                        messageJson.get("q").asDouble(),
+//
+//                                        side, messageJson.at("E").asLong(),
+//                                        Instant.from(ISO_INSTANT.parse(messageJson.get("t").asText()))));
                             }
                         }
                     }
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException | ParseException | URISyntaxException e) {
-                    throw new RuntimeException(e);
                 }
             }
         });

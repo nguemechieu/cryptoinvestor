@@ -880,7 +880,7 @@ return new JSONObject();
 
     }
 
-    public String getChatId() {
+    public static String getChatId() {
         return chatId;
     }
 
@@ -920,7 +920,7 @@ return new JSONObject();
 //        return "&reply_markup=" + reply_markup;
 //    }
 
-    public void sendMessage(String text) throws IOException, InterruptedException {
+    public static void sendMessage(String text) throws IOException, InterruptedException {
 
         String path = getToken() + "/sendMessage";//&chat_id=" + chatId + "&text=" + text + "&parse_mode=Markdown";
 
@@ -1001,7 +1001,7 @@ return new JSONObject();
         return reply_to_message_id;
     }
 
-    public String getToken() {
+    public static String getToken() {
         return token;
     }
 // sender_chat": {
@@ -1187,7 +1187,7 @@ return new JSONObject();
         return method;
     }
 
-    public void setMethod(String method) {
+    public static void setMethod(String method) {
         TelegramClient.method = method;
     }
 
@@ -1410,7 +1410,7 @@ return new JSONObject();
 
     }
 
-    void sendChatAction(ENUM_CHAT_ACTION action) throws IOException {
+    static void sendChatAction(ENUM_CHAT_ACTION action) throws IOException {
         // Type of action to broadcast. Choose one, depending on what the user is about to receive: typing for text messages, upload_photo for photos, record_video or upload_video for videos, record_voice or upload_voice for voice notes, upload_document for general files, choose_sticker for stickers, find_location for location data, record_video_note or upload_video_note for video notes.
 
         setMethod("POST");

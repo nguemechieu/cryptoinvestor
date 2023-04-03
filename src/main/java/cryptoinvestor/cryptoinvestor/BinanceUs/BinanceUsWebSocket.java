@@ -14,27 +14,25 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.Endpoint;
+import javax.websocket.Extension;
+import javax.websocket.Session;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
-
-
-import javax.websocket.ClientEndpointConfig;
-import javax.websocket.Endpoint;
-import javax.websocket.Extension;
-import javax.websocket.Session;
 
 
 public class BinanceUsWebSocket extends ExchangeWebSocketClient {
@@ -114,9 +112,10 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
 //            "U":2039                       // counterOrderId (Appear if the order has expired due to STP)
 //            "A":"1.00000000"               // preventedQuantity(Appear if the order has expired due to STP )
 //            "B":"2.00000000"               // lastPreventedQuantity(Appear if the order has expired due to STP)
-        TradePair tradePair = null;
+        @NotNull TradePair tradePair = null;
         try {
             tradePair = parseTradePair(messageJson);
+            logger.info("BinanceUsWebSocket: " + tradePair);
         } catch (CurrencyNotFoundException exception) {
             logger.error("BinanceUs websocket client: could not initialize trade pair: " +
                     messageJson.get("s").asText(), exception);
@@ -131,20 +130,26 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
         if (liveTradeConsumers.containsKey(tradePair)) {
             Trade newTrade;
             try {
-                assert tradePair != null;
+
                 newTrade = new Trade(tradePair,
-                        DefaultMoney.of(new BigDecimal(messageJson.get("p").asText()),
-                                tradePair.getCounterCurrency()),
-                        DefaultMoney.of(new BigDecimal(messageJson.get("q").asText()),
-                                tradePair.getBaseCurrency()),
+                        messageJson.get("p").asDouble(),
+
+                        messageJson.get("q").asDouble(),
+
                         side, messageJson.at("E").asLong(),
                         Instant.from(ISO_INSTANT.parse(messageJson.get("t").asText())));
-            } catch (TelegramApiException | IOException | InterruptedException | URISyntaxException |
+
+                logger.info(
+                        "BinanceUs websocket client: received trade: " + newTrade
+                );
+            } catch (IOException | InterruptedException | URISyntaxException |
                      ParseException e) {
                 throw new RuntimeException(e);
             }
             logger.info("BinanceUs websocket client: received trade: " + newTrade);
-            liveTradeConsumers.get(tradePair).acceptTrades(Collections.singletonList(newTrade));
+            List<Trade> newTrades = new ArrayList<>();
+            newTrades.add(newTrade);
+            liveTradeConsumers.get(tradePair).acceptTrades(newTrades);
         }
         //}
         //case "error" -> throw new IllegalArgumentException("Error on Binance websocket client: " +

@@ -2,7 +2,8 @@ package cryptoinvestor.cryptoinvestor;
 
 import com.google.gson.Gson;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
-import javafx.beans.property.SimpleObjectProperty;
+import cryptoinvestor.cryptoinvestor.Indicators.Signal;
+import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,19 +13,15 @@ import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
 
-    private Money price1;
-    Order order = new Order((long) (Math.random() * 100000), new TradePair("BTC", "USD"),
-            new Date().toString(),
-            ENUM_ORDER_TYPE.BUY, Side.BUY, 0, 0, price, 0, 0, 0
-    );
+    static List<Order> orderList = new ArrayList<>();
     private boolean isBestMatch;
     private boolean isMaker;
     private boolean isBuyer;
@@ -42,40 +39,21 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
     private long tradeId;
     private double closePrice;
     private double highestBidPrice;
-
-    public Trade(String symbol, long id, long orderId, long orderListId, String price, String qty, String quoteQty, String commission, String commissionAsset, long time, boolean isBuyer, boolean isMaker, boolean isBestMatch) {
-        this.instrument = symbol;
-        Trade.id = id;
-        this.tradeId = id;
-        this.orderId = orderId;
-        this.orderListId = orderListId;
-        Trade.price = Double.parseDouble(price);
-        this.qty = Double.parseDouble(qty);
-        this.quoteQty = Double.parseDouble(quoteQty);
-        this.commission = commission;
-        this.commissionAsset = commissionAsset;
-        this.time = time;
-        this.isBuyer = isBuyer;
-        this.isMaker = isMaker;
-        this.isBestMatch = isBestMatch;
-        this.avgPrice = 0;
-        this.avgQty = 0;
-        this.isBuy = false;
-        this.isSell = true;
-    }
+    Order order;
+    Exchange exchange;
+    TradePair tradePair;
+    double price;
+    double amount;
 
     public static void setTrades(List<Trade> trades) {
         Trade.trades = trades;
     }
-
     public static CandleData getCandle() {
         return candle;
     }
-
     public static void setCandle(CandleData candle) {
         Trade.candle = candle;
     }
-
     public static Logger getLogger() {
         return logger;
     }
@@ -91,14 +69,8 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
     public static void setOrderList(List<Order> orderList) {
         Trade.orderList = orderList;
     }
-
-    public static Money getFee() {
-        return fee;
-    }
-
-    public static void setFee(Money fee) {
-        Trade.fee = fee;
-    }
+    Instant timestamp;
+    double fee;
 
     public boolean isBestMatch() {
         return isBestMatch;
@@ -311,21 +283,31 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
     public void setTradeMap(ConcurrentHashMap<Long, Trade> tradeMap) {
         this.tradeMap = tradeMap;
     }
+    Signal signal;
+    private TradeMode mode;
 
-    public Exchange getExchange() {
-        return exchange.get();
-    }
 
-    public void setExchange(Exchange exchange) {
-        this.exchange.set(exchange);
-    }
+    public Trade(Order order, TradeMode tradeMode, String symbol, long id, long orderId, long orderListId, double price, String qty, String quoteQty, String commission, String commissionAsset, long time, boolean isBuyer, boolean isMaker, boolean isBestMatch) {
+        this.instrument = symbol;
+        Trade.id = id;
+        this.order = order;
+        this.tradeId = id;
+        this.orderId = orderId;
+        this.orderListId = orderListId;
+        this.price = price;
+        this.qty = Double.parseDouble(qty);
+        this.quoteQty = Double.parseDouble(quoteQty);
+        this.commission = commission;
+        this.commissionAsset = commissionAsset;
+        this.time = time;
+        this.isBuyer = isBuyer;
+        this.isMaker = isMaker;
+        this.isBestMatch = isBestMatch;
+        this.avgPrice = 0;
+        this.avgQty = 0;
 
-    public SimpleObjectProperty<Exchange> exchangeProperty() {
-        return exchange;
-    }
 
-    public void setAmount(Money amount) {
-        this.amount = amount;
+        this.mode = tradeMode;
     }
 
     public void setTransactionType(Side transactionType) {
@@ -372,13 +354,83 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
     //   {"trades":[{"id":"142950","instrument":"EUR_USD","price":"1.07669","openTime":"2023-03-21T16:56:10.786314295Z","initialUnits":"-1700","initialMarginRequired":"36.6098","state":"OPEN","currentUnits":"-1700","realizedPL":"0.0000","financing":"0.1828","dividendAdjustment":"0.0000","clientExtensions":{"id":"140660466","tag":"0"},"unrealizedPL":"-23.6130","marginUsed":"37.0770"},{"id":"124829","instrument":"USD_CAD","price":"1.38016","openTime":"2023-03-15T14:46:04.088679752Z","initialUnits":"4000","initialMarginRequired":"80.0000","state":"OPEN","currentUnits":"4000","realizedPL":"0.0000","financing":"-0.7802","dividendAdjustment":"0.0000","clientExtensions":{"id":"140494560","tag":"0"},"unrealizedPL":"-48.2803","marginUsed":"80.0000"}],"lastTransactionID":"142955"}
 
+    public Trade(@NotNull TradePair symbol, String id, double orderId, double orderListId, String price, String qty, String quoteQty, long commission, String commissionAsset, long time, boolean isBuyer, boolean isMaker, boolean isBestMatch) {
+
+        this.instrument = symbol.getBaseCurrency().code + "_" + symbol.getCounterCurrency().code;
+        Trade.id = Long.valueOf(id);
+        this.tradeId = Long.parseLong(id);
+        this.orderId = (long) orderId;
+        this.orderListId = (long) orderListId;
+        this.price = Double.parseDouble(price);
+        this.qty = Double.parseDouble(qty);
+        this.quoteQty = Double.parseDouble(quoteQty);
+        this.commission = String.valueOf(commission);
+        this.commissionAsset = commissionAsset;
+        this.time = time;
+        this.isBuyer = isBuyer;
+        this.isMaker = isMaker;
+        this.isBestMatch = isBestMatch;
+        this.avgPrice = 0;
+        this.avgQty = 0;
+
+
+    }
+
+    static List<Trade> trades=new ArrayList<>();
+    ConcurrentHashMap<Long, Trade> tradeMap = new ConcurrentHashMap<>();
+
+
+    public static CandleData candle;
+    static Logger logger = LoggerFactory.getLogger(Trade.class);
+    public Trade(@NotNull TradePair tradePair, String symbol, Side side, String price, double quantity, double fee, long orderId, long clientOrderId, long time, @NotNull String isBuyer, @NotNull String isMaker, @NotNull String isBestMatch, @NotNull String isBestMatchMaker, String isBestMatchTaker) {
+
+        this.instrument = symbol;
+        Trade.id = tradePair.getId();
+        this.tradeId = Long.parseLong(UUID.randomUUID().toString());
+        this.side = side;
+        this.orderId = Long.parseLong(UUID.randomUUID().toString());
+        this.orderListId = Long.parseLong(UUID.randomUUID().toString());
+        this.price = Double.parseDouble(price);
+        this.qty = quantity;
+        this.quoteQty = quantity;
+        this.commission = String.valueOf(0);
+        this.commissionAsset = String.valueOf(fee);
+        this.time = time;
+        this.isBuyer = isBuyer.equals("1");
+        this.isMaker = isMaker.equals("1");
+        this.isBestMatch = isBestMatch.equals("1");
+        this.avgPrice = 0;
+        this.avgQty = qty / 2;
+        this.fee = fee;
+
+    }
+
+    public Trade(String symbol, long id, long orderId, long orderListId, String price, String qty, String quoteQty, String commission, String commissionAsset, long time, boolean isBuyer, boolean isMaker, boolean isBestMatch) {
+        this.instrument = symbol;
+        Trade.id = id;
+        this.tradeId = id;
+        this.orderId = orderId;
+        this.orderListId = orderListId;
+        this.price = Double.parseDouble(price);
+        this.qty = Double.parseDouble(qty);
+        this.quoteQty = Double.parseDouble(quoteQty);
+        this.commission = commission;
+        this.commissionAsset = commissionAsset;
+        this.time = time;
+        this.isBuyer = isBuyer;
+        this.isMaker = isMaker;
+        this.isBestMatch = isBestMatch;
+        this.avgPrice = 0;
+        this.avgQty = 0;
+
+    }
   public Trade(ENUM_ORDER_TYPE orderType, Long id, @NotNull TradePair instrument,  Side side, double price, Long openTime, int initialUnits, double initialMargin
                , String state, double currentUnits, double realizedPL, double financing, double dividendAdjustment,
                String clientExtensions, double unrealizedPL, double marginUsed) throws IOException, ParseException, URISyntaxException, InterruptedException {
       order_type = orderType;
       Trade.id = id;
       this.instrument = instrument.getBaseCurrency() + "_" + instrument.getCounterCurrency();
-      Trade.price = price;
+      this.price = price;
       this.openTime = openTime;
       this.initialUnits = initialUnits;
       this.initialMargin = initialMargin;
@@ -411,66 +463,46 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
 
   }
+    public Trade(TradePair tradePair, double price, double amount, Side transactionType,
+                 long localTradeId, long timestamp, double fee) throws IOException, InterruptedException, ParseException, URISyntaxException {
 
-    static List<Trade> trades=new ArrayList<>();
-    ConcurrentHashMap<Long, Trade> tradeMap = new ConcurrentHashMap<>();
-
-
-
-
-
-    public static CandleData candle;
-    static Logger logger = LoggerFactory.getLogger(Trade.class);
-    static List<Order> orderList =new ArrayList<>();
-
-    SimpleObjectProperty<Exchange> exchange = new SimpleObjectProperty<>(this, "exchange");
-     static TradePair tradePair;
-    private static double price;
-     Money amount;
-    private Side transactionType;
-    private long localTradeId;
-     Instant timestamp;
-    private static Money fee;
-
-    public Trade(TradePair tradePair, double price, Money amount, Side transactionType,
-                 long localTradeId, Instant timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException {
-
-        Trade.tradePair = tradePair;
-        Trade.price = price;
+        this.tradePair = tradePair;
+        this.price = price;
 
         this.amount = amount;
         this.transactionType = transactionType;
         this.localTradeId = localTradeId;
+        this.timestamp = Instant.ofEpochSecond(timestamp);
+
+        this.fee = fee;
+        logger.info("Trade created");
+    }
+    public Trade(TradePair tradePair, double price, double size, Side side, long tradeId, Instant time) throws IOException, ParseException, URISyntaxException, InterruptedException {
+
+    }
+    private Side transactionType;
+    private long localTradeId;
+    public Trade(TradePair tradePair, double price, double amount, Side transactionType,
+                 long localTradeId, Instant timestamp, double fee) {
+        this.tradePair = tradePair;
+        this.price = price;
+        this.amount = amount;
+        this.transactionType = transactionType;
+        this.localTradeId = localTradeId;
         this.timestamp = timestamp;
-
-        Trade.fee = fee;
-        logger.info("Trade created");
+        this.fee = fee;
     }
 
-    public Trade(TradePair tradePair, @NotNull Money price, Money amount, Side transactionType,
-                 long localTradeId, Instant timestamp) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException {
-        this(tradePair, price.toDouble(), amount, transactionType, localTradeId,
-                timestamp, DefaultMoney.NULL_MONEY);
+    public double getFee() {
+        return fee;
     }
 
-    public Trade(TradePair tradePair, @NotNull Money price, Money amount, Side transactionType,
-                 long localTradeId, long timestamp) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException {
-        this(tradePair, price.toDouble(), amount, transactionType, localTradeId, Instant.ofEpochSecond(timestamp),
-                DefaultMoney.NULL_MONEY);
-
+    public void setFee(double fee) {
+        this.fee = fee;
     }
 
-    public Trade(TradePair tradePair, @NotNull Money price, Money amount, Side transactionType,
-                 long localTradeId, long timestamp, Money fee) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException {
-        this(tradePair, price.toDouble(), amount, transactionType, localTradeId, Instant.ofEpochSecond(timestamp), fee);
-        Trade.fee = fee;
-
-        logger.info("Trade created");
-
-    }
-
-    public Trade() throws IOException, ParseException, URISyntaxException, InterruptedException {
-
+    public Exchange getExchange() {
+        return exchange;
     }
 
     public void setTimestamp(Instant timestamp) {
@@ -518,17 +550,13 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         return price;
     }
 
-    public Money getAmount() {
-
-        return amount;
+    public void setExchange(Exchange exchange) {
+        this.exchange = exchange;
     }
 
+    public double getAmount() {
 
-    public Money getTotal() {
-
-        // different currencies..maybe involve a TradePair? btc * usd/btc = usd, which
-        // is technically what we are doing here
-        return DefaultMoney.ofFiat(price, tradePair.getCounterCurrency().code);
+        return amount;
     }
 
 
@@ -542,36 +570,28 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         return count;
     }
 
+    public void setAmount(double amount) {
+        this.amount = amount;
+    }
+
+    public double getTotal() {
+
+        // different currencies..maybe involve a TradePair? btc * usd/btc = usd, which
+        // is technically what we are doing here
+        return DefaultMoney.ofFiat(price, tradePair.getCounterCurrency().code).toDouble();
+    }
+
     @Override
     public void run() {
 
 
-        OnTick();
+        try {
+            OnTick();
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private void OnTick() {
-        logger.info("OnTick");
-        logger.info(tradePair.getCounterCurrency().code);
-        logger.info(tradePair.getBaseCurrency().code);
-        logger.info("Trade pair: " + tradePair.toString());
-        logger.info("Price: " + price);
-        logger.info("Amount: " + amount);
-        logger.info("Transaction type: " + transactionType);
-        logger.info("Local trade id: " + localTradeId);
-        logger.info("Timestamp: " + timestamp);
-        logger.info("Fee: " + fee);
-        logger.info("Total: " + getTotal());
-        logger.info("Orders total: " + OrdersTotal());
-        logger.info("Orders: " + orderList.size());
-        logger.info("Trades: " + trades.size());
-        logger.info("OrderMap: " + orderMap.size());
-        logger.info("TradeMap: " + tradeMap.size());
-        logger.info("Exchange: " + exchange.get());
-        logger.info("UnrealizedPL: " + unrealizedPL);
-        logger.info("MarginUsed: " + marginUsed);
-        logger.info("OrderMap: " + orderMap.size());
-
-    }
 
     public Long getId() {
         return id;
@@ -622,8 +642,112 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
     }
 
-    public void setPrice(double price) {
-        Trade.price = price;
+    private void OnTick() throws IOException, InterruptedException {
+        logger.info("OnTick");
+        logger.info(tradePair.getCounterCurrency().code);
+        logger.info(tradePair.getBaseCurrency().code);
+        logger.info("Trade pair: " + tradePair.toString());
+        logger.info("Price: " + price);
+        logger.info("Amount: " + amount);
+        logger.info("Transaction type: " + transactionType);
+        logger.info("Local trade id: " + localTradeId);
+        logger.info("Timestamp: " + timestamp);
+        logger.info("Fee: " + fee);
+        logger.info("Total: " + getTotal());
+        logger.info("Orders total: " + OrdersTotal());
+        logger.info("Orders: " + orderList.size());
+        logger.info("Trades: " + trades.size());
+        logger.info("OrderMap: " + orderMap.size());
+        logger.info("TradeMap: " + tradeMap.size());
+        logger.info("Exchange: " + exchange.getName());
+        logger.info("UnrealizedPL: " + unrealizedPL);
+        logger.info("MarginUsed: " + marginUsed);
+        logger.info("OrderMap: " + orderMap.size());
+        logger.info("TradeMap: " + tradeMap.size());
+        logger.info("Remaining: " + remaining);
+        logger.info("Size: " + size);
+        logger.info("Mode: " + mode);
+
+
+        if (mode.equals(TradeMode.AUTOMATIC)) {
+
+            if (signal.equals(Signal.BUY)) {
+                exchange.createOrder(tradePair,
+                        POSITION_FILL.DEFAULT_FILL,
+                        price,
+                        ENUM_ORDER_TYPE.MARKET,
+                        Side.BUY,
+                        qty,
+                        0,
+                        0);
+
+                TelegramClient.sendMessage(
+                        "Opening  Buying order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
+                                price + " " + exchange.getPrice()
+                );
+            } else if (signal.equals(Signal.SELL)) {
+
+                exchange.createOrder(tradePair,
+                        POSITION_FILL.DEFAULT_FILL,
+                        price,
+                        ENUM_ORDER_TYPE.MARKET,
+                        Side.SELL,
+                        qty,
+                        0,
+                        0);
+
+                TelegramClient.sendMessage(
+                        "Opening  Selling order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
+                                price + " " + exchange.getPrice()
+                );
+            } else if (signal.equals(Signal.STOP)) {
+
+                TelegramClient.sendMessage(
+                        "Stopping order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
+                                price + " " + exchange.getPrice()
+                );
+
+
+            } else if (signal.equals(Signal.CloseSELL)) {
+
+                TelegramClient.sendMessage(
+                        "Closing Sell order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
+                                price + " " + exchange.getPrice()
+
+                );
+
+
+            } else if (signal.equals(Signal.CloseBUY)) {
+
+                TelegramClient.sendMessage(
+                        "Closing Buy order" + tradePair.getBaseCurrency().code + " " + tradePair.getCounterCurrency().code + " at " +
+                                price + " " + exchange.getPrice()
+
+                );
+
+
+            } else if (Objects.equals(signal, Signal.ReduceSize)) {
+
+                TelegramClient.sendMessage(
+                        "Reducing order Size " + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
+                                price + " " + exchange.getPrice()
+
+                );
+
+            }
+        } else if (mode.equals(TradeMode.MANUAL)) {
+
+            TelegramClient.sendMessage(
+                    "Manual order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
+                            price + " " + exchange.getPrice()
+            );
+        } else if (mode.equals(TradeMode.SIGNAL_ONLY)) {
+
+            TelegramClient.sendMessage(
+                    "Signal only order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
+                            price + " " + exchange.getPrice()
+            );
+        }
     }
 
     public void setVolume(double volume) {
@@ -690,8 +814,8 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         this.lastTransactionID = lastTransactionID;
     }
 
-    public void setTradePair(TradePair tradePair) {
-        Trade.tradePair = tradePair;
+    public void setPrice(double price) {
+        this.price = price;
     }
 
     public void close() {
@@ -702,15 +826,8 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         logger.info(tradePair.getBaseCurrency().code);
     }
 
-    public Trade(TradePair tradePair, Money price, Money amount, Side transactionType,
-                 long localTradeId, Instant timestamp, Money fee) {
-        Trade.tradePair = tradePair;
-        this.price1 = price;
-        this.amount = amount;
-        this.transactionType = transactionType;
-        this.localTradeId = localTradeId;
-        this.timestamp = timestamp;
-        Trade.fee = fee;
+    public void setTradePair(TradePair tradePair) {
+        this.tradePair = tradePair;
     }
 
 

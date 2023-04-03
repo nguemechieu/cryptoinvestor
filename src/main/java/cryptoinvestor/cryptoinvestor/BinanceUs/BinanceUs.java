@@ -57,6 +57,7 @@ public class BinanceUs extends Exchange {
 
 
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+    static TradePair tradePair;
     private final HttpClient client = HttpClient.newHttpClient();
     private static boolean isConnected;
     private String api_key;
@@ -67,9 +68,9 @@ public class BinanceUs extends Exchange {
     private double price;
 
 
-    public BinanceUs(String apiKey, String apiSecret, String accountId) {
+    public BinanceUs(String apiKey, String apiSecret, String accountId, TradePair tradePair1) {
         super(
-                binanceUsWebSocket(apiKey, apiSecret, accountId)
+                binanceUsWebSocket(apiKey, apiSecret, accountId, tradePair1)
         );
 
 
@@ -94,14 +95,15 @@ public class BinanceUs extends Exchange {
         this.api_key = apiKey;
         isConnected = false;
         this.accountId = accountId;
+        tradePair = tradePair1;
 
 
     }
 
-    private static @NotNull ExchangeWebSocketClient binanceUsWebSocket(String apiKey, String apiSecret, String accountId) {
+    private static @NotNull ExchangeWebSocketClient binanceUsWebSocket(String apiKey, String apiSecret, String accountId, @NotNull TradePair tradePair1) {
 
         BinanceUsWebSocket binanceUsWebSocket = new BinanceUsWebSocket(
-                URI.create("wss://stream.binance.us:9443/ws/btcusdt@trade")
+                URI.create("wss://stream.binance.us:9443/ws/" + tradePair1.toString('/') + "@trade")
         );
         binanceUsWebSocket.setAsyncSendTimeout(10000);
         binanceUsWebSocket.addHeader("Content-Type", "application/json");
@@ -246,9 +248,7 @@ public class BinanceUs extends Exchange {
     // "GET" "$api_url/api/v3/order?orderId=$orderId&symbol=$symbol&timestamp=$timestamp&signature=$signature" \
     //     -H "X-MBX-APIKEY: $api_key"
     public List<Order> getOrder(@NotNull TradePair tradePair, String orderId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(
-                "https://api.binance.us/api/v3/order/symbol=?" + tradePair.toString('/')
-        ));
+        requestBuilder.uri(URI.create("https://api.binance.us/api/v3/order/symbol=?" + tradePair.toString('/')));
         requestBuilder.GET();
         logger.info("BinanceUs " + nanoTime());
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -636,24 +636,17 @@ public class BinanceUs extends Exchange {
                 requestBuilder.uri(URI.create(uriStr));
                 requestBuilder.GET();
                 try {
-                    HttpResponse<String> response = client.send(requestBuilder.build()
-                            ,
-                            HttpResponse.BodyHandlers.ofString());
+                    HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
                     Log.info("response headers-->: ", response.toString());
-
                     if (response.headers().firstValue("date").isEmpty()) {
-                        futureResult.completeExceptionally(new RuntimeException(
-                                "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.BinanceUs trades response did not contain header \"date\": " + response.body()));
+                        futureResult.completeExceptionally(new RuntimeException("cryptoinvestor.cryptoinvestor.CurrencyDataProvider.BinanceUs trades response did not contain header \"date\": " + response.body()));
 
                     }
-
                     afterCursor.setValue(Integer.valueOf((response.headers().firstValue("CB-AFTER").get())));
-
                     JsonNode tradesResponse = OBJECT_MAPPER.readTree(response.body());
-
                     if (!tradesResponse.isArray()) {
                         futureResult.completeExceptionally(new RuntimeException(
-                                "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.BinancesUs trades response was not an array!"));
+                                "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.BinanceUs trades response was not an array!"));
                     }
                     if (tradesResponse.isEmpty()) {
                         futureResult.completeExceptionally(new IllegalArgumentException("tradesResponse was empty"));
@@ -665,21 +658,20 @@ public class BinanceUs extends Exchange {
                                 futureResult.complete(tradesBeforeStopTime);
                                 break;
                             } else {
-                                try {
-                                    tradesBeforeStopTime.add(new Trade(tradePair,
-                                            DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getCounterCurrency())),
-                                            DefaultMoney.ofCrypto(trade.get("size").asText(), String.valueOf(tradePair.getBaseCurrency())),
-                                            Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
-                                } catch (ParseException | URISyntaxException e) {
-                                    throw new RuntimeException(e);
-                                }
+                                tradesBeforeStopTime.add(new Trade(tradePair,
+                                        trade.get("p").asDouble(),
+
+                                        trade.get("q").asDouble(),
+
+                                        Side.getSide(trade.get("S").asText()), trade.at("E").asLong(),
+                                        Instant.from(ISO_INSTANT.parse(trade.get("t").asText()))));
                             }
                         }
                     }
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException e) {
+                } catch (ParseException | URISyntaxException e) {
                     throw new RuntimeException(e);
                 }
             }

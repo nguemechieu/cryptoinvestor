@@ -87,13 +87,13 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
                     Trade newTrade;
                     try {
                         newTrade = new Trade(tradePair,
-                                DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
-                                        tradePair.getCounterCurrency()),
-                                DefaultMoney.of(new BigDecimal(messageJson.get("size").asText()),
-                                        tradePair.getBaseCurrency()),
+                                messageJson.get("price").asDouble(),
+
+                                messageJson.get("size").asDouble(),
+
                                 side, messageJson.at("trade_id").asLong(),
                                 Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
-                    } catch (TelegramApiException | IOException | InterruptedException | ParseException |
+                    } catch (IOException | InterruptedException | ParseException |
                              URISyntaxException e) {
                         throw new RuntimeException(e);
                     }

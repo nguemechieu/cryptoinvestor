@@ -19,7 +19,6 @@ import javax.websocket.Endpoint;
 import javax.websocket.Extension;
 import javax.websocket.Session;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.WebSocket;
@@ -80,15 +79,17 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
                 if (liveTradeConsumers.containsKey(tradePair)) {
                     Trade newTrade;
                     try {
-                        assert tradePair != null;
+
                         newTrade = new Trade(tradePair,
-                                DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
-                                        tradePair.getCounterCurrency()),
-                                DefaultMoney.of(new BigDecimal(messageJson.get("size").asText()),
-                                        tradePair.getBaseCurrency()),
+                                messageJson.get("price").asDouble()
+                                ,
+                                messageJson.get("size").asDouble(),
+
                                 side, messageJson.at("trade_id").asLong(),
                                 Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
-                    } catch (TelegramApiException | IOException | InterruptedException | URISyntaxException |
+                        logger.info("coinbase websocket client: received trade: " + newTrade);
+
+                    } catch (IOException | InterruptedException | URISyntaxException |
                              ParseException e) {
                         throw new RuntimeException(e);
                     }
@@ -103,6 +104,11 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     private @NotNull TradePair parseTradePair(JsonNode messageJson) throws CurrencyNotFoundException {
+
+
+        logger.info(
+                String.valueOf(messageJson)
+        );
 
         final String productId = messageJson.get("product_id").asText();
 
@@ -240,7 +246,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
-    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws URISyntaxException {
+    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
         return null;
     }
 
@@ -292,7 +298,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
-    public void onError(Exception ex) {
+    public void onError(@NotNull Exception ex) {
         ex.printStackTrace();
 
     }

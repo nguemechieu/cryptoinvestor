@@ -228,18 +228,16 @@ public class Kucoin extends Exchange {
                                 futureResult.complete(tradesBeforeStopTime);
                                 break;
                             } else {
-                                tradesBeforeStopTime.add(new Trade(tradePair,
-                                        DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getCounterCurrency())),
-                                        DefaultMoney.ofCrypto(trade.get("size").asText(), String.valueOf(tradePair.getBaseCurrency())),
-                                        Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
+//                                tradesBeforeStopTime.add(new Trade(tradePair,
+//                                        DefaultMoney.ofFiat(trade.get("price").asText(), String.valueOf(tradePair.getCounterCurrency())),
+//                                        DefaultMoney.ofCrypto(trade.get("size").asText(), String.valueOf(tradePair.getBaseCurrency())),
+//                                        Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
                             }
                         }
                     }
                 } catch (IOException | InterruptedException ex) {
                     Log.error("ex: " + ex);
                     futureResult.completeExceptionally(ex);
-                } catch (TelegramApiException | ParseException | URISyntaxException e) {
-                    throw new RuntimeException(e);
                 }
             }
         });
