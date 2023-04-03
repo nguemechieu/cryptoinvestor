@@ -1,6 +1,5 @@
 package cryptoinvestor.cryptoinvestor.Coinbase;
 
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,7 +14,10 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.websocket.*;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.Endpoint;
+import javax.websocket.Extension;
+import javax.websocket.Session;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -25,8 +27,10 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
@@ -37,49 +41,33 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    private final CompletableFuture<Boolean> connectionEstablished = new CompletableFuture<>();
-
     private static final Logger logger = LoggerFactory.getLogger(CoinbaseWebSocketClient.class);
-
+    private final Set<TradePair> tradePairs;
+    private Account connectionEstablished;
 
     public CoinbaseWebSocketClient(Set<TradePair> tradePairs) {
-        super(URI.create("wss://advanced-trade-ws.coinbase.com"), new Draft_6455());
-        logger.info("Coinbase websocket client initialized");
+        super(URI.create("wss://advanced-trade-ws.coinbase.com" +
+                "/market_trades"), new Draft_6455());
 
-
-        tradePairs.stream().distinct().forEach(tradePair -> {
-            liveTradeConsumers.put(tradePair, new LiveTradeConsumer(tradePair));
-        });
-
-
+        this.tradePairs = tradePairs;
     }
 
     @Override
-    public void onMessage(String message) throws TelegramApiException, IOException, InterruptedException, ParseException, URISyntaxException {
+    public void onMessage(String message) {
         JsonNode messageJson;
         try {
             messageJson = OBJECT_MAPPER.readTree(message);
-            logger.info(
-                    "Coinbase websocket client received message: " + messageJson.toPrettyString()
-            );
         } catch (JsonProcessingException ex) {
             logger.error("ex: ", ex);
             throw new RuntimeException(ex);
         }
 
         if (messageJson.has("event") && messageJson.get("event").asText().equalsIgnoreCase("info")) {
+            connectionEstablished.setValue(true);
 
-            if (messageJson.has("product_id") && messageJson.get("product_id").asText().equalsIgnoreCase("BTC-USD")) {
-                connectionEstablished.complete(true);
-
-                logger.info(
-                        "Coinbase websocket client connected to " + messageJson.get("product_id").asText()
-                );
-            }
         }
 
-
-        TradePair tradePair = new TradePair("ETH", "BTC");
+        TradePair tradePair = null;
         try {
             tradePair = parseTradePair(messageJson);
         } catch (CurrencyNotFoundException exception) {
@@ -88,21 +76,26 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         }
 
         Side side = messageJson.has("side") ? Side.getSide(messageJson.get("side").asText()) : null;
+
         switch (messageJson.get("type").asText()) {
             case "heartbeat" ->
-                    sendText(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", false).toPrettyString(),false);
+                    send(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString());
             case "match" -> {
                 if (liveTradeConsumers.containsKey(tradePair)) {
-                    Trade newTrade = new Trade(tradePair,
-                            DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
-                                    messageJson.get("currency").asText())
-                            ,
-                            DefaultMoney.of(new BigDecimal(
-                                            messageJson.get("amount").asText()),
-                                    messageJson.get("currency").asText()
-                            ),
-                            side, messageJson.at("trade_id").asLong(),
-                            Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
+                    Trade newTrade = null;
+                    try {
+                        assert tradePair != null;
+                        newTrade = new Trade(tradePair,
+                                DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
+                                        tradePair.getCounterCurrency()),
+                                DefaultMoney.of(new BigDecimal(messageJson.get("size").asText()),
+                                        tradePair.getBaseCurrency()),
+                                side, messageJson.at("trade_id").asLong(),
+                                Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
+                    } catch (TelegramApiException | IOException | InterruptedException | URISyntaxException |
+                             ParseException e) {
+                        throw new RuntimeException(e);
+                    }
                     liveTradeConsumers.get(tradePair).acceptTrades(Collections.singletonList(newTrade));
                 }
             }
@@ -113,39 +106,45 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         }
     }
 
-    private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
-
-        logger.info("Coinbase websocket client: parsing trade pair: " + messageJson.get("product_id").asText());
-        String productId = messageJson.get("product_id").asText();
+    private TradePair parseTradePair(JsonNode messageJson) throws CurrencyNotFoundException {
+        final String productId = messageJson.get("product_id").asText();
         final String[] products = productId.split("-");
         TradePair tradePair;
         if (products[0].equalsIgnoreCase("BTC")) {
             tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
-            logger.info("Coinbase websocket client: parsed trade pair: " + tradePair);
         } else {
             // products[0] == "ETH"
             if (products[1].equalsIgnoreCase("usd")) {
                 tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
-
-                logger.info("Coinbase websocket client: parsing trade pair: " + tradePair);
             } else {
                 // productId == "ETH-BTC"
                 tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, CryptoCurrency.class));
-
-                logger.info(
-                        "Coinbase websocket client: parsing trade pair: " + messageJson.get("product_id").asText()
-                );
             }
         }
 
         return tradePair;
     }
 
-
-
     @Override
     public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
-        this.liveTradeConsumers.put((TradePair) tradePairs, liveTradesConsumer);
+
+        tradePairs = tradePairs.stream().filter(Objects::nonNull).collect(Collectors.toSet());
+        send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
+                .put("product_id", tradePairs.stream().map(TradePair::toString).collect(Collectors.joining())).toPrettyString());
+        liveTradeConsumers.put(
+                (TradePair) tradePairs,
+                liveTradesConsumer);
+
+    }
+
+    @Override
+    public void streamLiveTrades(@NotNull TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
+        send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
+                .put("product_id", tradePair.toString('-')).toPrettyString());
+        liveTradeConsumers.put(
+                tradePair,
+                liveTradesConsumer);
+
 
     }
 
@@ -159,10 +158,20 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         return false;
     }
 
+
     @Override
-    protected @NotNull URI getURI() {
-        return
-                URI.create("wss://advanced-trade-ws.coinbase.com");
+    public boolean isStreamingTradesSupported(TradePair tradePair) {
+        return false;
+    }
+
+    @Override
+    public boolean isStreamingTradesEnabled(TradePair tradePair) {
+        return false;
+    }
+
+    @Override
+    public void request(long n) {
+
     }
 
     @Override
@@ -207,27 +216,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
     @Override
     public void abort() {
-        connectionEstablished.complete(false);
-        logger.info("Coinbase websocket client aborted");
 
-    }
-
-    @Override
-    public void onClose(int code, String reason, boolean remote) {
-
-        connectionEstablished.complete(false);
-        logger.info("Coinbase websocket client closed");
-    }
-
-    @Override
-    public void onError(Exception ex) {
-
-        logger.error("ex: ", ex);
-    }
-
-    @Override
-    public void onOpen(ServerHandshake serverHandshake) {
-        connectionEstablished.complete(true);
     }
 
     @Override
@@ -241,7 +230,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
-    public Session connectToServer(Object endpoint, URI path)  {
+    public Session connectToServer(Object endpoint, ClientEndpointConfig path) {
         return null;
     }
 
@@ -251,12 +240,12 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
-    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
+    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws URISyntaxException {
         return null;
     }
 
     @Override
-    public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path)  {
+    public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
         return null;
     }
 
@@ -287,15 +276,24 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
     @Override
     public void setDefaultMaxTextMessageBufferSize(int max) {
-        logger.info("Coinbase websocket client: default max text message buffer size set to " + max);
 
     }
 
     @Override
     public Set<Extension> getInstalledExtensions() {
-        return
-                Collections.emptySet();
+        return null;
     }
 
+    @Override
+    public void onClose(int code, String reason, boolean remote) {
+    }
 
+    @Override
+    public void onError(Exception ex) {
+
+    }
+
+    @Override
+    public void onOpen(ServerHandshake serverHandshake) {
+    }
 }

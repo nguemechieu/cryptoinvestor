@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -183,12 +182,10 @@ public class CandleStickChartToolbar extends Region {
                     tool.setOnAction(event -> secondsPerCandle.setValue(tool.duration));
                 } else if (tool.tool != null && tool.tool.isZoomFunction()) {
                     tool.setOnAction(event -> {
-                        try {
-                            candleStickChart.changeZoom(
+
+                        candleStickChart.changeZoom(
                                     tool.tool.getZoomDirection());
-                        } catch (IOException | ParseException | InterruptedException | TelegramApiException e) {
-                            throw new RuntimeException(e);
-                        }
+
                     });
 
 
@@ -236,8 +233,6 @@ public class CandleStickChartToolbar extends Region {
                 } else if (tool.tool != null && tool.tool.isHistogram()) {
                     tool.setOnAction(event -> candleStickChart.setHistogramChart());
 
-                } else if (tool.tool != null && tool.tool.isCurrency()) {
-                    tool.setOnAction(event -> candleStickChart.setCurrencyChart());
                 }
 
 
@@ -254,7 +249,6 @@ public class CandleStickChartToolbar extends Region {
         ZOOM_OUT("/cryptoinvestor/img/search-minus-solid.png"),
         SCREENSHOT("/cryptoinvestor/img/Screen Shot.png"),
         AUTO_TRADING("/cryptoinvestor/img/auto-trading-solid.png"),
-        CURRENCY("/cryptoinvestor/img/symbol.png"),
         BAR("/cryptoinvestor/img/bar-solid.png"),
         AREA("/cryptoinvestor/img/area-solid.png"),
 
@@ -347,9 +341,6 @@ public class CandleStickChartToolbar extends Region {
         }
 
 
-        public boolean isCurrency() {
-            return this == CURRENCY;
-        }
     }
 
 

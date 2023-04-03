@@ -24,7 +24,6 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -37,17 +36,18 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final Account connectionEstablished;
 
 
 //    curl \
 //            -H "Authorization: Bearer <AUTHENTICATION TOKEN>" \
 //            "https://stream-fxtrade.oanda.com/v3/accounts/<ACCOUNT>/pricing/stream?instruments=EUR_USD%2CUSD_CAD"
 
-  public OandaWebSocket(Set<TradePair> tradePair) {
-        super(URI.create("ws://api-fxtrade.oanda.com/v3/accounts/001-001-2783446-002/pricing/stream?instruments="+"EUR_USD&USD_CAD"), new Draft_6455());
-        Objects.requireNonNull(tradePair);
+    public OandaWebSocket(Account connectionEstablished) {
+        super(URI.create("ws://api-fxtrade.oanda.com/v3/accounts/001-001-2783446-002/pricing/stream?instruments=" + "EUR_USD&USD_CAD"), new Draft_6455());
 
 
+        this.connectionEstablished = connectionEstablished;
     }
 
     @Override
@@ -130,12 +130,18 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
     @Override
     public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
 
-                sendText(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
-                      .put("product_id", tradePairs.toString()).toPrettyString(),false);
+        sendText(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
+                .put("product_id", tradePairs.toString()).toPrettyString(), false);
         liveTradeConsumers.put(tradePairs.iterator().next(), liveTradesConsumer);
 
     }
 
+
+    @Override
+    public void streamLiveTrades(@NotNull TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
+        liveTradeConsumers.put(tradePair, liveTradesConsumer);
+
+    }
 
     @Override
     public void stopStreamLiveTrades(TradePair tradePair) {
@@ -149,7 +155,18 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
     }
 
     @Override
-    protected @NotNull URI getURI() {
+    public boolean isStreamingTradesSupported(TradePair tradePair) {
+        return false;
+    }
+
+    @Override
+    public boolean isStreamingTradesEnabled(TradePair tradePair) {
+        return false;
+    }
+
+    @Override
+    @NotNull
+    public URI getURI() {
         return
                 URI.create("wss://stream-fxtrade.oanda.com/v3/accounts/001-001-2783446-002/pricing/stream?instruments=" + "EUR_USD&USD_CAD");
     }
@@ -157,6 +174,7 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 
     @Override
     public void request(long n) {
+        logger.info("oanda websocket client: request: " + n);
 
 
     }
@@ -209,15 +227,22 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
     }
 
     @Override
-    public void onClose(int code, String reason, boolean remote) {}
+    public void onClose(int code, String reason, boolean remote) {
+        logger.info("oanda websocket client: connection closed with code: " + code + ", reason: " + reason);
+    }
 
     @Override
     public void onError(Exception ex) {
 
+        logger.error("onError: ", ex);
+
     }
 
     @Override
-    public void onOpen(ServerHandshake serverHandshake) {}
+    public void onOpen(ServerHandshake serverHandshake) {
+        logger.info("oanda websocket client: connection established with account: " +
+                serverHandshake.getHttpStatusMessage());
+    }
 
     @Override
     public long getDefaultAsyncSendTimeout() {
@@ -226,12 +251,13 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 
     @Override
     public void setAsyncSendTimeout(long timeout) {
+        logger.debug("setAsyncSendTimeout: {}", timeout);
 
 
     }
 
     @Override
-    public Session connectToServer(Object endpoint, URI path)  {
+    public Session connectToServer(Object endpoint, ClientEndpointConfig path) {
         return null;
     }
 
@@ -257,6 +283,7 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 
     @Override
     public void setDefaultMaxSessionIdleTimeout(long timeout) {
+        logger.debug("setDefaultMaxSessionIdleTimeout: {}", timeout);
 
     }
 

@@ -15,7 +15,7 @@ public class InProgressCandle {
     private boolean placeHolder;
 
     private int closeTime;
-    private int closePriceSoFar;
+    private double closePriceSoFar;
 
     public int getCloseTime() {
         return closeTime;
@@ -139,11 +139,11 @@ public class InProgressCandle {
         this.openPrice = i;
     }
 
-    public int getClosePriceSoFar() {
+    public double getClosePriceSoFar() {
         return closePriceSoFar;
     }
 
-    public void setClosePriceSoFar(int i) {
+    public void setClosePriceSoFar(double i) {
         this.closePriceSoFar = i;
     }
 
@@ -172,5 +172,17 @@ public class InProgressCandle {
 
     public double getLowPrice24h() {
         return lowPriceSoFar * 24;
+    }
+
+    public void setVolume(double volume) {
+        this.volumeSoFar = volume;
+    }
+
+    public void setClosePrice(double closePrice) {
+        this.closePriceSoFar = closePrice;
+    }
+
+    public void setHighestBidPrice(double highestBidPrice) {
+        this.highPriceSoFar = highestBidPrice;
     }
 }

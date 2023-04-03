@@ -35,6 +35,7 @@ public class TradePair extends Pair<Currency, Currency> {
      Currency baseCurrency;
     Currency counterCurrency;
     private String tradePairCode;
+    private Iterable<? extends Trade> trades;
 
     public TradePair(Currency baseCurrency, Currency counterCurrency) {
         super(baseCurrency, counterCurrency);
@@ -288,5 +289,10 @@ public class TradePair extends Pair<Currency, Currency> {
 
     public void setTradePairCode(String tradePairCode) {
         this.tradePairCode = tradePairCode;
+    }
+
+    public Iterable<? extends Trade> getTrades() {
+
+        return trades;
     }
 }

@@ -16,4 +16,5 @@ public interface LiveTradesConsumer {
     void onMessage(String message) throws IOException, InterruptedException;
 
 
+    void accept(Trade trade);
 }

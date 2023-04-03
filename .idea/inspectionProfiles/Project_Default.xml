@@ -18,6 +18,7 @@
           <option value="CB-ACCESS-TIMESTAMP" />
           <option value="X-MBX-APIKEY" />
           <option value="X-MBX-APISECRET" />
+          <option value="CB-ACCESS-SIGN" />
         </set>
       </option>
     </inspection_tool>

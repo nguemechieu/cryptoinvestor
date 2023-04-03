@@ -51,7 +51,8 @@ public static final Logger logger = LoggerFactory.getLogger(CandleData.class);
 
         this.placeHolder = false;
         this.setId(Math.round(Math.random() * 1000000000));
-        this.volumeWeightedAveragePrice = 0;
+        this.volumeWeightedAveragePrice =
+                (openPrice + closePrice + highPrice + lowPrice) / 4;
         this.closeTime = -1;
         logger.info("CandleData created with id: " + this.id);
     }
@@ -86,7 +87,6 @@ public static final Logger logger = LoggerFactory.getLogger(CandleData.class);
     }
 
     public int getOpenTime() {
-
         return openTime;
     }
 

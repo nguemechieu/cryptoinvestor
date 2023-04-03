@@ -1,5 +1,6 @@
 package cryptoinvestor.cryptoinvestor;
 
+import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.geometry.Insets;
@@ -51,14 +52,13 @@ public class TradeView extends Region  {
         ChoiceBox<String> symbolChoicebox = new ChoiceBox<>();
         ChoiceBox<String> counterChoicebox = new ChoiceBox<>();
         try {
-
-           if (exchange instanceof Oanda) {
-               symbolChoicebox.getItems().addAll(exchange.getAvailableSymbols().stream().map(Currency::getCode).toList());
-           }else {
-               symbolChoicebox.getItems().addAll(CurrencyDataProvider.getInstance().stream().map(Currency::getCode).toList());
-
-
-           }
+//
+            if (exchange instanceof Coinbase) {
+                symbolChoicebox.getItems().addAll(CurrencyDataProvider.getInstance().stream().map(Currency::getCode).toList());
+            } else {
+                symbolChoicebox.getItems().addAll(exchange.getAvailableSymbols().stream().map(Currency::getCode).toList());
+//
+            }
 
 
             logger.debug("SYMBOLS--> " + symbolChoicebox.getItems().toString());
@@ -79,7 +79,7 @@ public class TradeView extends Region  {
                 event -> tradingTabPane.getTabs().remove(tradingTabPane.getSelectionModel().getSelectedItem())
         );
 
-        counterChoicebox.getItems().addAll("USD", "BTC");
+        counterChoicebox.getItems().addAll("USD", "BTC", "USDT", "CAD");
 
         Button AddBtn = new Button("LOAD NEW CHART");
 

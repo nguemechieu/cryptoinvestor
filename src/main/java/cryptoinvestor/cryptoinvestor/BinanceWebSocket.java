@@ -44,11 +44,11 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
          Set<TradePair> tradePairs;
 
 
-        public BinanceWebSocket(Set<TradePair> tradePairs) {
+        public BinanceWebSocket() {
             super(URI.create(
                     "wss://stream.binance.us:9443/ws"
             ), new Draft_6455());
-            this.tradePairs = tradePairs;
+
             logger.info("Coinbase websocket client initialized");
         }
 
@@ -147,6 +147,10 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
         @Override
         public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
 
+            for (TradePair tradePair : tradePairs) {
+                sendText(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
+                        .put("product_id", tradePair.toString()).toPrettyString(), true);
+            }
         }
 
 
@@ -155,21 +159,34 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
             liveTradeConsumers.remove(tradePair);
         }
 
-        @Override
-        public boolean supportsStreamingTrades(TradePair tradePair) {
-            return false;
-        }
+    @Override
+    public boolean supportsStreamingTrades(TradePair tradePair) {
+        return false;
+    }
 
     @Override
-    protected @NotNull URI getURI() {
+    public boolean isStreamingTradesSupported(TradePair tradePair) {
+        return false;
+    }
+
+    @Override
+    public boolean isStreamingTradesEnabled(TradePair tradePair) {
+        return false;
+    }
+
+    @Override
+    @NotNull
+    public URI getURI() {
         return
                 URI.create(
+
                         "wss://stream.binance.us:9443/ws"
                 );
     }
 
     @Override
     public void request(long n) {
+        logger.warn("BinanceUs websocket client: request not implemented " + n);
 
     }
 
@@ -215,14 +232,18 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
 
         @Override
         public void abort() {
+            logger.warn("BinanceUs websocket client: abort not implemented");
 
         }
 
-        @Override
-        public void onClose(int code, String reason, boolean remote) {}
+    @Override
+    public void onClose(int code, String reason, boolean remote) {
+        logger.warn("BinanceUs websocket client: onClose not implemented");
+    }
 
         @Override
         public void onError(Exception ex) {
+            logger.error("BinanceUs websocket client: onError", ex);
 
         }
 
@@ -238,27 +259,30 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
 
         @Override
         public void setAsyncSendTimeout(long timeout) {
+            logger.warn("BinanceUs websocket client: setAsyncSendTimeout not implemented");
 
 
         }
 
-        @Override
-        public Session connectToServer(Object endpoint, URI path) throws DeploymentException, IOException {
-            return null;
-        }
+    @Override
+    public Session connectToServer(Object endpoint, ClientEndpointConfig path) {
+        return
+
+                null;
+    }
 
     @Override
-    public Session connectToServer(Class<?> annotatedEndpointClass, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Class<?> annotatedEndpointClass, URI path) {
         return null;
     }
 
     @Override
-    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
         return null;
     }
 
     @Override
-    public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
         return null;
     }
 
@@ -289,6 +313,7 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
 
     @Override
     public void setDefaultMaxTextMessageBufferSize(int max) {
+        logger.warn("BinanceUs websocket client: setDefaultMaxTextMessageBufferSize not implemented");
 
     }
 

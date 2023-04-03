@@ -1,15 +1,20 @@
 package cryptoinvestor.cryptoinvestor.JsonToCsv;
 
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
-import static java.lang.System.out;
 
 public class JsonToCsv {
 
@@ -18,36 +23,25 @@ public class JsonToCsv {
 
     private static final Logger logger = LoggerFactory.getLogger(JsonToCsv.class);
 
-    public void convertJsonToCsv(String jsonfileName, Object data) throws IOException {
+    public void convertJsonToCsv(@NotNull String data, JSONObject data0) throws IOException {
+        logger.info("Converting JSON to CSV");
 
-        try {
 
-            if (data == null || jsonfileName == null) {
-                out.println("No data to convert");
-                return;
-            }
-            FileWriter file = new FileWriter(jsonfileName);
-
-            file.write(String.valueOf(data));
-            out.println(jsonfileName + " converted to csv");
-            file.flush();
-
-            file.close();
-        } catch (IOException io) {
-            logger.error(io.getMessage());
+        CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
+        CsvMapper mapper = new CsvMapper();
+        mapper.readerWithSchemaFor(data0.getClass()).with(csvSchema).readValues(data0.toString());
+        JsonParser p =
+                mapper.getFactory().createParser(new File(data));
+        Class<JsonNode> dat =
+                JsonNode.class;
+        MappingIterator<JsonNode> iterator = mapper.readValues(p, dat);
+        ArrayList<String> headers = new ArrayList<>();
+        while (iterator.hasNextValue()) {
+            headers.add(iterator.nextValue().toString());
+            logger.info(iterator.nextValue().toString());
         }
+        logger.info(headers.toString());
 
-
-        JsonNode jsonTree = new ObjectMapper().readTree(new File(jsonfileName));
-        CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
-        JsonNode firstObject = jsonTree.elements().next();
-        firstObject.fieldNames().forEachRemaining(csvSchemaBuilder::addColumn);
-        CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
-        CsvMapper csvMapper = new CsvMapper();
-        csvMapper.writerFor(JsonNode.class)
-                .with(csvSchema)
-                .writeValue(new File(jsonfileName + ".csv"), jsonTree);
-        out.println(jsonTree);
 
     }
 

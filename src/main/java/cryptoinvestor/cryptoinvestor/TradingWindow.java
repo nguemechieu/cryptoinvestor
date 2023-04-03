@@ -106,24 +106,30 @@ public class TradingWindow extends AnchorPane {
                             account_id
                     );
                     break;
-                 case KUCOIN:
-                     exchange = new Kucoin(
+                case KUCOIN:
+                    exchange = new Kucoin(
 
-                             api_key,
-                             api_secret,
-                             account_id
-                     );
-                     break;
+                            api_key,
+                            api_secret,
+                            account_id
+                    );
+                    break;
 
                 default:
+                    exchange = new Coinbase(
+                            account_id, "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "ULaVf9zteLbuLb8Pz8g+0tIlUStLsWP0A8bNHtJA7WIc7/vrYYFtKBvvz9Ady6offn+Nu3P7s"
+
+
+                    );
+                    break;
 
             }
 
-           if (exchange!=null)tab.setContent(
-                   new VBox(new Label(i.name(),
-                   new Separator(Orientation.VERTICAL)),
-                   new TradeView(exchange,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo")));
-        }
+               tab.setContent(
+                       new VBox(new Label(i.name(),
+                               new Separator(Orientation.VERTICAL)),
+                               new TradeView(exchange, "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo")));
+           }
 
         tabPane.getTabs().addAll(getNewsTab(),browserTab());
        setPrefSize(1530, 780);

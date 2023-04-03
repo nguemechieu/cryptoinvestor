@@ -37,6 +37,12 @@ public class CryptoMarketData {
     private String times;
     private String percentage;
     private String total_volume_24h;
+    private String status;
+    private String high24h;
+    private String low24h;
+    private String open24h;
+    private String close24h;
+    private String volume24h;
 
     public CryptoMarketData(String id, String symbol, String name, String image, String currentPrice, String marketCap, String marketCapRank, String fullyDilutedValuation, String totalVolume, String high24h, String low24h, String priceChange24h, String priceChangePercentage24h, String marketCapChange24h, String marketCapChangePercentage24h, String circulatingSupply, String totalSupply, String maxSupply, String ath, String athChangePercentage, String athDate, String atl, String atlChangePercentage, String atlDate, String currency, String times, String percentage, String lastUpdated) {
         this.id = id;
@@ -96,6 +102,10 @@ public class CryptoMarketData {
         this.atl_change_percentage = atl_change_percentage;
         this.atl_date = atl_date;
         this.roi = roi;
+    }
+
+    public CryptoMarketData() {
+
     }
 
     public String getId() {
@@ -404,5 +414,29 @@ public class CryptoMarketData {
 
     public String getTotal_volume_24h() {
         return total_volume_24h;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public String getHigh24h() {
+        return high24h;
+    }
+
+    public String getLow24h() {
+        return low24h;
+    }
+
+    public String getOpen24h() {
+        return open24h;
+    }
+
+    public String getClose24h() {
+        return close24h;
+    }
+
+    public String getVolume24h() {
+        return volume24h;
     }
 }

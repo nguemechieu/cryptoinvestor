@@ -14,7 +14,6 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.websocket.*;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
@@ -24,31 +23,37 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 
-public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.Endpoint;
+import javax.websocket.Extension;
+import javax.websocket.Session;
 
 
+public class BinanceUsWebSocket extends ExchangeWebSocketClient {
 
-        private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    private final CompletableFuture<Boolean> connectionEstablished = new CompletableFuture<>();
-
     private static final Logger logger = LoggerFactory.getLogger(cryptoinvestor.cryptoinvestor.Coinbase.CoinbaseWebSocketClient.class);
 
 
-    public BinanceUsWebSocket(Set<TradePair> tradePairs) {
-        super(URI.create(
-                "wss://stream.binance.us:9443/ws/btcusdt@trade"
-        ), new Draft_6455());
-        logger.info("Binance us websocket client initialized");
+    public BinanceUsWebSocket(@NotNull URI uri) {
+        super(uri, new Draft_6455());
+        ClientEndpointConfig config = ClientEndpointConfig.Builder.create()
+                //.configurator(new WebSocketConfigurator(this))
+                .build();
+
+        logger.info("BinanceUsWebSocket: " + config);
     }
 
     @Override
@@ -56,102 +61,137 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
         JsonNode messageJson;
         try {
             messageJson = OBJECT_MAPPER.readTree(message);
-            if (messageJson.has("event") && messageJson.get("event").asText().equalsIgnoreCase("ping")) {
-                sendText(OBJECT_MAPPER.createObjectNode().put("type", "pong").toPrettyString(),false);
-                logger.info(
-                        "BinanceUs  websocket client: Pong received"
-                );
-            }
-
         } catch (JsonProcessingException ex) {
             logger.error("ex: ", ex);
             throw new RuntimeException(ex);
         }
 
-        if (messageJson.has("event") && messageJson.get("event").asText().equalsIgnoreCase("info")) {
+        if (messageJson.has("e") && messageJson.get("e").asText().equalsIgnoreCase("info")) {
 
-            if (messageJson.has("product_id") && messageJson.get("product_id").asText().equalsIgnoreCase("BTCUSD")) {
-                connectionEstablished.complete(true);
-            }
+            logger.info("BinanceUsWebSocket: " + messageJson);
+
         }
 
-
+//
+//            "e": "executionReport",        // Event type
+//                    "E": 1499405658658,            // Event time
+//                    "s": "ETHBTC",                 // Symbol
+//                    "c": "mUvoqJxFIILMdfAW5iGSOW", // Client order ID
+//                    "S": "BUY",                    // Side
+//                    "o": "LIMIT",                  // Order type
+//                    "f": "GTC",                    // Time in force
+//                    "q": "1.00000000",             // Order quantity
+//                    "p": "0.10264410",             // Order price
+//                    "P": "0.00000000",             // Stop price
+//                    "d": 4,                        // Trailing Delta; This is only visible if the order was a trailing stop order.
+//                    "F": "0.00000000",             // Iceberg quantity
+//                    "g": -1,                       // OrderListId
+//                    "C": "",                       // Original client order ID; This is the ID of the order being canceled
+//                    "x": "NEW",                    // Current execution type
+//                    "X": "NEW",                    // Current order status
+//                    "r": "NONE",                   // Order reject reason; will be an error code.
+//                    "i": 4293153,                  // Order ID
+//                    "l": "0.00000000",             // Last executed quantity
+//                    "z": "0.00000000",             // Cumulative filled quantity
+//                    "L": "0.00000000",             // Last executed price
+//                    "n": "0",                      // Commission amount
+//                    "N": null,                     // Commission asset
+//                    "T": 1499405658657,            // Transaction time
+//                    "t": -1,                       // Trade ID
+//                    "I": 8641984,                  // Ignore
+//                    "w": true,                     // Is the order on the book?
+//                    "m": false,                    // Is this trade the maker side?
+//                    "M": false,                    // Ignore
+//                    "O": 1499405658657,            // Order creation time
+//                    "Z": "0.00000000",             // Cumulative quote asset transacted quantity
+//                    "Y": "0.00000000",             // Last quote asset transacted quantity (i.e. lastPrice * lastQty)
+//                    "Q": "0.00000000",             //Quote Order Quantity
+//                    "V": "selfTradePreventionMode",
+//                    "D": "trailing_time",          // (Appears if the trailing stop order is active)
+//                    "W": "workingTime"             // (Appears if the order is working on the order book)
+//            "u":12332                      // tradeGroupId (Appear if the order has expired due to STP)
+//            "v":122                        // preventedMatchId (Appear if the order has expired due to STP)
+//            "U":2039                       // counterOrderId (Appear if the order has expired due to STP)
+//            "A":"1.00000000"               // preventedQuantity(Appear if the order has expired due to STP )
+//            "B":"2.00000000"               // lastPreventedQuantity(Appear if the order has expired due to STP)
         TradePair tradePair = null;
         try {
             tradePair = parseTradePair(messageJson);
-            logger.info(
-                    "BinanceUs  websocket client: received trade pair: " + tradePair
-            );
         } catch (CurrencyNotFoundException exception) {
-            logger.error("coinbase websocket client: could not initialize trade pair: " +
-                    messageJson.get("product_id").asText(), exception);
+            logger.error("BinanceUs websocket client: could not initialize trade pair: " +
+                    messageJson.get("s").asText(), exception);
         }
 
-        Side side = messageJson.has("side") ? Side.getSide(messageJson.get("side").asText()) : null;
-
-        switch (messageJson.get("type").asText()) {
-            case "heartbeat" ->
-                    sendText(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString(),true);
-            case "match" -> {
-                if (liveTradeConsumers.containsKey(tradePair)) {
-                    assert tradePair != null;
-                    Trade newTrade ;
-                    try {
-                        newTrade = new Trade(tradePair,
-                                DefaultMoney.of(new BigDecimal(messageJson.get("price").asText()),
-                                        tradePair.getCounterCurrency()),
-                                DefaultMoney.of(new BigDecimal(messageJson.get("size").asText()),
-                                        tradePair.getBaseCurrency()),
-                                side, messageJson.at("trade_id").asLong(),
-                                Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
-                    } catch (TelegramApiException | IOException | InterruptedException | ParseException |
-                             URISyntaxException e) {
-                        throw new RuntimeException(e);
-                    }
-                    liveTradeConsumers.get(tradePair).acceptTrades(Collections.singletonList(newTrade));
-                }
+        Side side = messageJson.has("S") ? Side.getSide(messageJson.get("S").asText()) : null;
+        logger.info("BinanceUsWebSocket: " + messageJson + " " + side);
+//            switch (messageJson.asText()) {
+//                case "heartbeat" ->
+//                        send(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString());
+//                case "match" -> {
+        if (liveTradeConsumers.containsKey(tradePair)) {
+            Trade newTrade;
+            try {
+                assert tradePair != null;
+                newTrade = new Trade(tradePair,
+                        DefaultMoney.of(new BigDecimal(messageJson.get("p").asText()),
+                                tradePair.getCounterCurrency()),
+                        DefaultMoney.of(new BigDecimal(messageJson.get("q").asText()),
+                                tradePair.getBaseCurrency()),
+                        side, messageJson.at("E").asLong(),
+                        Instant.from(ISO_INSTANT.parse(messageJson.get("t").asText())));
+            } catch (TelegramApiException | IOException | InterruptedException | URISyntaxException |
+                     ParseException e) {
+                throw new RuntimeException(e);
             }
-            case "error" -> throw new IllegalArgumentException("Error on Coinbase websocket client: " +
-                    messageJson.get("message").asText());
-            default -> throw new IllegalStateException("Unhandled message type on Gdax websocket client: " +
-                    messageJson.get("type").asText());
+            logger.info("BinanceUs websocket client: received trade: " + newTrade);
+            liveTradeConsumers.get(tradePair).acceptTrades(Collections.singletonList(newTrade));
         }
+        //}
+        //case "error" -> throw new IllegalArgumentException("Error on Binance websocket client: " +
+        //       messageJson.get("message").asText());
+        // default -> throw new IllegalStateException("Unhandled message type on Gdax websocket client: " +
+        //     messageJson.get("type").asText());
+        //}
     }
 
     private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
-        final String productId = messageJson.get("product_id").asText();
-        final String[] products = productId.split("/");
-        TradePair tradePair;
-        if (products[0].equalsIgnoreCase("BTC")) {
-            tradePair = TradePair.parse(productId, "/", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
-        } else {
-            // products[0] == "ETH"
-            if (products[1].equalsIgnoreCase("usd")) {
-                tradePair = TradePair.parse(productId, "/", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
-            } else {
-                // productId == "ETH-BTC"
-                tradePair = TradePair.parse(productId, "/", new Pair<>(CryptoCurrency.class, CryptoCurrency.class));
-            }
-        }
+        String productId0 = messageJson.get("s").asText();
+        String productId1;
+        if (productId0.contains("USDT") || productId0.contains("USD")) {
+            productId0 = productId0.split("USDT")[0];
+            productId1 = productId0 + "-" + "USDT";
 
-        return tradePair;
-    }
+            return TradePair.parse(productId1, "-", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
+        } else if (productId0.contains("BTC")) {
+            productId0 = productId0.split("BTC")[0];
+            productId1 = productId0 + "-" + "BTC";
+            return TradePair.parse(productId1, "-", new Pair<>(CryptoCurrency.class, CryptoCurrency.class));
+        } else throw new CurrencyNotFoundException(CurrencyType.CRYPTO, productId0);
 
-    @Override
-    public void streamLiveTrades(@NotNull TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
-        sendText(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
-                .put("product_id", tradePair.toString()).toPrettyString(),true);
-        liveTradeConsumers.put(tradePair, liveTradesConsumer);
     }
 
     @Override
     public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
-        for (TradePair tradePair : tradePairs) {
-            streamLiveTrades(tradePair, liveTradesConsumer);
-        }
+
+        tradePairs = tradePairs.stream().filter(Objects::nonNull).collect(Collectors.toSet());
+        send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
+                .put("s", tradePairs.stream().map(TradePair::toString).collect(Collectors.joining())).toPrettyString());
+        liveTradeConsumers.put(
+                (TradePair) tradePairs,
+                liveTradesConsumer);
 
     }
 
+    @Override
+    public void streamLiveTrades(@NotNull TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
+        send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
+                .put("s", tradePair.toString('-')).toPrettyString());
+        liveTradeConsumers.put(
+                tradePair,
+                liveTradesConsumer);
+
+
+    }
 
     @Override
     public void stopStreamLiveTrades(TradePair tradePair) {
@@ -163,12 +203,20 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
         return false;
     }
 
+
     @Override
-    protected @NotNull URI getURI() {
-        return
-                URI.create(
-                        "wss://stream.binance.us:9443/ws/btcusdt@trade"
-                );
+    public boolean isStreamingTradesSupported(TradePair tradePair) {
+        return false;
+    }
+
+    @Override
+    public boolean isStreamingTradesEnabled(TradePair tradePair) {
+        return false;
+    }
+
+    @Override
+    public void request(long n) {
+
     }
 
     @Override
@@ -217,17 +265,6 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
     }
 
     @Override
-    public void onClose(int code, String reason, boolean remote) {}
-
-    @Override
-    public void onError(Exception ex) {
-
-    }
-
-    @Override
-    public void onOpen(ServerHandshake serverHandshake) {}
-
-    @Override
     public long getDefaultAsyncSendTimeout() {
         return 0;
     }
@@ -238,22 +275,22 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
     }
 
     @Override
-    public Session connectToServer(Object endpoint, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Object endpoint, ClientEndpointConfig path) {
         return null;
     }
 
     @Override
-    public Session connectToServer(Class<?> annotatedEndpointClass, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Class<?> annotatedEndpointClass, URI path) {
         return null;
     }
 
     @Override
-    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
         return null;
     }
 
     @Override
-    public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws DeploymentException, IOException {
+    public Session connectToServer(Class<? extends Endpoint> endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
         return null;
     }
 
@@ -289,9 +326,22 @@ public class BinanceUsWebSocket  extends ExchangeWebSocketClient {
 
     @Override
     public Set<Extension> getInstalledExtensions() {
-        return
-                Collections.emptySet();
+        return null;
     }
 
+    @Override
+    public void onClose(int code, String reason, boolean remote) {
+        logger.info("onClose: code: {}, reason: {}, remote: {}", code, reason, remote);
+    }
 
+    @Override
+    public void onError(Exception ex) {
+        logger.error("ex: ", ex);
+
+    }
+
+    @Override
+    public void onOpen(ServerHandshake serverHandshake) {
+        logger.info("onOpen: {}", serverHandshake);
+    }
 }

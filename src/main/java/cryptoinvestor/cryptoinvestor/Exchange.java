@@ -19,9 +19,9 @@ import java.util.concurrent.CompletableFuture;
 public abstract class Exchange {
     protected  ExchangeWebSocketClient webSocketClient;
 
-    protected Exchange(ExchangeWebSocketClient webSocketClient) {
-        this.webSocketClient = webSocketClient;
-    }
+     protected Exchange(ExchangeWebSocketClient webSocketClient) {
+         this.webSocketClient = webSocketClient;
+     }
 
 
 
@@ -134,7 +134,7 @@ public abstract class Exchange {
 
     public abstract ListView<Order> getOrderView() throws IOException, InterruptedException, ParseException, URISyntaxException;
 
-    public abstract List<Objects> getOrderBook();
+    public abstract List<Objects> getOrderBook() throws IOException, InterruptedException;
 
     public abstract List<TradePair> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException;
 

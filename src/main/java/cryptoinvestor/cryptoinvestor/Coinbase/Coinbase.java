@@ -53,47 +53,27 @@ public class Coinbase extends Exchange {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    private static final ExchangeWebSocketClient websocket;
-
-    static {
-        @NotNull Set<TradePair> tradePair =
-                new HashSet<>(List.of(
-                        new TradePair("ETH", "BTC"),
-                        new TradePair("BTC", "USD"),
-                        new TradePair("XLM", "USD"),
-                        new TradePair("BAT", "USD"),
-                        new TradePair("ADA", "USD"),
-                        new TradePair("LTC", "USD"),
-                        new TradePair("XRP", "USD"),
-                        new TradePair("ZEC", "USD"),
-                        new TradePair("DASH", "USD"),
-                        new TradePair("ETC", "USD"),
-                        new TradePair("XMR", "USD"),
-                        new TradePair("NEO", "USD"),
-                        new TradePair("XTZ", "USD"),
-                        new TradePair("ZRX", "USD"),
-                        new TradePair("BCH", "USD"),
-                        new TradePair("DASH", "USD"),
-                        new TradePair("ETC", "USD")
-                ));
-        websocket = new CoinbaseWebSocketClient(tradePair);
-    }
-
+    private static final Set<TradePair> tradePairs = CurrencyDataProvider.getTradePairs();
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     String apiKey;
+    static TelegramClient telegramBot;
+    static String account_id;
+    static HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
+    //    Advanced Trade endpoint URL: /api/v3/brokerage/{resource}
+//
+//    API	Method	Resource	Required Scope
+//    List Accounts	GET	/accounts	wallet:accounts:read
+    static String url = "https://api.coinbase.com/api/v3/brokerage/accounts/";
 
-     static String account_id;
+    public Coinbase(String account_id, String apiKey, String api_secret) throws NoSuchAlgorithmException {
+        super(coinbaseWebSocket(apiKey, api_secret, account_id));
+        this.apiKey = apiKey;//apiKey
 
 
-    public Coinbase(String account_id,String apiKey, String api_secret) throws NoSuchAlgorithmException {
-        super(websocket);
-        this.apiKey = apiKey;//apiKey;
-
-
-        Coinbase.account_id =account_id;
+        Coinbase.account_id = account_id;
         requestBuilder.header("CB-ACCESS-KEY", apiKey);
         requestBuilder.header("CB-ACCESS-PASSPHRASE", api_secret);
-        requestBuilder.header("CB-ACCESS-SIGNATURE", timestampSignature(apiKey, api_secret));
+        requestBuilder.header("CB-ACCESS-SIGN", timestampSignature(apiKey, api_secret));
         requestBuilder.header("CB-ACCESS-TIMESTAMP", new Date().toString());
         requestBuilder.header("Content-Type", "application/json");
         requestBuilder.header("Accept", "application/json");
@@ -113,13 +93,33 @@ public class Coinbase extends Exchange {
                 "GET, POST, PUT, DELETE, OPTIONS"
         );
         logger.info("Coinbase initialized");
+
     }
-    static HttpClient client =  HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
-//    Advanced Trade endpoint URL: /api/v3/brokerage/{resource}
-//
-//    API	Method	Resource	Required Scope
-//    List Accounts	GET	/accounts	wallet:accounts:read
-static String url = "https://api.pro.coinbase.com/api/v3/brokerage/";
+
+    private static @NotNull ExchangeWebSocketClient coinbaseWebSocket(String apiKey, String apiSecret, String accountId) throws NoSuchAlgorithmException {
+        CoinbaseWebSocketClient coinbaseWebSocket = new CoinbaseWebSocketClient(
+                tradePairs
+        );
+        coinbaseWebSocket.addHeader(
+                "CB-ACCESS-KEY",
+                apiKey
+        );
+        coinbaseWebSocket.addHeader(
+                "CB-ACCESS-PASSPHRASE",
+                apiSecret
+        );
+        coinbaseWebSocket.addHeader(
+                "CB-ACCESS-SIGN",
+                timestampSignature(apiKey, apiSecret)
+        );
+        coinbaseWebSocket.addHeader(
+                "CB-ACCESS-TIMESTAMP",
+                new Date().toString()
+        );
+        coinbaseWebSocket.connect();
+        return coinbaseWebSocket;
+    }
+
     @Contract(pure = true)
     public static @NotNull List<Account> getAccountsList() throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(url + "accounts"));
@@ -157,17 +157,18 @@ static String url = "https://api.pro.coinbase.com/api/v3/brokerage/";
             return accounts;
         }
         return new ArrayList<>();
+
     }
 
+
     //    Get Account	GET	/accounts/:account_id	wallet:accounts:read
-    static @Nullable Account getAccount(String account_id) throws IOException, InterruptedException {
-
-
-        requestBuilder.uri(URI.create(url + "accounts/" + account_id ));
-        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(account_id));
+    @Nullable
+    static Account getAccount(String accountId) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(url + "accounts/" + accountId));
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(accountId));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         Account account;
-        if(data.statusCode() == 200) {
+        if (data.statusCode() == 200) {
             logger.info("Coinbase: " + data.statusCode() + " " + data.body());
             account = OBJECT_MAPPER.readValue(data.body(), Account.class);
             logger.info("Coinbase: " + account.toString());
@@ -183,8 +184,28 @@ static String url = "https://api.pro.coinbase.com/api/v3/brokerage/";
         return account;
     }
 
+    private static @Nullable String timestampSignature(
+            String apiKey,
+            String passphrase
+    ) throws NoSuchAlgorithmException {
+        Objects.requireNonNull(apiKey);
+        Objects.requireNonNull(passphrase);
 
-//
+        String timestamp = new Date().toString();
+        String stringToSign = timestamp + "\n" + apiKey + "\n" + passphrase;
+
+//        try {
+//            byte[] hash = MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes());
+//            return Base64.getEncoder().encodeToString(hash);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return null;
+//        }
+
+        return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes()));
+    }
+
+    //
 //
 //    API	Method	Resource	Required Scope
 //    List Accounts	GET	/accounts	wallet:accounts:read
@@ -209,9 +230,7 @@ static String url = "https://api.pro.coinbase.com/api/v3/brokerage/";
         return accounts;
     }
 
-
-
-//    Get Order	GET	/orders/historical/{order_id}	wallet:transactions:read
+    //    Get Order	GET	/orders/historical/{order_id}	wallet:transactions:read
     public ArrayList<Order> listOrdersHistorical() throws IOException, InterruptedException {
         ArrayList<Order> orders;
 
@@ -234,9 +253,10 @@ static String url = "https://api.pro.coinbase.com/api/v3/brokerage/";
         }
         return orders;
     }
-//    List Products	GET	/products	wallet:user:read
+
+    //    List Products	GET	/products	wallet:user:read
     public ArrayList<Product> listFills() throws IOException, InterruptedException {
-        ArrayList<Product> products;
+        ArrayList<Product> products = new ArrayList<>();
 
         requestBuilder.uri(URI.create(url + "orders/historical/fills"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -257,7 +277,8 @@ static String url = "https://api.pro.coinbase.com/api/v3/brokerage/";
         }
         return products;
     }
-//    Get Product	GET	/products/{product_id}	wallet:user:read
+
+    //    Get Product	GET	/products/{product_id}	wallet:user:read
     public ArrayList<Order> listOrders() throws IOException, InterruptedException {
         ArrayList<Order> orders;
 
@@ -280,7 +301,7 @@ static String url = "https://api.pro.coinbase.com/api/v3/brokerage/";
         return orders;
     }
 
-//    Get Product Candles	GET	/products/{product_id}/candles	none
+    //    Get Product Candles	GET	/products/{product_id}/candles	none
     public ArrayList<Candle> listCandles(String product_id) throws IOException, InterruptedException {
         ArrayList<Candle> candles;
 
@@ -302,30 +323,6 @@ static String url = "https://api.pro.coinbase.com/api/v3/brokerage/";
             return null;
         }
         return candles;
-    }
-//    Get Market Trades	GET	/products/{product_id}/ticker	wallet:user:read
-    public ArrayList<Trade> listTrades(String product_id) throws IOException, InterruptedException {
-        ArrayList<Trade> trades;
-
-        requestBuilder.uri(URI.create(url + "products/" + product_id + "/candles"));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        if(data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            trades = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
-
-            });
-            logger.info("Coinbase: " + trades.size());
-        }
-        else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return trades;
     }
 //    Get Transactions Summary	GET	/transaction_summary	wallet:transactions:read
 
@@ -349,9 +346,35 @@ static String url = "https://api.pro.coinbase.com/api/v3/brokerage/";
         }
         return order;
     }
-//    Cancel Orders	POST	/orders/batch_cancel	wallet:buys:create
-public Order cancelOrder(String orderId) throws IOException, InterruptedException {
-    requestBuilder.uri(URI.create(url + "orders/batch_cancel"));
+
+    //    Get Market Trades	GET	/products/{product_id}/ticker	wallet:user:read
+    public ArrayList<Trade> listTrades(String product_id) throws IOException, InterruptedException {
+        ArrayList<Trade> trades;
+
+        requestBuilder.uri(URI.create(url + "products/" + product_id + "/candles"));
+        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        if(data.statusCode() == 200) {
+            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
+            trades = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
+
+            });
+            logger.info("Coinbase: " + trades.size());
+        }
+        else {
+            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Coinbase Error");
+            alert.setHeaderText(null);
+            alert.setContentText(data.body());
+            alert.showAndWait();
+            return null;
+        }
+        return trades;
+    }
+
+    //    Cancel Orders	POST	/orders/batch_cancel	wallet:buys:create
+    public Order cancelOrder(String orderId) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(url + "orders/batch_cancel"));
 
         requestBuilder.POST(HttpRequest.BodyPublishers.ofString(orderId));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -371,7 +394,8 @@ public Order cancelOrder(String orderId) throws IOException, InterruptedExceptio
         }
         return order;
     }
-//    List Orders	GET	/orders/historical/batch	wallet:orders:read
+
+    //    List Orders	GET	/orders/historical/batch	wallet:orders:read
     List<Order> getOrdersHistorical(String orderId) throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(url + "orders/historical/batch"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -401,7 +425,8 @@ public Order cancelOrder(String orderId) throws IOException, InterruptedExceptio
         }
         return orders;
     }
-//    List Fills	GET	/orders/historical/fills	wallet:transactions:read
+
+    //    List Fills	GET	/orders/historical/fills	wallet:transactions:read
     List<Fill> getFills() throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(url + "orders/historical/fills"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -423,7 +448,8 @@ public Order cancelOrder(String orderId) throws IOException, InterruptedExceptio
         }
         return fills;
     }
-//    Get Order	GET	/orders/historical/{order_id}	wallet:transactions:read
+
+    //    Get Order	GET	/orders/historical/{order_id}	wallet:transactions:read
     Order getOrderHistorical(String orderId) throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(url + "orders/historical/" + orderId));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -452,7 +478,8 @@ public Order cancelOrder(String orderId) throws IOException, InterruptedExceptio
         }
         return order;
     }
-//    List Products	GET	/products	wallet:user:read
+
+    //    List Products	GET	/products	wallet:user:read
     List<Product> getProducts() throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(url + "products"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -486,7 +513,8 @@ public Order cancelOrder(String orderId) throws IOException, InterruptedExceptio
         }
         return products;
     }
-//    Get Product	GET	/products/{product_id}	wallet:user:read
+
+    //    Get Product	GET	/products/{product_id}	wallet:user:read
     Product getProduct(String productId) throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(url + "products/" + productId));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -506,7 +534,8 @@ public Order cancelOrder(String orderId) throws IOException, InterruptedExceptio
         }
         return product;
     }
-//    Get Product Candles	GET	/products/{product_id}/candles	none
+
+    //    Get Product Candles	GET	/products/{product_id}/candles	none
     List<Candle> getProductCandles(String productId) throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(url + "products/" + productId + "/candles"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -527,28 +556,6 @@ public Order cancelOrder(String orderId) throws IOException, InterruptedExceptio
             return null;
         }
         return candles;
-    }
-//    Get Market Trades	GET	/products/{product_id}/ticker	wallet:user:read
-    List<Trade> getMarketTrades(String productId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "products/" + productId + "/ticker"));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        List<Trade> trades;
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            trades = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
-            });
-            logger.info("Coinbase: " + trades.size());
-        }
-        else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return trades;
     }
 //    Get Transactions Summary	GET	/transaction_summary	wallet:transactions:read
 
@@ -597,6 +604,34 @@ public Order cancelOrder(String orderId) throws IOException, InterruptedExceptio
                 "COINBASE";
     }
 
+    //    Get Market Trades	GET	/products/{product_id}/ticker	wallet:user:read
+    List<Trade> getMarketTrades(String productId) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(url + "products/" + productId + "/ticker"));
+        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        List<Trade> trades;
+        if (data.statusCode() == 200) {
+            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
+            trades = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
+            });
+            logger.info("Coinbase: " + trades.size());
+        }
+        else {
+            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Coinbase Error");
+            alert.setHeaderText(null);
+            alert.setContentText(data.body());
+            alert.showAndWait();
+            return null;
+        }
+        return trades;
+    }
+
+    @Override
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle() {
+        return null;
+    }
+
     @Override
     public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
         return new CoinbaseCandleDataSupplier(secondsPerCandle, tradePair) {
@@ -615,40 +650,14 @@ public Order cancelOrder(String orderId) throws IOException, InterruptedExceptio
                 return null;
             }
         };
-        }
-
-    @Override
-    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle() {
-        return null;
     }
-
-
-    private @Nullable String timestampSignature(
-            String apiKey,
-            String passphrase
-    ) throws NoSuchAlgorithmException {
-        Objects.requireNonNull(apiKey);
-        Objects.requireNonNull(passphrase);
-
-        String timestamp = new Date().toString();
-        String stringToSign = timestamp + "\n" + apiKey + "\n" + passphrase;
-
-//        try {
-//            byte[] hash = MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes());
-//            return Base64.getEncoder().encodeToString(hash);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-
-return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes()));
-    }
-
-
 
     public Set<Integer> getSupportedGranularities() {
-            return Set.of(60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24);
-        }
+
+
+        return Set.of(60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24);
+
+    }
 
 
     /**
@@ -767,23 +776,16 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
                     Log.info("Coinbase response: ", response);
                     JsonNode res;
                     try {
-
-
                         res = OBJECT_MAPPER.readTree(response);
-                        if (res.has("message")) {
-                            Alert alert = new Alert(Alert.AlertType.WARNING);
-                            alert.setTitle("Coinbase Error");
-                            alert.setHeaderText("Coinbase Error");
-                            alert.setContentText(res.get("message").asText());
-                            alert.showAndWait();
-                            return Optional.empty();
-                        }
+
 
                     } catch (JsonProcessingException ex) {
                         throw new RuntimeException(ex);
                     }
 
-
+                    if (res.isEmpty()) {
+                        return Optional.empty();
+                    }
 
                     JsonNode currCandle;
                     Iterator<JsonNode> candleItr = res.iterator();
@@ -838,25 +840,19 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
         JSONObject jsonObject = new JSONObject();
         try {
 
-          requestBuilder.uri(URI.create("https://api.coinbase.com/v2/exchange-rates"));
-          HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-          System.out.println(response.body());
-          System.out.println(response.statusCode());
-          System.out.println(response.headers());
+            requestBuilder.uri(URI.create("https://api.coinbase.com/v2/exchange-rates"));
+            HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+            System.out.println(response.body());
+            System.out.println(response.statusCode());
+            System.out.println(response.headers());
 
-          if (response.statusCode()!= 200) {
-
-              Alert alert = new Alert(Alert.AlertType.WARNING);
-              alert.setTitle("Coinbase Error");
-              alert.setHeaderText("Coinbase Error");
-              alert.setContentText(response.body());
-              alert.showAndWait();
-              return jsonObject;
-          }else {
-              jsonObject.put("rates", response.body());
-          }
-
-
+            if (response.statusCode() != 200) {
+                logger.info(
+                        String.format("Coinbase response: %d %s", response.statusCode(), response.body())
+                );
+            } else {
+                jsonObject.put("rates", response.body());
+            }
 
 
         } catch (IOException e) {
@@ -904,9 +900,8 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
 
     @Override
     public String getSymbol() {
-        return null;
+        return tradePairs.toString();
     }
-
 
     @Override
     public String getPrice() {
@@ -1024,7 +1019,7 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
     }
 
     // Get all orders
-     //       GET
+    //       GET
     //https://api.exchange.coinbase.com/orders
 
     public Node getAllOrders() throws IOException, InterruptedException {
@@ -1057,21 +1052,22 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
 
     @Override
     public Account getAccounts() throws IOException, InterruptedException {
-        String uriStr = url + "accounts";
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        requestBuilder.uri(URI.create(uriStr));
-        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        System.out.println(response.statusCode());
-        System.out.println(response.body());
-        JSONObject jsonObject;
-        if (response.statusCode() == 200) {
-            jsonObject = new JSONObject(response.body());
-            System.out.println(jsonObject.toString(4));
-            return new CoinbaseAccount(jsonObject);
-        } else {
-            System.out.println(response.statusCode());
-            System.out.println(response.body());
-        }
+//        return
+//                new CoinbaseAccount(
+//                        this,
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("id"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("currency"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("balance"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("available"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("pending"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("total"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("deposit"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("withdraw"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("deposit_address"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("withdraw_address"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("withdraw_status"),
+//                        jsonObject.getJSONObject("data").getJSONObject("account").getString("deposit_status")
+
         return null;
     }
 
@@ -1097,13 +1093,13 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
         }
 
     }
-   // Cancel an order
-     //       DELETE
+    // Cancel an order
+    //       DELETE
     //https://api.exchange.coinbase.com/orders/{order_id}
 
-    public  void cancelOrder(long orderId) throws IOException, InterruptedException {
+    public void cancelOrder(long orderId) throws IOException, InterruptedException {
 
-        String uriStr = url+"orders/" + orderId;
+        String uriStr = url + "orders/" + orderId;
         requestBuilder.DELETE();
         requestBuilder.uri(URI.create(uriStr));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -1114,7 +1110,6 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
             System.out.println(jsonObject.toString(4));
         }
         else {
-
             System.out.println(response.statusCode());
             System.out.println(response.body());
         }
@@ -1143,23 +1138,6 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
         return null;
     }
 
-    @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
-        return null;
-    }
-
-    @Override
-    public void connect(String text, String text1, String userIdText) {
-        System.out.println(text);
-        System.out.println(text1);
-        apiKey=text;
-    }
-
-    @Override
-    public boolean isConnected() {
-        return false;
-    }
-
     private void  getOrderHistory(@NotNull TradePair tradePair) throws IOException, InterruptedException {
         String uriStr = url+"orders";
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
@@ -1180,14 +1158,14 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
 
     public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size,
                             @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
-       // JSONObject jsonObject = getJSON();
-     //   System.out.println(jsonObject.toString(4));
+        // JSONObject jsonObject = getJSON();
+        //   System.out.println(jsonObject.toString(4));
 
         String symbol = tradePair.toString('-');
 
-        String uriStr = url+"orders";
+        String uriStr = url + "orders";
 
-        String data=
+        String data =
                 String.format(
                         "{\"product_id\": \"%s\", \"side\": \"%s\", \"type\": \"%s\", \"quantity\": %f, \"price\": %f, \"stop-loss\": %f, \"take-profit\": %f, \"take-profit-price\": %f, \"timestamp\": \"%s\"}",
                         symbol, side, orderType, size, price, stopLoss, takeProfit, takeProfitPrice,
@@ -1197,9 +1175,9 @@ return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").d
         data = String.format(data, orderType, side, price);
 
         System.out.println(uriStr);
-requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
-      data
-));
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
+                data
+        ));
         requestBuilder.uri(URI.create(uriStr));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         System.out.println(response.statusCode());
@@ -1222,12 +1200,10 @@ requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
         }
 
 
-
-
-
     }
-public void CloseAllOrders() throws IOException, InterruptedException {
-        String uriStr ="https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel";
+
+    public void CloseAllOrders() throws IOException, InterruptedException {
+        String uriStr = "https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel";
         System.out.println(uriStr);
         HttpRequest.Builder request = HttpRequest.newBuilder();
         requestBuilder.uri(URI.create(uriStr));
@@ -1235,7 +1211,7 @@ public void CloseAllOrders() throws IOException, InterruptedException {
         HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
         System.out.println(response.statusCode());
         System.out.println(response.body());
-        if (response.statusCode()!= 200) {
+        if (response.statusCode() != 200) {
             System.out.println(response.statusCode());
             System.out.println(response.body());
             Alert alert = new Alert(Alert.AlertType.ERROR);
@@ -1243,15 +1219,16 @@ public void CloseAllOrders() throws IOException, InterruptedException {
             alert.setHeaderText(null);
             alert.setContentText(response.body());
             alert.showAndWait();
-
+            telegramBot.sendMessage("Error: " + response.body());
         }
         else {
             JSONObject jsonObject = new JSONObject(response.body());
 
-                    System.out.println(jsonObject.toString(4));
+            telegramBot.sendMessage(jsonObject.toString(4));
+            System.out.println(jsonObject.toString(4));
         }
 
-}
+    }
 
     public @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException {
 //        "id": "VGX",
@@ -1281,99 +1258,106 @@ public void CloseAllOrders() throws IOException, InterruptedException {
         String uriStr = "https://api.pro.coinbase.com/currencies";
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         requestBuilder.uri(URI.create(uriStr));
-         client.sendAsync(requestBuilder.build(), HttpResponse.BodyHandlers.ofString())
-
-                        .thenApply(response -> {
-                            System.out.println(response.statusCode());
-                            System.out.println(response.body());
-                            if (response.statusCode() != 200) {
-                                System.out.println(response.statusCode());
-                                System.out.println(response.body());
-                                Alert alert = new Alert(Alert.AlertType.ERROR);
-                                alert.setTitle("Error");
-                                alert.setHeaderText(null);
-                                alert.setContentText(response.body());
-                                alert.showAndWait();
-
-                            } else {
-                                JSONArray jsonObject = new JSONArray(response.body());
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        if (response.statusCode() != 200) {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+            telegramBot.sendMessage("Error: " + response.body());
+        } else {
+            JSONArray jsonObject = new JSONArray(response.body());
 
 
-                                //          "id": "VGX",
+            //          "id": "VGX",
 //                "name": "Voyager Token",
 //                "min_size": "0.00000001",
 //                "status": "online",
 //                "message": "",
 //                "max_precision": "0.00000001",
 
-                                String id = "UNKNOWN";
-                                String name = "UNKNOWN";
-                                int min_size = 0;
-                                String status = "offline";
-                                String message = "";
-                                double max_precision = 0;
-                                String convertible_to = "";
+            String id = "UNKNOWN";
+            String name = "UNKNOWN";
+            int min_size = 0;
+            String status = "offline";
+            String message = "";
+            double max_precision = 0;
+            String convertible_to = "";
 
-                                String symbol = "UNKNOWN";
-                                String network_confirmations = "";
-                                String sort_order = "";
-                                String crypto_address_link = "";
-                                String crypto_transaction_link = "";
-                                String push_payment_methods = "";
-                                String group_types = "";
-                                String display_name = "";
-                                String processing_time_seconds = "";
-                                String min_withdrawal_amount = "";
-                                String max_withdrawal_amount = "";
-                                for (int i = 0; i < jsonObject.length(); i++) {
-
-                                    JSONObject jsonObject1 = jsonObject.getJSONObject(i);
-                                    id = jsonObject1.get("id").toString();
-                                    name = jsonObject1.get("name").toString();
-                                    //min_size= Integer.parseInt(jsonObject1.get("min_size").toString());
-                                    status = jsonObject1.get("status").toString();
-                                    message = jsonObject1.get("message").toString();
-                                    max_precision = Double.parseDouble(jsonObject1.get("max_precision").toString());
+            String symbol = "UNKNOWN";
+            String network_confirmations = "";
+            String sort_order = "";
+            String crypto_address_link = "";
+            String crypto_transaction_link = "";
+            String push_payment_methods = "";
+            String group_types = "";
+            String display_name = "";
+            String processing_time_seconds = "";
+            String min_withdrawal_amount = "";
+            String max_withdrawal_amount = "";
 
 
-                                    if (jsonObject.getJSONObject(i).has("details")) {
-                                        JSONObject jsonObject2 = jsonObject.getJSONObject(i).getJSONObject("details");
-                                        String type = jsonObject2.get("type").toString();
-                                        symbol = jsonObject2.get("symbol").toString();
-                                        network_confirmations = jsonObject2.get("network_confirmations").toString();
-                                        sort_order = jsonObject2.get("sort_order").toString();
-                                        crypto_address_link = jsonObject2.get("crypto_address_link").toString();
-                                        crypto_transaction_link = jsonObject2.get("crypto_transaction_link").toString();
-                                        push_payment_methods = jsonObject2.get("push_payment_methods").toString();
-                                        group_types = jsonObject2.get("group_types").toString();
-                                        display_name = jsonObject2.get("display_name").toString();
-                                        processing_time_seconds = jsonObject2.get("processing_time_seconds").toString();
-                                    }
-                                    logger.info("id: " + id + " name: " + name + " min_size" +
-                                            " status: " + status + " message: " + message + " max_precision: " + max_precision + " convertible_to: " + convertible_to + " symbol: " + symbol + " network_confirmations: " + network_confirmations + " sort_order: " + sort_order + " crypto_address_link: " + crypto_address_link + " crypto_transaction_link: " + crypto_transaction_link + " push_payment_methods: " + push_payment_methods + " group_types: " + group_types + " display_name: " + display_name + " processing_time_seconds: " + processing_time_seconds + " min_withdrawal_amount: " + min_withdrawal_amount + " max_withdrawal_amount: " + max_withdrawal_amount);
+            String type;
+            for (int i = 0; i < jsonObject.length(); i++) {
+                System.out.println(jsonObject.getJSONObject(i).get("id").toString());
+                if (jsonObject.getJSONObject(i).get("id").toString().equals("VGX")) {
+                    JSONObject jsonObject1 = jsonObject.getJSONObject(i);
+                    id = jsonObject1.get("id").toString();
+                    name = jsonObject1.get("name").toString();
+                    //min_size= Integer.parseInt(jsonObject1.get("min_size").toString());
+                    status = jsonObject1.get("status").toString();
+                    message = jsonObject1.get("message").toString();
+                    max_precision = Double.parseDouble(jsonObject1.get("max_precision").toString());
+
+                } else if (jsonObject.getJSONObject(i).has("details")) {
+                    JSONObject jsonObject2 = jsonObject.getJSONObject(i).getJSONObject("details");
+                    type = jsonObject2.get("type").toString();
+                    symbol = jsonObject2.get("symbol").toString();
+                    network_confirmations = jsonObject2.get("network_confirmations").toString();
+                    sort_order = jsonObject2.get("sort_order").toString();
+                    crypto_address_link = jsonObject2.get("crypto_address_link").toString();
+                    crypto_transaction_link = jsonObject2.get("crypto_transaction_link").toString();
+                    push_payment_methods = jsonObject2.get("push_payment_methods").toString();
+                    group_types = jsonObject2.get("group_types").toString();
+                    display_name = jsonObject2.get("display_name").toString();
+                    processing_time_seconds = jsonObject2.get("processing_time_seconds").toString();
+                }
+                logger.info("id: " + id + " name: " + name + " min_size" +
+                        " status: " + status + " message: " + message + " max_precision: " + max_precision + " convertible_to: " + convertible_to + " symbol: " + symbol + " network_confirmations: " + network_confirmations + " sort_order: " + sort_order + " crypto_address_link: " + crypto_address_link + " crypto_transaction_link: " + crypto_transaction_link + " push_payment_methods: " + push_payment_methods + " group_types: " + group_types + " display_name: " + display_name + " processing_time_seconds: " + processing_time_seconds + " min_withdrawal_amount: " + min_withdrawal_amount + " max_withdrawal_amount: " + max_withdrawal_amount);
 
 
-                                    Currency currency = new Currency(CurrencyType.CRYPTO, display_name, name, id, (int) (8 * (max_precision / 100000000)), symbol, "") {
-                                        @Override
-                                        public int compareTo(@NotNull Currency o) {
-                                            return 0;
-                                        }
+                Currency currency = new Currency(CurrencyType.CRYPTO, display_name, name, id, (int) (8 * (max_precision / 100000000)), symbol, "") {
+                    @Override
+                    public int compareTo(@NotNull Currency o) {
+                        return 0;
+                    }
 
-                                        @Override
-                                        public int compareTo(java.util.@NotNull Currency o) {
-                                            return 0;
-                                        }
-                                    };
-                                    symbols.add(currency);
+                    @Override
+                    public int compareTo(java.util.@NotNull Currency o) {
+                        return 0;
+                    }
+                };
+                for (Currency c : CurrencyDataProvider.getInstance()) {
+                    if (currency.equals(c)) {
+                        symbols.add(currency);
+                        currency.setImage(c.getImage());
+                        symbols.add(currency);
 
-                                }
-                                CurrencyDataProvider.getInstance().addAll(symbols);
-                            }
-                            logger.info("Coinbase Currencies: " + symbols);
-                            return symbols;
-                        });
-        return new ArrayList<>();
+                    } else {
+                        symbols.add(c);
+                    }
+                    logger.info("currency: " + currency);
+                }
+            }
 
+        }
+
+        return symbols;
     }
 
     @Override
@@ -1384,6 +1368,7 @@ public void CloseAllOrders() throws IOException, InterruptedException {
         params.put("type", "limit");
         params.put("side", "buy");
         params.put("price", String.valueOf(price));
+
         params.put("quantity", String.valueOf(quantity));
         params.put("stop_price", String.valueOf(stopPrice));
         params.put("take_profit_price", String.valueOf(takeProfitPrice));
@@ -1411,6 +1396,26 @@ public void CloseAllOrders() throws IOException, InterruptedException {
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         logger.info(response.body());
 
+    }
+
+    @Override
+    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+        List<TradePair> tradePairs = new ArrayList<>();
+        for (Currency currency : getAvailableSymbols()) {
+            tradePairs.add(new TradePair(currency.getCode(), "USD"));
+
+        }
+        return tradePairs;
+    }
+
+    @Override
+    public void connect(String text, String text1, String userIdText) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public boolean isConnected() {
+        return false;
     }
 
     public void setOrderId(String orderId) {
@@ -1460,7 +1465,7 @@ public void CloseAllOrders() throws IOException, InterruptedException {
                 return CompletableFuture.completedFuture(Collections.emptyList());
             }
             requestBuilder.uri(URI.create(uriStr));
-             //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
+            //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
             return client.sendAsync(
                             requestBuilder.build(),
                             HttpResponse.BodyHandlers.ofString())
@@ -1468,18 +1473,19 @@ public void CloseAllOrders() throws IOException, InterruptedException {
                     .thenApply(response -> {
 
 
+                        Log.info("coinbase response: ", response);
                         JsonNode res;
                         try {
                             res = OBJECT_MAPPER.readTree(response);
 
- if (res.has("message")) {
+                            if (res.has("message")) {
 
-    Alert alert = new Alert(Alert.AlertType.ERROR);
-    alert.setTitle("Error");
-    alert.setHeaderText(null);
-    alert.setContentText(res.get("message").asText());
-    alert.showAndWait();
-}
+                                Alert alert = new Alert(Alert.AlertType.ERROR);
+                                alert.setTitle("Error");
+                                alert.setHeaderText(null);
+                                alert.setContentText(res.get("message").asText());
+                                alert.showAndWait();
+                            }
 
                         } catch (JsonProcessingException ex) {
                             throw new RuntimeException(ex);

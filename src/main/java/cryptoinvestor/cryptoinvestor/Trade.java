@@ -20,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
 
+    private Money price1;
     Order order = new Order((long) (Math.random() * 100000), new TradePair("BTC", "USD"),
             new Date().toString(),
             ENUM_ORDER_TYPE.BUY, Side.BUY, 0, 0, price, 0, 0, 0
@@ -34,10 +35,18 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
     private double qty;
     private long orderListId;
     private long orderId;
+    private double avgPrice;
+    private double avgQty;
+    private boolean isBuy;
+    private boolean isSell;
+    private long tradeId;
+    private double closePrice;
+    private double highestBidPrice;
 
     public Trade(String symbol, long id, long orderId, long orderListId, String price, String qty, String quoteQty, String commission, String commissionAsset, long time, boolean isBuyer, boolean isMaker, boolean isBestMatch) {
         this.instrument = symbol;
         Trade.id = id;
+        this.tradeId = id;
         this.orderId = orderId;
         this.orderListId = orderListId;
         Trade.price = Double.parseDouble(price);
@@ -49,6 +58,10 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         this.isBuyer = isBuyer;
         this.isMaker = isMaker;
         this.isBestMatch = isBestMatch;
+        this.avgPrice = 0;
+        this.avgQty = 0;
+        this.isBuy = false;
+        this.isSell = true;
     }
 
     public static void setTrades(List<Trade> trades) {
@@ -518,45 +531,6 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         return DefaultMoney.ofFiat(price, tradePair.getCounterCurrency().code);
     }
 
-    public Instant getTimestamp() {
-        return timestamp;
-    }
-
-    public Side getTransactionType() {
-        return transactionType;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Trade [tradePair = %s, price = %s, amount = %s, transactionType = %s, localId = %s, " +
-                "timestamp = %s, fee = %s]", tradePair, price, amount, transactionType, localTradeId, timestamp, fee);
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        if (object == this) {
-            return true;
-        }
-
-        if (object == null || object.getClass() != this.getClass()) {
-            return false;
-        }
-
-        Trade other = (Trade) object;
-
-        return Objects.equals(tradePair, tradePair)
-                && Objects.equals(price, price)
-                && Objects.equals(amount, other.amount)
-                && transactionType == other.transactionType
-                && localTradeId == other.localTradeId
-                && Objects.equals(timestamp, other.timestamp);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(tradePair, price, amount, transactionType, localTradeId, timestamp);
-    }
-
 
     private int OrdersTotal() {
         int count = 0;
@@ -726,5 +700,95 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         logger.info("Trade closed");
         logger.info(tradePair.getCounterCurrency().code);
         logger.info(tradePair.getBaseCurrency().code);
+    }
+
+    public Trade(TradePair tradePair, Money price, Money amount, Side transactionType,
+                 long localTradeId, Instant timestamp, Money fee) {
+        Trade.tradePair = tradePair;
+        this.price1 = price;
+        this.amount = amount;
+        this.transactionType = transactionType;
+        this.localTradeId = localTradeId;
+        this.timestamp = timestamp;
+        Trade.fee = fee;
+    }
+
+
+    /**
+     * Returns the total amount of money this trade was, i.e. {@literal price * amount} in price
+     * units.
+     *
+     * @return
+     */
+
+
+    public Instant getTimestamp() {
+        return timestamp;
+    }
+
+    public Side getTransactionType() {
+        return transactionType;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Trade [tradePair = %s, price = %s, amount = %s, transactionType = %s, localId = %s, " +
+                "timestamp = %s, fee = %s]", tradePair, price, amount, transactionType, localTradeId, timestamp, fee);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (object == this) {
+            return true;
+        }
+
+        if (object == null || object.getClass() != this.getClass()) {
+            return false;
+        }
+
+        Trade other = (Trade) object;
+
+
+        if (Objects.equals(amount, other.amount)) if (Objects.equals(transactionType, other.transactionType))
+            if (Objects.equals(localTradeId, other.localTradeId))
+                return Objects.equals(timestamp, other.timestamp);
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(tradePair, price, amount, transactionType, localTradeId, timestamp);
+    }
+
+    public double getAvgPrice() {
+        return avgPrice;
+    }
+
+    public void setAvgPrice(double avgPrice) {
+        this.avgPrice = avgPrice;
+    }
+
+    public double getAvgQty() {
+        return avgQty;
+    }
+
+    public Object isBuy() {
+        return isBuy;
+    }
+
+    public Object isSell() {
+        return isSell;
+    }
+
+    public Object getTradeId() {
+        return tradeId;
+    }
+
+    public double getClosePrice() {
+        return closePrice;
+    }
+
+    public double getHighestBidPrice() {
+        return highestBidPrice;
     }
 }

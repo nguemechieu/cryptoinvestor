@@ -1,6 +1,7 @@
 package cryptoinvestor.cryptoinvestor.Coinbase;
 
 import cryptoinvestor.cryptoinvestor.Account;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 
 public class CoinbaseAccount extends Account {
@@ -8,9 +9,9 @@ public class CoinbaseAccount extends Account {
     private String updatedAt;
     private String createdAt;
 
-    public CoinbaseAccount(JSONObject jsonObject) {
+    public CoinbaseAccount(@NotNull JSONObject jsonObject) {
 
-        super(jsonObject);
+        super();
 
         if (jsonObject.has("id")) {
             setId(jsonObject.getString("id"));

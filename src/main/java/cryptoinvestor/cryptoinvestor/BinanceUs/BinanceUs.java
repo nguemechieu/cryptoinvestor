@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import cryptoinvestor.cryptoinvestor.Coinbase.CoinbaseAccount;
 import cryptoinvestor.cryptoinvestor.Currency;
 import cryptoinvestor.cryptoinvestor.*;
 import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
@@ -25,9 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.net.ssl.HttpsURLConnection;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -42,8 +39,7 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-
-import static cryptoinvestor.cryptoinvestor.CurrencyDataProvider.getTradePairs;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.System.nanoTime;
 import static java.lang.System.out;
@@ -58,18 +54,27 @@ public class BinanceUs extends Exchange {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    private static final ExchangeWebSocketClient websocket0 =
-            new BinanceUsWebSocket(getTradePairs());
+
 
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     private final HttpClient client = HttpClient.newHttpClient();
+    private static boolean isConnected;
     private String api_key;
     private String accountId;
-    private boolean isConnected;
+    private final AtomicReference<String> url = new AtomicReference<>("https://api.binance.us/api/v3/");
+    private String apiSecret;
+    private String symbol;
+    private double price;
 
 
     public BinanceUs(String apiKey, String apiSecret, String accountId) {
-        super(websocket0);
+        super(
+                binanceUsWebSocket(apiKey, apiSecret, accountId)
+        );
+
+
+        this.api_key = apiKey;
+        this.apiSecret = apiSecret;
 
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             logger.error("BinanceUs " + nanoTime());
@@ -84,13 +89,34 @@ public class BinanceUs extends Exchange {
         requestBuilder.header("Sec-Fetch-Mode", "cors");
         requestBuilder.header("Accept", "application/json");
         requestBuilder.header("Authorization", "Bearer " + apiKey);
+
         logger.info("BinanceUs " + nanoTime());
         this.api_key = apiKey;
-        this.isConnected = false;
+        isConnected = false;
         this.accountId = accountId;
 
 
     }
+
+    private static @NotNull ExchangeWebSocketClient binanceUsWebSocket(String apiKey, String apiSecret, String accountId) {
+
+        BinanceUsWebSocket binanceUsWebSocket = new BinanceUsWebSocket(
+                URI.create("wss://stream.binance.us:9443/ws/btcusdt@trade")
+        );
+        binanceUsWebSocket.setAsyncSendTimeout(10000);
+        binanceUsWebSocket.addHeader("Content-Type", "application/json");
+        binanceUsWebSocket.addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        binanceUsWebSocket.addHeader("Accept", "application/json");
+        binanceUsWebSocket.addHeader("Origin", "https://api.binance.us");
+        binanceUsWebSocket.addHeader("Referer", "https://api.binance.us");
+        binanceUsWebSocket.addHeader("Sec-Fetch-Dest", "empty");
+        binanceUsWebSocket.addHeader("Sec-Fetch-Mode", "cors");
+        binanceUsWebSocket.addHeader("Authorization", "Bearer " + apiKey);
+        binanceUsWebSocket.connect();
+        return binanceUsWebSocket;
+
+    }
+
 
     //api/v3/account
     public Account getAccount() throws IOException, InterruptedException {
@@ -382,6 +408,7 @@ public class BinanceUs extends Exchange {
                     jsonNode.get(i).get("isBuyer").asBoolean(),
                     jsonNode.get(i).get("isMaker").asBoolean(),
                     jsonNode.get(i).get("isBestMatch").asBoolean());
+            trades.add(trade);
         }
         return trades;
     }
@@ -464,6 +491,7 @@ public class BinanceUs extends Exchange {
 
             ObjectMapper mapper = new ObjectMapper();
             JsonNode jsonNode = mapper.readTree(response.body());
+            ArrayNode arrayNode = (ArrayNode) jsonNode;
 
 
         }
@@ -625,7 +653,7 @@ public class BinanceUs extends Exchange {
 
                     if (!tradesResponse.isArray()) {
                         futureResult.completeExceptionally(new RuntimeException(
-                                "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.Oanda trades response was not an array!"));
+                                "cryptoinvestor.cryptoinvestor.CurrencyDataProvider.BinancesUs trades response was not an array!"));
                     }
                     if (tradesResponse.isEmpty()) {
                         futureResult.completeExceptionally(new IllegalArgumentException("tradesResponse was empty"));
@@ -856,13 +884,14 @@ public class BinanceUs extends Exchange {
 
     @Override
     public String getSymbol() {
-        return null;
+        return symbol;
     }
 
     @Override
     public String getPrice() {
         return null;
     }
+
 
     @Override
     public String getVolume() {
@@ -991,7 +1020,7 @@ public class BinanceUs extends Exchange {
                 "?side=" + side +
                 "&type=" +orderType+
                 "&quantity=" + size +
-                "&price=" +price+"&stopLoss=" +stopPrice+"&takeProfit=" +takeProfit;
+                "&price=" + price + "&stopLoss=" + stopPrice + "&takeProfit=" + takeProfit;
 
         System.out.println(uriStr);
 
@@ -1001,10 +1030,57 @@ public class BinanceUs extends Exchange {
     public void CancelOrder(long orderID) {
     }
 
-    public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE market, double quantity, int i, @NotNull Date timestamp, long orderID, double stopPrice, double takeProfitPrice) {
+    public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE market, double quantity, int i, @NotNull Date timestamp, long orderID, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException {
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
+
+        String uriStr = "https://api.binance.us/" +
+                "api/v3/orders/" + tradePair.toString('/') +
+                "?side=" + buy +
+                "&type=" + market +
+                "&quantity=" + quantity +
+                "&timestamp=" + timestamp +
+                "&orderId=" + orderID +
+                "&stopPrice=" + stopPrice +
+                "&takeProfitPrice=" + takeProfitPrice;
+
+        System.out.println(uriStr);
+
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
+                uriStr
+
+        ));
+        //requestBuilder.POST(HttpRequest.BodyPublishers.ofString())
+        String body =
+                requestBuilder.build().method();
+        client.send(
+                requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        ).request().expectContinue();
+
+        System.out.println(body);
+
     }
 
-    public void closeAll() {
+    public void closeAll() throws IOException, InterruptedException {
+        JSONObject jsonObject = getJSON();
+        System.out.println(jsonObject.toString(4));
+
+        String uriStr = "https://api.binance.us/" +
+                "api/v3/orders";
+
+        System.out.println(uriStr);
+
+        requestBuilder.DELETE();
+        //requestBuilder.POST(HttpRequest.BodyPublishers.ofString())
+        String body =
+                requestBuilder.build().method();
+        client.send(
+                requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        ).request().expectContinue();
+
+        System.out.println(body);
     }
 
     public void createOrder(TradePair tradePair, Side buy, ENUM_ORDER_TYPE stopLoss, Double quantity, double price, Instant timestamp, long orderID, double stopPrice, double takeProfitPrice) {
@@ -3137,88 +3213,123 @@ public class BinanceUs extends Exchange {
         System.out.println(response.body());
 
 
-  //  ,{"symbol":"RNDRUSDT","status":"TRADING","baseAsset":"RNDR","baseAssetPrecision":8,"quoteAsset":"USDT","quotePrecision":8,"quoteAssetPrecision":8,"baseCommissionPrecision":8,"quoteCommissionPrecision":8,"orderTypes":["LIMIT","LIMIT_MAKER","MARKET","STOP_LOSS_LIMIT","TAKE_PROFIT_LIMIT"],"icebergAllowed":true,"ocoAllowed":true,"quoteOrderQtyMarketAllowed":true,"allowTrailingStop":true,"cancelReplaceAllowed":true,"isSpotTradingAllowed":true,"isMarginTradingAllowed":false,"filters":[{"filterType":"PRICE_FILTER","minPrice":"0.00100000","maxPrice":"1000.00000000","tickSize":"0.00100000"}
+        //  ,{"symbol":"RNDRUSDT","status":"TRADING","baseAsset":"RNDR","baseAssetPrecision":8,"quoteAsset":"USDT","quotePrecision":8,"quoteAssetPrecision":8,"baseCommissionPrecision":8,"quoteCommissionPrecision":8,"orderTypes":["LIMIT","LIMIT_MAKER","MARKET","STOP_LOSS_LIMIT","TAKE_PROFIT_LIMIT"],"icebergAllowed":true,"ocoAllowed":true,"quoteOrderQtyMarketAllowed":true,"allowTrailingStop":true,"cancelReplaceAllowed":true,"isSpotTradingAllowed":true,"isMarginTradingAllowed":false,"filters":[{"filterType":"PRICE_FILTER","minPrice":"0.00100000","maxPrice":"1000.00000000","tickSize":"0.00100000"}
 
-        JsonNode json = OBJECT_MAPPER.readTree(response.body());
-      //  System.out.println(json);
+
+        File file = null;
+        try {
+
+
+            file = new File("src/main/resources/symbols.json");
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(response.body());
+
+            fileWriter.flush();
+            fileWriter.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
 
         List<Currency> currencies = new ArrayList<>();
+        JSONObject json = new JSONObject(response.body());
+        System.out.println(json);
+
+        ObjectMapper mapper = new ObjectMapper();
+        for (JsonNode jsonNode : mapper.readTree(response.body()).get("symbols")) {
+            // System.out.println(jsonNode.get("symbols").asText());
+            System.out.println(jsonNode.get("status").asText());
+            System.out.println(jsonNode.get("baseAsset").asText());
+            System.out.println(jsonNode.get("baseAssetPrecision").asText());
+            System.out.println(jsonNode.get("quoteAsset").asText());
+            System.out.println(jsonNode.get("quotePrecision").asText());
+            System.out.println(jsonNode.get("quoteAssetPrecision").asText());
+            System.out.println(jsonNode.get("baseCommissionPrecision").asText());
+            System.out.println(jsonNode.get("quoteCommissionPrecision").asText());
+            System.out.println(jsonNode.get("orderTypes").toString());
+            System.out.println(jsonNode.get("icebergAllowed").asText());
+            String symbol = jsonNode.get("symbol").asText();
+            String status = jsonNode.get("status").asText();
+            String baseAsset = jsonNode.get("baseAsset").asText();
+            String baseAssetPrecision = jsonNode.get("baseAssetPrecision").asText();
+            String quoteAsset = jsonNode.get("quoteAsset").asText();
+            String quotePrecision = jsonNode.get("quotePrecision").asText();
+            String quoteAssetPrecision = jsonNode.get("quoteAssetPrecision").asText();
+            String baseCommissionPrecision = jsonNode.get("baseCommissionPrecision").asText();
+            String quoteCommissionPrecision = jsonNode.get("quoteCommissionPrecision").asText();
+            String orderTypes = jsonNode.get("orderTypes").toString();
+            String icebergAllowed = jsonNode.get("icebergAllowed").asText();
+            String ocoAllowed = jsonNode.get("ocoAllowed").asText();
+            String quoteOrderQtyMarketAllowed = jsonNode.get("quoteOrderQtyMarketAllowed").asText();
+            String allowTrailingStop = jsonNode.get("allowTrailingStop").asText();
+            String cancelReplaceAllowed = jsonNode.get("cancelReplaceAllowed").asText();
+            logger.info(
+                    "symbol: " + symbol + "\n" +
+                            "status: " + status + "\n" +
+                            "baseAsset: " + baseAsset + "\n" +
+                            "baseAssetPrecision: " + baseAssetPrecision + "\n" +
+                            "quoteAsset: " + quoteAsset + "\n" +
+                            "quotePrecision: " + quotePrecision + "\n" +
+                            "quoteAssetPrecision: " + quoteAssetPrecision + "\n" +
+                            "baseCommissionPrecision: " + baseCommissionPrecision + "\n" +
+                            "quoteCommissionPrecision: " + quoteCommissionPrecision + "\n" +
+                            "orderTypes: " + orderTypes + "\n" +
+                            "icebergAllowed: " + icebergAllowed + "\n" +
+                            "ocoAllowed: " + ocoAllowed + "\n" +
+                            "quoteOrderQtyMarketAllowed: " + quoteOrderQtyMarketAllowed + "\n" +
+                            "allowTrailingStop: " + allowTrailingStop + "\n" +
+                            "cancelReplaceAllowed: " + cancelReplaceAllowed + "\n" +
+                            "isSpotTradingAllowed: " + jsonNode.get("isSpotTradingAllowed").asText() + "\n" +
+                            "isMarginTradingAllowed: " + jsonNode.get("isMarginTradingAllowed").asText() + "\n"
+            );
 
 
-JSONObject jsonObject = new JSONObject(json);
+            if (status.equals("TRADING")) {
+                symbol = baseAsset;
+                currencies.add(new Currency(
+                                       CurrencyType.CRYPTO, symbol, symbol, symbol,
+                                       Integer.parseInt(baseAssetPrecision), symbol, "") {
+                                   @Override
+                                   public int compareTo(@NotNull Currency o) {
+                                       return 0;
+                                   }
 
-if (jsonObject.has("symbols")) {
-    for (JsonNode jsonNode : json.get("symbols")) {
-        System.out.println(jsonNode.get("symbol").asText());
-        System.out.println(jsonNode.get("status").asText());
-        System.out.println(jsonNode.get("baseAsset").asText());
-        System.out.println(jsonNode.get("baseAssetPrecision").asText());
-        System.out.println(jsonNode.get("quoteAsset").asText());
-        System.out.println(jsonNode.get("quotePrecision").asText());
-        System.out.println(jsonNode.get("quoteAssetPrecision").asText());
-        System.out.println(jsonNode.get("baseCommissionPrecision").asText());
-        System.out.println(jsonNode.get("quoteCommissionPrecision").asText());
-        System.out.println(jsonNode.get("orderTypes").toString());
-        System.out.println(jsonNode.get("icebergAllowed").asText());
+                                   @Override
+                                   public int compareTo(java.util.@NotNull Currency o) {
+                                       return 0;
+                                   }
 
+                               }
 
-        String symbol = jsonNode.get("symbol").asText();
-        String status = jsonNode.get("status").asText();
-        String baseAsset = jsonNode.get("baseAsset").asText();
-        String baseAssetPrecision = jsonNode.get("baseAssetPrecision").asText();
-        String quoteAsset = jsonNode.get("quoteAsset").asText();
-        String quotePrecision = jsonNode.get("quotePrecision").asText();
-        String quoteAssetPrecision = jsonNode.get("quoteAssetPrecision").asText();
-        String baseCommissionPrecision = jsonNode.get("baseCommissionPrecision").asText();
-        String quoteCommissionPrecision = jsonNode.get("quoteCommissionPrecision").asText();
-        String orderTypes = jsonNode.get("orderTypes").toString();
-        String icebergAllowed = jsonNode.get("icebergAllowed").asText();
-        String ocoAllowed = jsonNode.get("ocoAllowed").asText();
-        String quoteOrderQtyMarketAllowed = jsonNode.get("quoteOrderQtyMarketAllowed").asText();
-        String allowTrailingStop = jsonNode.get("allowTrailingStop").asText();
-        String cancelReplaceAllowed = jsonNode.get("cancelReplaceAllowed").asText();
-        logger.info(
-                "symbol: " + symbol + "\n" +
-                        "status: " + status + "\n" +
-                        "baseAsset: " + baseAsset + "\n" +
-                        "baseAssetPrecision: " + baseAssetPrecision + "\n" +
-                        "quoteAsset: " + quoteAsset + "\n" +
-                        "quotePrecision: " + quotePrecision + "\n" +
-                        "quoteAssetPrecision: " + quoteAssetPrecision + "\n" +
-                        "baseCommissionPrecision: " + baseCommissionPrecision + "\n" +
-                        "quoteCommissionPrecision: " + quoteCommissionPrecision + "\n" +
-                        "orderTypes: " + orderTypes + "\n" +
-                        "icebergAllowed: " + icebergAllowed + "\n" +
-                        "ocoAllowed: " + ocoAllowed + "\n" +
-                        "quoteOrderQtyMarketAllowed: " + quoteOrderQtyMarketAllowed + "\n" +
-                        "allowTrailingStop: " + allowTrailingStop + "\n" +
-                        "cancelReplaceAllowed: " + cancelReplaceAllowed + "\n" +
-                        "isSpotTradingAllowed: " + jsonNode.get("isSpotTradingAllowed").asText() + "\n" +
-                        "isMarginTradingAllowed: " + jsonNode.get("isMarginTradingAllowed").asText() + "\n"
-        );
-        currencies.add(new Currency(CurrencyType.CRYPTO, symbol, "", symbol,
-                               Integer.parseInt(baseAssetPrecision), symbol, "") {
-                           @Override
-                           public int compareTo(@NotNull Currency o) {
-                               return 0;
-                           }
+                );
 
-                           @Override
-                           public int compareTo(java.util.@NotNull Currency o) {
-                               return 0;
-                           }
+                if (!CurrencyDataProvider.getInstance().stream().map(
+                        Currency::getCode).toList().contains(symbol)) {
+
+                    CurrencyDataProvider.getInstance().add(
+                            new Currency(
+                                    CurrencyType.CRYPTO, symbol, symbol, symbol,
+                                    Integer.parseInt(baseAssetPrecision), symbol, "") {
+                                @Override
+                                public int compareTo(@NotNull Currency o) {
+                                    return 0;
+                                }
+
+                                @Override
+                                public int compareTo(java.util.@NotNull Currency o) {
+                                    return 0;
+                                }
+                            });
+                }
+            }
 
 
-                       }
-
-
-        );
-
-    }
-    logger.info(currencies.toString());
-    return currencies;
-}else {logger.error("No symbols found");}
+            logger.info(currencies.toString());
+        }
 
         return currencies;
     }
@@ -3502,7 +3613,7 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
         );
         JsonNode json = OBJECT_MAPPER.readTree(response.body());
         System.out.println(json);
-//            System.out.println(json.get("orders").toString());
+        System.out.println(json.get("orders").toString());
 //[
 //  {
 //    "symbol": "LTCBTC",
@@ -3578,8 +3689,33 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
     }
 
     @Override
-    public List<Objects> getOrderBook() {
+    public List<Objects> getOrderBook() throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(url + "orderBook"));
+        requestBuilder.GET();
+        HttpResponse<String> response = client.send(
+                requestBuilder.build(),
+                HttpResponse.BodyHandlers.ofString()
+        );
+        JsonNode json = OBJECT_MAPPER.readTree(response.body());
+        System.out.println(json);
+        System.out.println(json.get("asks").toString());
+        System.out.println(json.get("bids").toString());
+        System.out.println(json.get("timestamp").toString());
+        System.out.println(json.get("datetime").toString());
+        System.out.println(json.get("nonce").toString());
+        System.out.println(json.get("serverTime").toString());
+        System.out.println(json.get("status").toString());
+        System.out.println(json.get("symbol").toString());
+        System.out.println(json.get("type").toString());
+        System.out.println(json.get("side").toString());
+        System.out.println(json.get("price").toString());
+        System.out.println(json.get("amount").toString());
+        System.out.println(json.get("orderId").toString());
+        System.out.println(json.get("origQty").toString());
+        System.out.println(json.get("executedQty").toString());
+
         return null;
+
     }
 
     public String getAccountId() {
@@ -3590,6 +3726,14 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
         this.accountId = accountId;
     }
 
+    public String getApiSecret() {
+        return apiSecret;
+    }
+
+    public void setApiSecret(String apiSecret) {
+        this.apiSecret = apiSecret;
+    }
+
 
     public static abstract class BinanceUsCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
@@ -3597,6 +3741,7 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
                 .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
                 .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
+        String url = "https://api.binance.us/api/v3/";
 
         BinanceUsCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
             super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
@@ -3637,12 +3782,13 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
 
             int startTime = Math.max(endTime.get() - (numCandles * secondsPerCandle), EARLIEST_DATA);
 
-            String uriStr = "https://api.binance.us/api/v3/klines?symbol=" + tradePair.toString('/') + "&interval=" + timeFrame;
-//
-//            if (startTime == EARLIEST_DATA) {
-//                // signal more data is false
-//                return CompletableFuture.completedFuture(Collections.emptyList());
-//            }
+            String uriStr = url + "klines?symbol=" + tradePair.toString('/') +
+                    "&interval=" + timeFrame;
+
+            if (startTime == EARLIEST_DATA) {// signal more data is false
+                return CompletableFuture.completedFuture(Collections.emptyList());
+            }
+
             requestBuilder.uri(URI.create(uriStr));
             //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
             return HttpClient.newHttpClient().sendAsync(

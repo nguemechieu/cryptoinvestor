@@ -12,7 +12,6 @@ public class BinanceUsAccount extends Account {
         if (jsonObject.has("balances")) {
             balances = jsonObject.getJSONObject("balances").toString();
 
-
         } else {
             balances = "0";
         }
