@@ -25,10 +25,7 @@ import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -47,11 +44,7 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
 
     public BinanceUsWebSocket(@NotNull URI uri) {
         super(uri, new Draft_6455());
-        ClientEndpointConfig config = ClientEndpointConfig.Builder.create()
-                //.configurator(new WebSocketConfigurator(this))
-                .build();
 
-        logger.info("BinanceUsWebSocket: " + config);
     }
 
     @Override
@@ -112,14 +105,7 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
 //            "U":2039                       // counterOrderId (Appear if the order has expired due to STP)
 //            "A":"1.00000000"               // preventedQuantity(Appear if the order has expired due to STP )
 //            "B":"2.00000000"               // lastPreventedQuantity(Appear if the order has expired due to STP)
-        @NotNull TradePair tradePair = null;
-        try {
-            tradePair = parseTradePair(messageJson);
-            logger.info("BinanceUsWebSocket: " + tradePair);
-        } catch (CurrencyNotFoundException exception) {
-            logger.error("BinanceUs websocket client: could not initialize trade pair: " +
-                    messageJson.get("s").asText(), exception);
-        }
+
 
         Side side = messageJson.has("S") ? Side.getSide(messageJson.get("S").asText()) : null;
         logger.info("BinanceUsWebSocket: " + messageJson + " " + side);
@@ -127,6 +113,25 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
 //                case "heartbeat" ->
 //                        send(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on", "false").toPrettyString());
 //                case "match" -> {
+
+        String symb = messageJson.get("s").asText();
+
+        TradePair tradePair = null;
+        if (symb.contains("USDT")) {
+            symb = symb.replace("USDT", "");
+            tradePair = new TradePair(symb, "USDT");
+        } else if (symb.contains("USD") && symb.length() > 3) {
+            symb = symb.replace("USD", "");
+            tradePair = new TradePair(symb, "USD");
+        } else if (symb.subSequence(3, symb.length()).equals("BTC")) {
+            symb = symb.replace("BTC", "");
+            tradePair = new TradePair(symb, "BTC");
+        }
+
+
+        logger.info("BinanceUsWebSocket: " + messageJson + " " + tradePair);
+
+
         if (liveTradeConsumers.containsKey(tradePair)) {
             Trade newTrade;
             try {
@@ -137,7 +142,7 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
                         messageJson.get("q").asDouble(),
 
                         side, messageJson.at("E").asLong(),
-                        Instant.from(ISO_INSTANT.parse(messageJson.get("t").asText())));
+                        Date.from(Instant.from(ISO_INSTANT.parse(messageJson.get("t").asText()))).getTime());
 
                 logger.info(
                         "BinanceUs websocket client: received trade: " + newTrade
@@ -157,6 +162,7 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
         // default -> throw new IllegalStateException("Unhandled message type on Gdax websocket client: " +
         //     messageJson.get("type").asText());
         //}
+
     }
 
     private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
@@ -332,6 +338,11 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
     @Override
     public Set<Extension> getInstalledExtensions() {
         return null;
+    }
+
+    @Override
+    public double getPrice(TradePair tradePair) {
+        return 0;
     }
 
     @Override

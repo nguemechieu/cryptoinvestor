@@ -220,8 +220,8 @@ public Set<Integer> getSupportedGranularities() {
                     } else {
                         for (int j = 0; j < tradesResponse.size(); j++) {
                             JsonNode trade = tradesResponse.get(j);
-                            Instant time = Instant.from(ISO_INSTANT.parse(trade.get("time").asText()));
-                            if (time.compareTo(stopAt) <= 0) {
+                            long time = Date.from(Instant.from(ISO_INSTANT.parse(trade.get("time").asText()))).getTime();
+                            if (stopAt.isAfter(Instant.ofEpochSecond(time))) {
                                 futureResult.complete(tradesBeforeStopTime);
                                 break;
                             } else {

@@ -53,11 +53,13 @@ public class TradeView extends Region  {
         ChoiceBox<String> counterChoicebox = new ChoiceBox<>();
         try {
 //
-            if (exchange instanceof Coinbase) {
-                symbolChoicebox.getItems().addAll(CurrencyDataProvider.getInstance().stream().map(Currency::getCode).toList());
-            } else {
+            if (exchange instanceof Oanda) {
                 symbolChoicebox.getItems().addAll(exchange.getAvailableSymbols().stream().map(Currency::getCode).toList());
-//
+            } else {
+                symbolChoicebox.getItems().addAll(CurrencyDataProvider.getInstance().stream().map(Currency::getCode).toList());
+                counterChoicebox.getItems().addAll("USD", "BTC", "USDT", "CAD");
+                counterChoicebox.setValue("USD");
+
             }
 
 
@@ -108,6 +110,7 @@ symbolChoicebox.setValue(data1);
                     CandleStickChartContainer container2;
                     try {
                             TradePair tradePair3 = new TradePair(dat[0][0], dat[0][1]);
+                        exchange.tradePair = tradePair3;
                         container2 = new CandleStickChartContainer(exchange, tradePair3, telegramToken, true
                         );
 

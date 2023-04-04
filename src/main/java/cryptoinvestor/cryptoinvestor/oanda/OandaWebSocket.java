@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -92,7 +93,7 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
                                 messageJson.get("size").asDouble(),
 
                                 side, messageJson.at("trade_id").asLong(),
-                                Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText())));
+                                Date.from(Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText()))).getTime());
                     } catch (IOException | InterruptedException | ParseException |
                              URISyntaxException e) {
                         throw new RuntimeException(e);
@@ -310,5 +311,10 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
     @Override
     public Set<Extension> getInstalledExtensions() {
         return null;
+    }
+
+    @Override
+    public double getPrice(TradePair tradePair) {
+        return 0;
     }
 }

@@ -16,8 +16,10 @@ import org.slf4j.LoggerFactory;
 import javax.websocket.*;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.http.HttpRequest;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
@@ -27,6 +29,7 @@ import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import static java.security.CryptoPrimitive.SIGNATURE;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 
@@ -104,7 +107,7 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
                                     messageJson.get("q").asDouble(),
 
                                     side, messageJson.at("E").asLong(),
-                                    Instant.from(ISO_INSTANT.parse(messageJson.get("t").asText())));
+                                    Date.from(Instant.from(ISO_INSTANT.parse(messageJson.get("t").asText()))).getTime());
 
                         } catch (IOException | InterruptedException | ParseException |
                                  URISyntaxException e) {
@@ -322,6 +325,34 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
     @Override
     public Set<Extension> getInstalledExtensions() {
         return null;
+    }
+
+    @Override
+    public double getPrice(@NotNull TradePair tradePair) {
+        String url = "https://api.binance.us/api/v3/ticker/price?";
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+        requestBuilder.uri(URI.create(url));
+        requestBuilder.header("Accept", "application/json");
+
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36");
+        requestBuilder.header("Accept-Language", "en-US,en;q=0.9");
+        requestBuilder.header("Cache-Control", "no-cache");
+        requestBuilder.header("DNT", "1");
+        requestBuilder.header("Pragma", "no-cache");
+        requestBuilder.header("Sec-Fetch-Dest", "empty");
+
+        HttpRequest request = requestBuilder.build();
+        Double data;
+        try {
+            data = OBJECT_MAPPER.readValue(request.uri().toURL().openStream(), Double.class);
+            logger.warn("BinanceUs websocket client: getPrice " + data);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return data;
+
+
     }
 
 

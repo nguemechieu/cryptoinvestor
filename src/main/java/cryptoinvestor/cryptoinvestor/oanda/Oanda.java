@@ -45,6 +45,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 import static java.lang.System.out;
+import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
 
@@ -242,16 +243,20 @@ public class Oanda extends Exchange {
                     } else {
 
                         for (int j = 0; j < tradesResponse.size(); j++) {
-                            JsonNode trade = tradesResponse.get(j);//parse(trade.get("time").asText()
-                            Instant time = Instant.now();
-                            if (time.compareTo(stopAt) <= 0) {
+                            //  JsonNode trade = tradesResponse.get(j);//parse(trade.get("time").asText()
+                            JsonNode trade = tradesResponse.get(j);
+                            long time = Date.from(Instant.from(ISO_INSTANT.parse(trade.get("time").asText()))).getTime();
+                            if (stopAt.isAfter(Instant.ofEpochSecond(time))) {
                                 futureResult.complete(tradesBeforeStopTime);
                                 break;
                             } else {
                                 tradesBeforeStopTime.add(new Trade(tradePair,
                                         trade.get("price").asDouble(),
                                         trade.get("size").asDouble(),
-                                        Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time));
+
+
+                                        Side.getSide(trade.get("side").asText()),
+                                        trade.get("trade_id").asLong(), time));
                             }
                         }
                     }
@@ -716,24 +721,22 @@ public class Oanda extends Exchange {
         String symbol = tradePair.toString('_');
 
         String uriStr = "https://api-fxtrade.oanda.com/v3/account/orders";
+        Object body = new String[]{
+                "  order : {" +
+                        "units : " + size + "," +
+                        "instrument :" + tradePair.toString('_') + "," +
+                        "timeInForce : FOK," +
+                        "type: " + orderType + "," +
+                        "positionFill: DEFAULT" };
 
-        String data =
-                String.format(
-                        "{\"product_id\": \"%s\", \"side\": \"%s\", \"type\": \"%s\", \"quantity\": %f, \"price\": %f, \"stop-loss\": %f, \"take-profit\": %f, \"take-profit-price\": %f, \"timestamp\": \"%s\"}",
-                        symbol, side, orderType, size, price, stopLoss, takeProfit, takeProfitPrice,
-                        timestamp);
-
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-        data = String.format(data, orderType, side, price);
 
         System.out.println(uriStr);
         requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
-                data
+                body.toString()
         ));
         requestBuilder.uri(URI.create(uriStr));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        System.out.println(response.statusCode());
-        System.out.println(response.body());
+
 
         if (response.statusCode() != 200) {
             System.out.println(response.statusCode());
@@ -744,7 +747,9 @@ public class Oanda extends Exchange {
             alert.setContentText(response.body());
             alert.showAndWait();
 
-        }
+        } else
+            System.out.println(response.statusCode());
+        System.out.println(response.body());
 
 
     }

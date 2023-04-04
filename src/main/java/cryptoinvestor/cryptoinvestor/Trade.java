@@ -44,13 +44,28 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
     TradePair tradePair;
     double price;
     double amount;
+    Money price2;
+
+    public Trade(TradePair tradePair, @NotNull Money price2, @NotNull Money size, Side side, long tradeId, @NotNull Instant time) {
+        this.tradePair = tradePair;
+        this.price2 = price2;
+        this.amount = (double) size.amount();
+        this.price = (double) price2.amount();
+        this.tradeId = tradeId;
+        this.time = time.toEpochMilli();
+        this.isBuy = side == Side.BUY;
+        this.isSell = side == Side.SELL;
+        logger.info("Trade created");
+    }
 
     public static void setTrades(List<Trade> trades) {
         Trade.trades = trades;
     }
+
     public static CandleData getCandle() {
         return candle;
     }
+
     public static void setCandle(CandleData candle) {
         Trade.candle = candle;
     }
@@ -477,8 +492,15 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         this.fee = fee;
         logger.info("Trade created");
     }
-    public Trade(TradePair tradePair, double price, double size, Side side, long tradeId, Instant time) throws IOException, ParseException, URISyntaxException, InterruptedException {
 
+    public Trade(TradePair tradePair, double price, double size, Side side, long tradeId, long time) throws IOException, ParseException, URISyntaxException, InterruptedException {
+
+        this.tradePair = tradePair;
+        this.price = price;
+        this.size = size;
+        this.side = side;
+        this.tradeId = tradeId;
+        this.time = time;
     }
     private Side transactionType;
     private long localTradeId;
@@ -698,7 +720,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
                 TelegramClient.sendMessage(
                         "Opening  Selling order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
-                                price + " " + exchange.getPrice()
+                                price + " " + exchange.webSocketClient.getPrice(tradePair)
                 );
             } else if (signal.equals(Signal.STOP)) {
 

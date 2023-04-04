@@ -10,6 +10,7 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
 import javax.websocket.Extension;
 import javax.websocket.Session;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.WebSocket;
@@ -116,4 +117,6 @@ public abstract class ExchangeWebSocketClient extends WebSocketClient {
     public abstract void setDefaultMaxTextMessageBufferSize(int max);
 
     public abstract Set<Extension> getInstalledExtensions();
+
+    public abstract double getPrice(TradePair tradePair) throws IOException, InterruptedException;
 }

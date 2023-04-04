@@ -56,4 +56,9 @@ public class LiveTradeConsumer implements LiveTradesConsumer {
 
 
     }
+
+    @Override
+    public void close() {
+
+    }
 }

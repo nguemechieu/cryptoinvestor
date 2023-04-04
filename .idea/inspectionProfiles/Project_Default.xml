@@ -19,6 +19,7 @@
           <option value="X-MBX-APIKEY" />
           <option value="X-MBX-APISECRET" />
           <option value="CB-ACCESS-SIGN" />
+          <option value="DNT" />
         </set>
       </option>
     </inspection_tool>

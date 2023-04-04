@@ -53,7 +53,7 @@ public class TradingWindow extends AnchorPane {
                     exchange = new BinanceUs(
                             api_key,
                             api_secret,
-                            account_id, new TradePair("ETH", "USD"));
+                            account_id);
                     break;
                 case BITSTAMP: {
 
@@ -82,13 +82,6 @@ public class TradingWindow extends AnchorPane {
                             );
                     break;
 
-                case COINBASE_PRO:
-                    exchange = new Coinbase(
-                            account_id,"2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo","ULaVf9zteLbuLb8Pz8g+0tIlUStLsWP0A8bNHtJA7WIc7/vrYYFtKBvvz9Ady6offn+Nu3P7s"
-
-
-                    );
-                    break;
                 case OANDA:
                     exchange = new Oanda(
 

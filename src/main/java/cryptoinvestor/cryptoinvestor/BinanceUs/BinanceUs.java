@@ -68,9 +68,9 @@ public class BinanceUs extends Exchange {
     private double price;
 
 
-    public BinanceUs(String apiKey, String apiSecret, String accountId, TradePair tradePair1) {
+    public BinanceUs(String apiKey, String apiSecret, String accountId) {
         super(
-                binanceUsWebSocket(apiKey, apiSecret, accountId, tradePair1)
+                null // binanceUsWebSocket(apiKey, apiSecret, accountId)
         );
 
 
@@ -95,15 +95,16 @@ public class BinanceUs extends Exchange {
         this.api_key = apiKey;
         isConnected = false;
         this.accountId = accountId;
-        tradePair = tradePair1;
+
 
 
     }
 
-    private static @NotNull ExchangeWebSocketClient binanceUsWebSocket(String apiKey, String apiSecret, String accountId, @NotNull TradePair tradePair1) {
+    private static @NotNull ExchangeWebSocketClient binanceUsWebSocket(String apiKey, String apiSecret, String accountId) {
 
         BinanceUsWebSocket binanceUsWebSocket = new BinanceUsWebSocket(
-                URI.create("wss://stream.binance.us:9443/ws/" + tradePair1.toString('/') + "@trade")
+                URI.create("wss://stream.binance.us:9443/ws/ethusdt@trade")
+
         );
         binanceUsWebSocket.setAsyncSendTimeout(10000);
         binanceUsWebSocket.addHeader("Content-Type", "application/json");
@@ -664,7 +665,7 @@ public class BinanceUs extends Exchange {
                                         trade.get("q").asDouble(),
 
                                         Side.getSide(trade.get("S").asText()), trade.at("E").asLong(),
-                                        Instant.from(ISO_INSTANT.parse(trade.get("t").asText()))));
+                                        Date.from(Instant.from(ISO_INSTANT.parse(trade.get("t").asText()))).getTime()));
                             }
                         }
                     }
@@ -3280,8 +3281,7 @@ public class BinanceUs extends Exchange {
             );
 
 
-            if (status.equals("TRADING")) {
-                symbol = baseAsset;
+            symbol = baseAsset;
                 currencies.add(new Currency(
                                        CurrencyType.CRYPTO, symbol, symbol, symbol,
                                        Integer.parseInt(baseAssetPrecision), symbol, "") {
@@ -3316,8 +3316,25 @@ public class BinanceUs extends Exchange {
                                     return 0;
                                 }
                             });
+
+                    logger.info(
+
+
+                            "symbol: " + symbol + "\n" +
+                                    "status: " + status + "\n" +
+                                    "baseAsset: " + baseAsset + "\n" +
+                                    "baseAssetPrecision: " + baseAssetPrecision + "\n" +
+                                    "quoteAsset: " + quoteAsset + "\n" +
+                                    "quotePrecision: " + quotePrecision + "\n" +
+                                    "quoteAssetPrecision: " + quoteAssetPrecision + "\n" +
+                                    "baseCommissionPrecision: " + baseCommissionPrecision + "\n" +
+                                    "quoteCommissionPrecision: " + quoteCommissionPrecision + "\n" +
+                                    "orderTypes: " + orderTypes + "\n" +
+                                    "icebergAllowed: " + icebergAllowed + "\n" +
+                                    "ocoAllowed: " + ocoAllowed + "\n" +
+                                    "quoteOrderQtyMarketAllowed: " + quoteOrderQtyMarketAllowed + "\n"
+                    );
                 }
-            }
 
 
             logger.info(currencies.toString());

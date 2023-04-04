@@ -12,8 +12,7 @@ public class Wallet extends Parent {
     public Wallet(@NotNull Exchange exchange) {
         super();
         this.getStyleClass().add("wallet");
-        getChildren().add(new Label(" Wallet      -- " +exchange.getName() + " -- " + exchange.getSymbol()));
-        GridPane gridPane=new GridPane();
+           GridPane gridPane = new GridPane();
         gridPane.setHgap(10);
         gridPane.setVgap(10);
         gridPane.setPadding(new javafx.geometry.Insets(10, 10, 10, 10));

@@ -17,4 +17,6 @@ public interface LiveTradesConsumer {
 
 
     void accept(Trade trade);
+
+    void close();
 }

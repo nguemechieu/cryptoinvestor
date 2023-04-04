@@ -17,7 +17,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class Exchange {
-    protected  ExchangeWebSocketClient webSocketClient;
+    public TradePair tradePair;
+    protected ExchangeWebSocketClient webSocketClient;
 
      protected Exchange(ExchangeWebSocketClient webSocketClient) {
          this.webSocketClient = webSocketClient;
