@@ -64,7 +64,7 @@ public class Coinbase extends Exchange {
 //
 //    API	Method	Resource	Required Scope
 //    List Accounts	GET	/accounts	wallet:accounts:read
-    static String url = "https://coinbase.com/api/v3/brokerage";
+    static String url = "https://coinbase.com/api/v3/brokerage/";
     private String api_secret;
 
     public Coinbase(String account_id, String apiKey, String api_secret) throws NoSuchAlgorithmException {
@@ -126,7 +126,7 @@ public class Coinbase extends Exchange {
 
     @Contract(pure = true)
     public static @NotNull List<Account> getAccountsList() throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/accounts"));
+        requestBuilder.uri(URI.create(url + "accounts"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         if(data.statusCode() != 200) {
             logger.error("Coinbase: " + data.statusCode() + " " + data.body());
@@ -170,7 +170,7 @@ public class Coinbase extends Exchange {
     //    Get Account	GET	/accounts/:account_id	wallet:accounts:read
     @Nullable
     static Account getAccount(String accountId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/accounts/" + accountId));
+        requestBuilder.uri(URI.create(url + "accounts/" + accountId));
         requestBuilder.POST(HttpRequest.BodyPublishers.ofString(accountId));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         Account account;
@@ -217,7 +217,7 @@ public class Coinbase extends Exchange {
 //    List Accounts	GET	/accounts	wallet:accounts:read
     public  ArrayList<Account> listAccounts() throws IOException, InterruptedException {
         ArrayList<Account> accounts;
-        requestBuilder.uri(URI.create(url + "/accounts"));
+        requestBuilder.uri(URI.create(url + "accounts"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         if(data.statusCode() == 200) {
             logger.info("Coinbase: " + data.statusCode() + " " + data.body());
@@ -403,7 +403,7 @@ public class Coinbase extends Exchange {
 
     //    List Orders	GET	/orders/historical/batch	wallet:orders:read
     List<Order> getOrdersHistorical(String orderId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/orders/historical/batch"));
+        requestBuilder.uri(URI.create(url + "orders/historical/batch"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         List<Order> orders;
         if (data.statusCode() == 200) {
@@ -434,7 +434,7 @@ public class Coinbase extends Exchange {
 
     //    List Fills	GET	/orders/historical/fills	wallet:transactions:read
     List<Fill> getFills() throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/orders/historical/fills"));
+        requestBuilder.uri(URI.create(url + "orders/historical/fills"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         List<Fill> fills;
         if (data.statusCode() == 200) {
@@ -457,7 +457,7 @@ public class Coinbase extends Exchange {
 
     //    Get Order	GET	/orders/historical/{order_id}	wallet:transactions:read
     Order getOrderHistorical(String orderId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/orders/historical/" + orderId));
+        requestBuilder.uri(URI.create(url + "orders/historical/" + orderId));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         Order order;
         if (data.statusCode() == 200) {
@@ -487,7 +487,7 @@ public class Coinbase extends Exchange {
 
     //    List Products	GET	/products	wallet:user:read
     List<Product> getProducts() throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/products"));
+        requestBuilder.uri(URI.create(url + "products"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         List<Product> products;
         if (data.statusCode() == 200) {
@@ -522,7 +522,7 @@ public class Coinbase extends Exchange {
 
     //    Get Product	GET	/products/{product_id}	wallet:user:read
     Product getProduct(String productId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/products/" + productId));
+        requestBuilder.uri(URI.create(url + "products/" + productId));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         Product product;
         if (data.statusCode() == 200) {
@@ -543,7 +543,7 @@ public class Coinbase extends Exchange {
 
     //    Get Product Candles	GET	/products/{product_id}/candles	none
     List<Candle> getProductCandles(String productId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/products/" + productId + "/candles"));
+        requestBuilder.uri(URI.create(url + "products/" + productId + "/candles"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         List<Candle> candles;
         if (data.statusCode() == 200) {
@@ -566,7 +566,7 @@ public class Coinbase extends Exchange {
 //    Get Transactions Summary	GET	/transaction_summary	wallet:transactions:read
 
     TransactionSummary getTransactionSummary() throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/transaction_summary"));
+        requestBuilder.uri(URI.create(url + "transaction_summary"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         TransactionSummary transactionSummary;
         if (data.statusCode() == 200) {
@@ -612,7 +612,7 @@ public class Coinbase extends Exchange {
 
     //    Get Market Trades	GET	/products/{product_id}/ticker	wallet:user:read
     List<Trade> getMarketTrades(String productId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/products/" + productId + "/ticker"));
+        requestBuilder.uri(URI.create(url + "products/" + productId + "/ticker"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         List<Trade> trades;
         if (data.statusCode() == 200) {
