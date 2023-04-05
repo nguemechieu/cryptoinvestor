@@ -1190,15 +1190,10 @@ public class Coinbase extends Exchange {
             System.out.println("order error " + response.body());
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Order Error");
-            DialogPane dialogPane = new DialogPane();
-            dialogPane.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/app.css")).toExternalForm());
 
-            dialogPane.setPrefSize(300, 200);
-            alert.setDialogPane(
-                    dialogPane
-            );
+
             alert.setContentText(response.body());
-            alert.showAndWait();
+            alert.show();
 
         }else {
             JSONObject jsonObject = new JSONObject(response.body());
@@ -1374,14 +1369,13 @@ public class Coinbase extends Exchange {
         params.put("type", "limit");
         params.put("side", "buy");
         params.put("price", String.valueOf(price));
-
         params.put("quantity", String.valueOf(quantity));
         params.put("stop_price", String.valueOf(stopPrice));
         params.put("take_profit_price", String.valueOf(takeProfitPrice));
         params.put("time_in_force", "GTC");
         params.put("post_only", "false");
         params.put("fill_or_kill", "true");
-        params.put("client_order_id", UUID.randomUUID().toString());
+        //  params.put("client_order_id", UUID.randomUUID().toString());
 
         requestBuilder.uri(URI.create(url1));
         requestBuilder.POST(HttpRequest.BodyPublishers.ofString(params.toString()));
@@ -1389,12 +1383,13 @@ public class Coinbase extends Exchange {
         logger.info(response.body());
         if (response.statusCode() == 201) {
             logger.info("Order created");
+            logger.info(response.body());
         } else {
             logger.info("Order creation failed");
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText(null);
-            alert.setContentText(String.valueOf(response));
+            alert.setContentText(String.valueOf(response.body()));
             alert.showAndWait();
         }
     }
@@ -1431,12 +1426,6 @@ public class Coinbase extends Exchange {
         return true;
     }
 
-    public void setOrderId(String orderId) {
-    }
-
-    public String getApi_secret() {
-        return api_secret;
-    }
 
     static abstract class CoinbaseCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
@@ -1502,6 +1491,8 @@ public class Coinbase extends Exchange {
                                 alert.setHeaderText(null);
                                 alert.setContentText(res.get("message").asText());
                                 alert.showAndWait();
+                                return
+                                        Collections.emptyList();
                             }
 
                         } catch (JsonProcessingException ex) {

@@ -49,10 +49,20 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
     public CoinbaseWebSocketClient() {
 
-        super(URI.create("wss://advanced-trade-ws.coinbase.com/market_trades"), new Draft_6455());
-
-
+        super(URI.create("wss://advanced-trade-ws.coinbase.com/level2"//market_trades" +
+        ), new Draft_6455());
         tradePairs.add(new TradePair("BTC", "USD"));
+        tradePairs.add(new TradePair("ETH", "USD"));
+        tradePairs.add(new TradePair("LTC", "USD"));
+        tradePairs.add(new TradePair("BCH", "USD"));
+        tradePairs.add(new TradePair("XRP", "USD"));
+        tradePairs.add(new TradePair("EOS", "USD"));
+        tradePairs.add(new TradePair("ETC", "USD"));
+        tradePairs.add(new TradePair("ZEC", "USD"));
+        tradePairs.add(new TradePair("XMR", "USD"));
+        tradePairs.add(new TradePair("DASH", "USD"));
+        tradePairs.add(new TradePair("XLM", "USD"));
+        tradePairs.add(new TradePair("XEM", "USD"));
 
 
     }

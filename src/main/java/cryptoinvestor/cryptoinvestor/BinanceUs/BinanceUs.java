@@ -70,7 +70,7 @@ public class BinanceUs extends Exchange {
 
     public BinanceUs(String apiKey, String apiSecret, String accountId) {
         super(
-                null // binanceUsWebSocket(apiKey, apiSecret, accountId)
+                 binanceUsWebSocket(apiKey, apiSecret, accountId)
         );
 
 
