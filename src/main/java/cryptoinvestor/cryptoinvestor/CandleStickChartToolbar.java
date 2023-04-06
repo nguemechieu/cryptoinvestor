@@ -18,14 +18,19 @@ import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +39,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.ParseException;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 
 import static cryptoinvestor.cryptoinvestor.FXUtils.computeTextDimensions;
 import static java.lang.System.out;
@@ -66,10 +68,30 @@ public class CandleStickChartToolbar extends Region {
         boolean passedHourDayBoundary = false;
         boolean passedDayWeekBoundary = false;
         boolean passedWeekMonthBoundary = false;
+
         for (Integer granularity : granularities) {
+            int index = (int) (Math.random() * Tool.values().length);
             if (granularity < 3600) {
                 ToolbarButton toolbar0 = new ToolbarButton((granularity / 60) + "m", granularity);
                 toolbar0.setPadding(new Insets(20, 20, 20, 20));
+
+
+                toolbar0.setBackground(Background.fill(Paint.valueOf(
+                        String.valueOf(Color.rgb(
+                                (int) (Math.random() * 255),
+                                (int) (Math.random() * 255),
+                                (int) (Math.random() * 255), 0.7
+                        )))))
+                ;
+                toolbar0.setBorder(Border.stroke(
+                        Paint.valueOf(
+                                String.valueOf(Color.rgb(
+                                        (int) (Math.random() * 255),
+                                        (int) (Math.random() * 255),
+                                        (int) (Math.random() * 255), 0.7
+                                )))));
+
+
                 toolbarNodes.add(toolbar0);
 
 
@@ -164,6 +186,21 @@ public class CandleStickChartToolbar extends Region {
         getChildren().setAll(toolbar);
         sizeListener.resize();
         LOG.info("CandleStickChartToolbar created");
+    }
+
+    @Contract("_ -> param1")
+    private @NotNull @Unmodifiable List<javafx.scene.paint.Color> randomColors(int colors) {
+        List<javafx.scene.paint.Color> colorsList = new ArrayList<>();
+        for (int i = 0; i < toolbar.getChildren().size(); i++) {
+            colorsList.add(Color.rgb(
+                    (int) (Math.random() * 255),
+                    (int) (Math.random() * 255),
+                    (int) (Math.random() * 255)
+            ));
+        }
+        return Collections.singletonList(colorsList.get(colors));
+
+
     }
 
     void setActiveToolbarButton(IntegerProperty secondsPerCandle) {

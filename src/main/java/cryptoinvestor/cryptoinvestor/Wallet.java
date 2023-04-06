@@ -23,7 +23,6 @@ public class Wallet extends Parent {
 
         gridPane.add(new Label("Name: " + exchange.getName()), 0, 0);
         gridPane.add(new Label("Symbol: " + exchange.getSymbol()), 0, 1);
-        gridPane.add(new Label("Price: " + exchange.getPrice()), 0, 2);
         gridPane.add(new Label("Volume: " + exchange.getVolume()), 0, 3);
         gridPane.add(new Label("Balance: " + exchange.getBalance()), 0, 4);
         gridPane.add(new Label("Available : " + exchange.getAvailable()), 0, 5);

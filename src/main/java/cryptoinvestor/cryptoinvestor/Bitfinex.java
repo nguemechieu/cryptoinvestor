@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
@@ -102,7 +101,7 @@ public class Bitfinex extends Exchange {
 
     @Override
     public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
-        return new BitfinexCandleDataSupplier(secondsPerCandle, tradePair) {
+        BitfinexCandleDataSupplier bitfinexCandleDataSupplier = new BitfinexCandleDataSupplier(secondsPerCandle, tradePair) {
             @Override
             public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
                 return null;
@@ -114,10 +113,16 @@ public class Bitfinex extends Exchange {
             }
 
             @Override
+            public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isTrade) {
+                return null;
+            }
+
+            @Override
             public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
                 return null;
             }
         };
+        return bitfinexCandleDataSupplier;
     }
 
     @Override
@@ -162,7 +167,7 @@ public class Bitfinex extends Exchange {
      * This method only needs to be implemented to support live syncing.
      */
     @Override
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isTrade) {
         Objects.requireNonNull(tradePair);
         Objects.requireNonNull(stopAt);
 
@@ -437,12 +442,13 @@ public class Bitfinex extends Exchange {
     }
 
     @Override
-    public String getPrice() {
-        return null;
+    public double getLivePrice(TradePair tradePair) {
+        return 0;
     }
 
+
     @Override
-    public String getVolume() {
+    public ArrayList<Double> getVolume() {
         return null;
     }
 
@@ -557,9 +563,10 @@ public class Bitfinex extends Exchange {
     }
 
     @Override
-    public void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) {
+    public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size, @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
 
     }
+
 
     @Override
     public void closeAllOrders() {
@@ -594,6 +601,21 @@ public class Bitfinex extends Exchange {
     }
 
     @Override
+    public void getPositionBook(TradePair tradePair) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void getOpenOrder(TradePair tradePair) {
+
+    }
+
+    @Override
+    public void getOrderHistory(TradePair tradePair) throws IOException, InterruptedException {
+
+    }
+
+    @Override
     public void cancelOrder(long orderID) throws IOException, InterruptedException {
         JSONObject jsonObject = getJSON();
         System.out.println(jsonObject.toString(4));
@@ -621,7 +643,7 @@ public class Bitfinex extends Exchange {
     }
 
     @Override
-    public List<Objects> getOrderBook() {
+    public List<OrderBook> getOrderBook(TradePair tradePair) {
         return null;
     }
 
@@ -748,7 +770,7 @@ public class Bitfinex extends Exchange {
 
         public abstract CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
 
-        public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
+        public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isTrade);
     }
 
 

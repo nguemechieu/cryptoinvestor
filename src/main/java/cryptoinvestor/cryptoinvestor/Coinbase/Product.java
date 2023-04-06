@@ -1,6 +1,21 @@
 package cryptoinvestor.cryptoinvestor.Coinbase;
 
+import cryptoinvestor.cryptoinvestor.TradePair;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class Product {
+
+    private TradePair tradePair;
+    private List<Fill> asksList = new ArrayList<>();
+    private List<Fill> bidsList = new ArrayList<>();
+
+    public Product(List<Fill> asksList, List<Fill> bidsList, TradePair tradePair) {
+        this.asksList = asksList;
+        this.bidsList = bidsList;
+        this.tradePair = tradePair;
+    }
 
     public String getName() {
         return name;
@@ -55,11 +70,32 @@ public class Product {
         this.category = category;
         this.currency = currency;
     }
-    public Product(){
+
+    public Product() {
         this.name = "";
         this.description = "";
         this.url = "";
         this.category = "";
         this.currency = "";
+    }
+
+    public TradePair getTradePair() {
+        return tradePair;
+    }
+
+    public void setTradePair(TradePair tradePair) {
+        this.tradePair = tradePair;
+    }
+
+    public List<Fill> getBidsList() {
+        return bidsList;
+    }
+
+    public List<Fill> getAsksList() {
+        return asksList;
+    }
+
+    public double getLivePrice() {
+        return getAsksList().get(0).getPrice();
     }
 }

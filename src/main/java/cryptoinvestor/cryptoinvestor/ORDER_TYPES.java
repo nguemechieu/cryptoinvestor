@@ -14,6 +14,7 @@ public enum ORDER_TYPES {
     LIMIT_MAKER(14), MARKET(15), STOP_LOSS_LIMIT(16),
     LIMIT(17),
     TAKE_PROFIT_LIMIT(22);
+    public static final ORDER_TYPES[] values = values();
     private final int i;
 
     ORDER_TYPES(int type) {

@@ -11,11 +11,9 @@ import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
 import javafx.geometry.Side;
 import javafx.geometry.VPos;
 import javafx.scene.Cursor;
-import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.chart.AreaChart;
@@ -25,7 +23,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.input.*;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -33,11 +30,13 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.util.Pair;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,7 +87,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class CandleStickChart extends Region {
     private final CandleDataPager candleDataPager;
     private final CandleStickChartOptions chartOptions;
-    private static final DecimalFormat MARKER_FORMAT = new DecimalFormat("#.00");
+    private static final DecimalFormat MARKER_FORMAT = new DecimalFormat("#.000");
     private final Exchange exchange;
     private final TradePair tradePair;
     private final boolean liveSyncing;
@@ -127,7 +126,7 @@ public class CandleStickChart extends Region {
     private double chartWidth = 900;
     private double chartHeight = 700;
     private boolean isAutoTrading;
-
+    private final StackPane chartStackPane = new StackPane();
     /**
      * Creates a new {@code CandleStickChart}. This constructor is package-private because it should only
      * be instantiated by a {@link CandleStickChartContainer}.
@@ -237,6 +236,28 @@ public class CandleStickChart extends Region {
 
                 updateInProgressCandleExecutor.scheduleAtFixedRate(updateInProgressCandleTask, 5, 5, SECONDS);
 
+                try {
+                    exchange.getOrderBook(tradePair);
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
+                    exchange.getPositionBook(tradePair);
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
+                    exchange.getOpenOrder(tradePair);
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                try {
+                    exchange.getOrderHistory(tradePair);
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+
+
             });
         } else {
             inProgressCandle = null;
@@ -262,7 +283,7 @@ public class CandleStickChart extends Region {
                 chartHeight = containerHeight.getValue().doubleValue();
                 canvas = new Canvas(chartWidth - 100, chartHeight - 100);
 
-                StackPane chartStackPane = new StackPane(canvas, loadingIndicatorContainer);
+                chartStackPane.getChildren().addAll(canvas, loadingIndicatorContainer);
                 Label infoText = new Label();
                 infoText.setTextFill(Color.WHITE);
                 infoText.setTextAlignment(TextAlignment.CENTER);
@@ -295,6 +316,28 @@ public class CandleStickChart extends Region {
                 drawChartContents(true));
         chartOptions.showVolumeProperty().addListener((observable, oldValue, newValue) -> drawChartContents(true));
         chartOptions.alignOpenCloseProperty().addListener((observable, oldValue, newValue) -> drawChartContents(true));
+
+    }
+
+
+    void drawPriceLine(double price, @NotNull StackPane chartStackPane) {
+        Text priceText = new Text();
+
+        priceText.setTextAlignment(TextAlignment.CENTER);
+        priceText.setFont(Font.font(25));
+        priceText.setTranslateX(
+                -(priceText.getLayoutBounds().getWidth())
+        );
+        priceText.setTranslateY(price);
+        priceText.setText("Current :" + price + "$");
+        priceText.setFill(Color.WHITE);
+
+        priceText.setOnMouseEntered(event -> priceText.setFill(Color.RED));
+        priceText.setOnMouseExited(event -> priceText.setFill(Color.GREEN));
+
+        chartStackPane.getChildren().add(priceText);
+
+
     }
 
     private void initializeEventHandlers() {
@@ -335,7 +378,8 @@ public class CandleStickChart extends Region {
                 int desiredXLowerBound = (int) xAxis.getLowerBound() + (deltaX == 1 ? secondsPerCandle : -secondsPerCandle);
                 // Prevent moving in the positive direction past the point where only "minCandlesRemaining" candles
                 // remain on the left-most part of the chart.
-                int minCandlesRemaining = 3;
+                drawPriceLine(exchange.getLivePrice(tradePair), chartStackPane);
+                int minCandlesRemaining = 4;
                 if (desiredXLowerBound <= data.lastEntry().getValue().getOpenTime() -
                         (minCandlesRemaining - 1) * secondsPerCandle) {
                     if (desiredXLowerBound <= currZoomLevel.getMinXValue()) {
@@ -394,10 +438,26 @@ public class CandleStickChart extends Region {
         logger.info("xAxis lower bound: " + (int) xAxis.getLowerBound());
         final double idealBufferSpaceMultiplier = 0.35;
         if (!currZoomLevel.getExtremaForCandleRangeMap().containsKey((int) xAxis.getLowerBound())) {
+
+//            Pair<Extrema<Integer>, Extrema<Integer>> dat1= new
+//                    Pair<>( new Extrema<>(
+//                            0,
+//                            1
+//                    ),
+//                    new Extrema<>(
+//                            0,
+//                            1
+//                    ));
+//            currZoomLevel.getExtremaForCandleRangeMap().put((int) xAxis.getLowerBound(), dat1);
+//
+
+
             // Does this *always* represent a coding error on our end or can this happen during
             // normal chart functioning, and could we handle it more gracefully?
-            logger.error("The extrema map did not contain extrema for x-value: " + (int) xAxis.getLowerBound());
-            logger.error("extrema map: " + new TreeMap<>(currZoomLevel.getExtremaForCandleRangeMap()));
+            logger.error("The extrema map did not contain extrema for x-value: " + (int) xAxis.getLowerBound() + "On this chart. of " + exchange.getName());
+            logger.error(exchange.getName() + " extrema map: " + new TreeMap<>(currZoomLevel.getExtremaForCandleRangeMap()));
+
+            //    return;
         }
 
         // The y-axis and extra axis extrema are obtained using a key offset by minus one candle duration. This makes
@@ -407,12 +467,20 @@ public class CandleStickChart extends Region {
                 (int) xAxis.getLowerBound() - secondsPerCandle);
         // FIXME: Figure out why this is null
         if (extremaForRange == null) {
-            logger.error("extremaForRange was null!");
+            logger.error(exchange.getName() + " extremaForRange was null!");
             return;
         }
 
-        final Integer yAxisMax = extremaForRange.getValue().getMax();
+
+        Integer yAxisMax = extremaForRange.getValue().getMax();
+        if (yAxisMax == null) {
+            logger.error(exchange.getName() + " yAxisMax was null!");
+            return;
+        }
+
         final Integer yAxisMin = extremaForRange.getValue().getMin();
+
+        extremaForRange.getKey().getMax();
         final double yAxisDelta = yAxisMax - yAxisMin;
         yAxis.setUpperBound(yAxisMax + (yAxisDelta * idealBufferSpaceMultiplier));
         yAxis.setLowerBound(Math.max(0, yAxisMin - (yAxisDelta * idealBufferSpaceMultiplier)));
@@ -549,7 +617,7 @@ public class CandleStickChart extends Region {
             try {
 
                 TelegramClient.sendMessage(
-                        "Server:  " + exchange.getWebsocketClient().getURI().getHost() + "     Pair : "
+                        "Server:  " + exchange.getName() + "     Pair : "
                                 + tradePair.toString('/')
                                 + "    Mode: " +
                                 (isAutoTrading ? "Manual" : "Auto") +
@@ -570,20 +638,9 @@ public class CandleStickChart extends Region {
             } catch (IOException | InterruptedException | ParseException e) {
                 throw new RuntimeException(e);
             }
-            Line priceLine = new Line();
-            priceLine.setStroke(Color.WHITE);
-            priceLine.setStrokeWidth(2);
-            priceLine.setStrokeLineCap(StrokeLineCap.ROUND);
-            priceLine.setTranslateX(0);
-            try {
-                priceLine.setTranslateY(
-                        (yAxis.getUpperBound() - exchange.webSocketClient.getPrice(tradePair)));
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
 
 
-            getChildren().addAll(labelsContainer, priceLine);
+            getChildren().addAll(labelsContainer);
             inProgressCandleLastDraw = inProgressCandle.getOpenTime();
         }
 
@@ -838,6 +895,7 @@ public class CandleStickChart extends Region {
         final int multiplier = zoomDirection == ZoomDirection.IN ? -1 : 1;
         if (currZoomLevel == null) {
             logger.error("currZoomLevel was null!");
+            //  return;
         }
         int newCandleWidth = currZoomLevel.getCandleWidth() - multiplier;
         if (newCandleWidth <= 1) {
@@ -851,7 +909,10 @@ public class CandleStickChart extends Region {
         int newLowerBoundX = (int) (xAxis.getUpperBound() - ((int) (canvas.getWidth() /
                 newCandleWidth) * secondsPerCandle));
         if (newLowerBoundX > data.lastEntry().getValue().getOpenTime() - (2 * secondsPerCandle)) {
-            return;
+            logger.error("Can't go beyond the end of the data.");
+
+            Alert alert = new Alert(Alert.AlertType.ERROR, "Can't go beyond the end of the data.");
+            alert.showAndWait();
         }
 
         final int nextZoomLevelId = ZoomLevel.getNextZoomLevelId(currZoomLevel, zoomDirection);
@@ -1290,7 +1351,12 @@ public class CandleStickChart extends Region {
 
             if (candleData.get(0).getOpenTime() >= candleData.get(1).getOpenTime()) {
                 logger.error("Paged candle data must be in ascending order by x-value");
-                throw new IllegalArgumentException("Paged candle data must be in ascending order by x-value");
+                //  throw new IllegalArgumentException("Paged candle data must be in ascending order by x-value");
+//
+//         data.descendingMap().forEach((k, v) -> {
+//             logger.error("Paged candle data must be in ascending order by x-value");
+//             throw new IllegalArgumentException("Paged candle data must be in ascending order by x-value");
+//         });
             }
 
             if (data.isEmpty()) {
@@ -1330,7 +1396,7 @@ public class CandleStickChart extends Region {
                                 // is too large (some exchanges have multiple trades every second).
                                 int currentTill = (int) Instant.now().getEpochSecond();
                                 CompletableFuture<List<Trade>> tradesFuture = exchange.fetchRecentTradesUntil(
-                                        tradePair, Instant.ofEpochSecond(inProgressCandleData.getCurrentTill()));
+                                        tradePair, Instant.ofEpochSecond(inProgressCandleData.getCurrentTill()), isAutoTrading);
 
                                 tradesFuture.whenComplete((trades, exception) -> {
                                     if (exception == null) {

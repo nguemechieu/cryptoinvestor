@@ -2,21 +2,16 @@ package cryptoinvestor.cryptoinvestor.Coinbase;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cryptoinvestor.cryptoinvestor.Currency;
 import cryptoinvestor.cryptoinvestor.*;
-import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
-import javafx.scene.control.DialogPane;
 import javafx.scene.control.ListView;
 import javafx.stage.Stage;
 import org.java_websocket.handshake.ServerHandshake;
@@ -57,7 +52,6 @@ public class Coinbase extends Exchange {
     private static final Set<TradePair> tradePairs = CurrencyDataProvider.getTradePairs();
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     String apiKey;
-    static TelegramClient telegramBot;
     static String account_id;
     static HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
     //    Advanced Trade endpoint URL: /api/v3/brokerage/{resource}
@@ -65,12 +59,10 @@ public class Coinbase extends Exchange {
 //    API	Method	Resource	Required Scope
 //    List Accounts	GET	/accounts	wallet:accounts:read
     static String url = "https://coinbase.com/api/v3/brokerage/";
-    private String api_secret;
 
     public Coinbase(String account_id, String apiKey, String api_secret) throws NoSuchAlgorithmException {
         super(coinbaseWebSocket(apiKey, api_secret, account_id));
         this.apiKey = apiKey;//apiKey
-        this.api_secret = api_secret;
 
 
         Coinbase.account_id = account_id;
@@ -652,6 +644,11 @@ public class Coinbase extends Exchange {
             }
 
             @Override
+            public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isTrade) {
+                return null;
+            }
+
+            @Override
             public CandleDataSupplier getCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
                 return null;
             }
@@ -672,15 +669,17 @@ public class Coinbase extends Exchange {
      * This method only needs to be implemented to support live syncing.
      */
     @Override
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isAutoTrade) {
         Objects.requireNonNull(tradePair);
         Objects.requireNonNull(stopAt);
-
+        stopAt = Instant.now().plusSeconds(3);
         if (stopAt.isAfter(Instant.now())) {
+            logger.info("Coinbase stop trade at : " + stopAt);
             return CompletableFuture.completedFuture(Collections.emptyList());
         }
 
         CompletableFuture<List<Trade>> futureResult = new CompletableFuture<>();
+        Instant finalStopAt = stopAt;
         CompletableFuture.runAsync(() -> {
             IntegerProperty afterCursor = new SimpleIntegerProperty(0);
             List<Trade> tradesBeforeStopTime = new ArrayList<>();
@@ -688,70 +687,101 @@ public class Coinbase extends Exchange {
             // For Public Endpoints, our rate limit is 3 requests per second, up to 6 requests per second in
             // burst.
             // We will know if we get rate limited if we get a 429 response code.
-            for (int i = 0; !futureResult.isDone(); i++) {
-                String uriStr = "https://api.pro.coinbase.com/";
-                uriStr += "products/" + tradePair.toString('-') + "/trades";
 
-                if (i != 0) {
-                    uriStr += "?after=" + afterCursor.get();
-                }
-                requestBuilder.uri(URI.create(uriStr));
-                try {
-                    HttpResponse<String> response = HttpClient.newHttpClient().send(requestBuilder.build()
-                            ,
-                            HttpResponse.BodyHandlers.ofString());
+            if (isAutoTrade) {
+                for (int i = 0; !futureResult.isDone(); i++) {
+                    String uriStr = "https://api.pro.coinbase.com/";
+                    uriStr += "products/" + tradePair.toString('-') + "/trades";
 
-                    Log.info("response headers: ", response.headers().toString());
-                    if (response.headers().firstValue("CB-AFTER").isEmpty()) {
-                        futureResult.completeExceptionally(new RuntimeException(
-                                "Coinbase trades response did not contain header \"CB-AFTER\": " + response));
-                        return;
+                    if (i != 0) {
+                        uriStr += "?after=" + afterCursor.get();
                     }
-
-                    afterCursor.setValue(Integer.valueOf((response.headers().firstValue("CB-AFTER").get())));
-
-                    JsonNode tradesResponse = OBJECT_MAPPER.readTree(response.body());
-
-                    if (!tradesResponse.isArray()) {
-                        futureResult.completeExceptionally(new RuntimeException("coinbase trades response was not an array!"));
+                    requestBuilder.uri(URI.create(uriStr));
+                    try {
+                        HttpResponse<String> response = HttpClient.newHttpClient().send(requestBuilder.build()
+                                ,
+                                HttpResponse.BodyHandlers.ofString());
 
 
-                    } else if (tradesResponse.isEmpty()) {
-                        futureResult.completeExceptionally(new IllegalArgumentException("tradesResponse was empty"));
-                    } else if (tradesResponse.has("message")) {
+                        if (response.statusCode() == 429) {
 
 
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("Coinbase Error");
-                        alert.setHeaderText("Coinbase Error");
-                        alert.setContentText(tradesResponse.get("message").asText());
-                        alert.showAndWait();
+                            Alert alert = new Alert(Alert.AlertType.ERROR);
+                            alert.setTitle("Coinbase Error");
+                            alert.setHeaderText("Coinbase Error");
+                            alert.setContentText("Coinbase rate limit exceeded. Please try again later.");
+                            alert.showAndWait();
+                            futureResult.completeExceptionally(new RuntimeException(
+                                    "Coinbase rate limit exceeded. Please try again later."));
+                            return;
+                        } else if (response.statusCode() != 200) {
 
 
-                    } else {
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setTitle("Coinbase Error");
+                            alert.setHeaderText("Coinbase Error");
+                            alert.setContentText(response.body());
+                            alert.showAndWait();
+                        }
+
+
+                        Log.info("response headers: ", response.headers().toString());
+                        if (response.headers().firstValue("cb-after").isEmpty()) {
+                            futureResult.completeExceptionally(new RuntimeException(
+                                    "Coinbase trades response did not contain header \"CB-AFTER\": " + response));
+                            return;
+                        }
+
+                        afterCursor.setValue(Integer.valueOf((response.headers().firstValue("cb-after").get())));
+
+                        JsonNode tradesResponse = OBJECT_MAPPER.readTree(response.body());
+
+                        if (!tradesResponse.isArray()) {
+                            futureResult.completeExceptionally(new RuntimeException("coinbase trades response was not an array!"));
+
+
+                        } else if (tradesResponse.isEmpty()) {
+                            futureResult.completeExceptionally(new IllegalArgumentException("tradesResponse was empty"));
+
+                        }
 
                         for (int j = 0; j < tradesResponse.size(); j++) {
                             JsonNode trade = tradesResponse.get(j);
                             Instant time = Instant.from(ISO_INSTANT.parse(trade.get("time").asText()));
-                            if (time.compareTo(stopAt) <= 0) {
+                            if (time.compareTo(finalStopAt) <= 0) {
                                 futureResult.complete(tradesBeforeStopTime);
+
+                                logger.info("Coinbase: time and trade price " + time + " " + trade.get("price"));
                                 break;
                             } else {
                                 tradesBeforeStopTime.add(new Trade(tradePair,
                                         trade.get("price").asDouble(),
                                         trade.get("size").asDouble(),
                                         Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time.getEpochSecond()));
+                                logger.info("Coinbase tradesBeforeStopTime: " + tradesBeforeStopTime);
+
+
                             }
                         }
+
+                    } catch (IOException | InterruptedException ex) {
+                        Log.error("ex: " + ex);
+                        futureResult.completeExceptionally(ex);
+                    } catch (ParseException | URISyntaxException e) {
+                        throw new RuntimeException(e);
                     }
-                } catch (IOException | InterruptedException ex) {
-                    Log.error("ex: " + ex);
-                    futureResult.completeExceptionally(ex);
-                } catch (ParseException | URISyntaxException e) {
-                    throw new RuntimeException(e);
                 }
+                futureResult.complete(tradesBeforeStopTime);
+
+            } else {
+                futureResult.completeExceptionally(new RuntimeException(
+                        "Coinbase stop trade at : " + finalStopAt + " is after current time: " + Instant.now().toString()));
+
+
             }
-        });
+        })
+        ;
+        //return futureResult;
 
         return futureResult;
     }
@@ -761,7 +791,7 @@ public class Coinbase extends Exchange {
      */
     @Override
     public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
-            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+            @NotNull TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
         String startDateString1 = ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
                 currentCandleStartedAt, ZoneOffset.UTC));
         long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
@@ -782,8 +812,25 @@ public class Coinbase extends Exchange {
                     Log.info("Coinbase response: ", response);
                     JsonNode res;
                     try {
-                        res = OBJECT_MAPPER.readTree(response);
 
+                        if (response.isEmpty()) {
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setTitle("Coinbase Error");
+                            alert.setHeaderText("Coinbase Error");
+                            alert.setContentText("Coinbase response was empty");
+                            return Optional.empty();
+                        }
+                        res = OBJECT_MAPPER.readTree(response);
+                        if (res.has("message")) {
+
+                            Alert alert = new Alert(Alert.AlertType.WARNING);
+                            alert.setTitle("Coinbase Error");
+                            alert.setHeaderText("Coinbase Error");
+                            alert.setContentText(res.get("message").asText());
+                            return Optional.empty();
+
+
+                        }
 
                     } catch (JsonProcessingException ex) {
                         throw new RuntimeException(ex);
@@ -801,25 +848,10 @@ public class Coinbase extends Exchange {
                     double lowSoFar = Double.MAX_VALUE;
                     double volumeSoFar = 0;
                     double lastTradePrice = -1;
-                    boolean foundFirst = false;
                     while (candleItr.hasNext()) {
                         currCandle = candleItr.next();
-                        if (currCandle.get(0).asInt() < currentCandleStartedAt.getEpochSecond() ||
-                                currCandle.get(0).asInt() >= currentCandleStartedAt.getEpochSecond() +
-                                        secondsPerCandle) {
-                            // skip this sub-candle if it is not in the parent candle's duration (this is just a
-                            //  Coinbase is  not respecting start/end times
-                            continue;
-
-                        } else {
-                            if (!foundFirst) {
-
                                 currentTill = currCandle.get(0).asInt();
-                                lastTradePrice = currCandle.get(4).asDouble();
-                                foundFirst = true;
-                            }
-                        }
-
+                        lastTradePrice = currCandle.get(4).asDouble();
                         openPrice = currCandle.get(3).asDouble();
 
                         if (currCandle.get(2).asDouble() > highSoFar) {
@@ -910,12 +942,53 @@ public class Coinbase extends Exchange {
     }
 
     @Override
-    public String getPrice() {
-        return null;
+    public double getLivePrice(@NotNull TradePair tradePair) {
+
+        requestBuilder.uri(URI.create("https://api.pro.coinbase.com/products/"
+                + tradePair.toString('-') + "/ticker"));
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+//        "ask": "27901.15",
+//                "bid": "27899.74",
+//                "volume": "12835.91565722",
+//                "trade_id": 518561141,
+//                "price": "27901.15",
+//                "size": "0.00021168",
+//                "time": "2023-04-06T08:03:07.277857Z"
+
+        if (response.statusCode() != 200) {
+            logger.info(
+                    String.format("Coinbase response: %d %s", response.statusCode(), response.body())
+            );
+        }
+        JsonNode res;
+
+        try {
+            res = OBJECT_MAPPER.readTree(response.body());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        if (res.has("message")) {
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Coinbase Error");
+            alert.setHeaderText("Coinbase Error");
+            alert.setContentText(res.get("message").asText());
+            return -1;
+        }
+        return res.findValue("price").asDouble();
+
+
     }
 
+
     @Override
-    public String getVolume() {
+    public ArrayList<Double> getVolume() {
         return null;
     }
 
@@ -1076,6 +1149,16 @@ public class Coinbase extends Exchange {
         return null;
     }
 
+    @Override
+    public void getPositionBook(TradePair tradePair) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void getOpenOrder(TradePair tradePair) {
+
+    }
+
 
     //  Get single order
     //      GET
@@ -1139,12 +1222,12 @@ public class Coinbase extends Exchange {
     }
 
     @Override
-    public List<Objects> getOrderBook() {
+    public List<OrderBook> getOrderBook(TradePair tradePair) {
         return null;
     }
 
-    private void  getOrderHistory(@NotNull TradePair tradePair) throws IOException, InterruptedException {
-        String uriStr = url+"orders";
+    public void getOrderHistory(@NotNull TradePair tradePair) throws IOException, InterruptedException {
+        String uriStr = url + "orders";
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         requestBuilder.uri(URI.create(uriStr));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -1360,40 +1443,6 @@ public class Coinbase extends Exchange {
 
         return symbols;
     }
-
-    @Override
-    public void createOrder(@NotNull TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException {
-
-        String url1 = url + "products/" + tradePair.toString('_') + "/orders";
-        Map<String, String> params = new HashMap<>();
-        params.put("type", "limit");
-        params.put("side", "buy");
-        params.put("price", String.valueOf(price));
-        params.put("quantity", String.valueOf(quantity));
-        params.put("stop_price", String.valueOf(stopPrice));
-        params.put("take_profit_price", String.valueOf(takeProfitPrice));
-        params.put("time_in_force", "GTC");
-        params.put("post_only", "false");
-        params.put("fill_or_kill", "true");
-        //  params.put("client_order_id", UUID.randomUUID().toString());
-
-        requestBuilder.uri(URI.create(url1));
-        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(params.toString()));
-        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        logger.info(response.body());
-        if (response.statusCode() == 201) {
-            logger.info("Order created");
-            logger.info(response.body());
-        } else {
-            logger.info("Order creation failed");
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText(String.valueOf(response.body()));
-            alert.showAndWait();
-        }
-    }
-
     @Override
     public void closeAllOrders() throws IOException, InterruptedException {
         String url1 = url + "/products/cancel";
@@ -1418,7 +1467,6 @@ public class Coinbase extends Exchange {
     public void connect(String text, String text1, String userIdText) throws IOException, InterruptedException {
 
         apiKey = text;
-        api_secret = text1;
     }
 
     @Override
@@ -1532,6 +1580,8 @@ public class Coinbase extends Exchange {
         public abstract CompletableFuture<Optional<?>> fetchCandleDataForInProgressCandle(TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
 
         public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
+
+        public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isTrade);
     }
 
 }

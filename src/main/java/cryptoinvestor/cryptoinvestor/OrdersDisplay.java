@@ -13,16 +13,17 @@ import java.text.ParseException;
 
 public class OrdersDisplay extends VBox {
     public OrdersDisplay(@NotNull Exchange exchange) throws IOException, InterruptedException, ParseException, URISyntaxException {
-
+        getStyleClass().add("app");
         VBox vbox = new VBox();
-        vbox.setStyle("-fx-background-color: black;");
         vbox.setSpacing(20);
         vbox.setPadding(new Insets(20));
         vbox.setAlignment(Pos.CENTER);
-        vbox.setPrefSize(1000, 600);
+        vbox.setPrefSize(800, 600);
         vbox.getChildren().add(new ListView<>(FXCollections.observableArrayList(exchange.getName(), exchange.getAvailableSymbols(), exchange.getAllOrders())));
-        //orderListView.getItems().addAll(exchange.getOrdersList());
-        //  orderListView.setItems(exchange.getOrdersList());
+
+        ListView<Object> orderListView =
+                new ListView<>(FXCollections.observableArrayList(exchange.getName(), exchange.getAvailableSymbols(), exchange.getAllOrders()));
+        vbox.getChildren().add(orderListView);
         getChildren().addAll(vbox);
 
     }

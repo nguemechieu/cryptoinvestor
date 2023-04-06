@@ -12,10 +12,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
@@ -320,6 +317,8 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         this.isBestMatch = isBestMatch;
         this.avgPrice = 0;
         this.avgQty = 0;
+        this.timestamp =
+                Instant.now();
 
 
         this.mode = tradeMode;
@@ -387,6 +386,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         this.isBestMatch = isBestMatch;
         this.avgPrice = 0;
         this.avgQty = 0;
+        this.timestamp = Instant.now();
 
 
     }
@@ -398,7 +398,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
     public static CandleData candle;
     static Logger logger = LoggerFactory.getLogger(Trade.class);
     public Trade(@NotNull TradePair tradePair, String symbol, Side side, String price, double quantity, double fee, long orderId, long clientOrderId, long time, @NotNull String isBuyer, @NotNull String isMaker, @NotNull String isBestMatch, @NotNull String isBestMatchMaker, String isBestMatchTaker) {
-
+        this.transactionType = side;
         this.instrument = symbol;
         Trade.id = tradePair.getId();
         this.tradeId = Long.parseLong(UUID.randomUUID().toString());
@@ -414,7 +414,8 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         this.isBuyer = isBuyer.equals("1");
         this.isMaker = isMaker.equals("1");
         this.isBestMatch = isBestMatch.equals("1");
-        this.avgPrice = 0;
+
+        this.avgPrice = Double.parseDouble(price) - Double.parseDouble(price) / 100;
         this.avgQty = qty / 2;
         this.fee = fee;
 
@@ -474,7 +475,6 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
               marginUsed
       );
      tradePair = instrument;
-      trades.add(this);
 
 
   }
@@ -542,14 +542,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         return new Gson().fromJson(message, Trade.class);
     }
 
-    public static ArrayList<Order> getOrders() {
-        return (ArrayList<Order>) orderList;
-    }
 
-    public static Trade @NotNull [] getTrades() {
-
-        return trades.toArray(new Trade[0]);
-    }
 
 
     public  double getRemaining() {
@@ -694,29 +687,29 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         if (mode.equals(TradeMode.AUTOMATIC)) {
 
             if (signal.equals(Signal.BUY)) {
-                exchange.createOrder(tradePair,
-                        POSITION_FILL.DEFAULT_FILL,
-                        price,
-                        ENUM_ORDER_TYPE.MARKET,
+                exchange.createOrder(
+                        tradePair,
                         Side.BUY,
-                        qty,
+                        ENUM_ORDER_TYPE.MARKET, price, size,
+                        new Date(), 0,
                         0,
-                        0);
+                        0
+                );
 
                 TelegramClient.sendMessage(
                         "Opening  Buying order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
-                                price + " " + exchange.getPrice()
+                                price + " " + exchange.getLivePrice(tradePair)
                 );
             } else if (signal.equals(Signal.SELL)) {
 
-                exchange.createOrder(tradePair,
-                        POSITION_FILL.DEFAULT_FILL,
-                        price,
-                        ENUM_ORDER_TYPE.MARKET,
+                exchange.createOrder(
+                        tradePair,
                         Side.SELL,
-                        qty,
+                        ENUM_ORDER_TYPE.MARKET, price, size,
+                        new Date(), 0,
                         0,
-                        0);
+                        0
+                );
 
                 TelegramClient.sendMessage(
                         "Opening  Selling order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
@@ -726,7 +719,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
                 TelegramClient.sendMessage(
                         "Stopping order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
-                                price + " " + exchange.getPrice()
+                                price + " " + exchange.getLivePrice(tradePair)
                 );
 
 
@@ -734,7 +727,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
                 TelegramClient.sendMessage(
                         "Closing Sell order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
-                                price + " " + exchange.getPrice()
+                                price + " " + exchange.getLivePrice(tradePair)
 
                 );
 
@@ -743,7 +736,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
                 TelegramClient.sendMessage(
                         "Closing Buy order" + tradePair.getBaseCurrency().code + " " + tradePair.getCounterCurrency().code + " at " +
-                                price + " " + exchange.getPrice()
+                                price + " " + exchange.getLivePrice(tradePair)
 
                 );
 
@@ -752,7 +745,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
                 TelegramClient.sendMessage(
                         "Reducing order Size " + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
-                                price + " " + exchange.getPrice()
+                                price + " " + exchange.getLivePrice(tradePair)
 
                 );
 
@@ -761,13 +754,13 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
             TelegramClient.sendMessage(
                     "Manual order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
-                            price + " " + exchange.getPrice()
+                            price + " " + exchange.getLivePrice(tradePair)
             );
         } else if (mode.equals(TradeMode.SIGNAL_ONLY)) {
 
             TelegramClient.sendMessage(
                     "Signal only order" + tradePair.getCounterCurrency().code + " " + tradePair.getBaseCurrency().code + " at " +
-                            price + " " + exchange.getPrice()
+                            price + " " + exchange.getLivePrice(tradePair)
             );
         }
     }

@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.scene.Node;
@@ -23,12 +22,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -174,7 +171,7 @@ public class Kucoin extends Exchange {
      * This method only needs to be implemented to support live syncing.
      */
     @Override
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isTrade) {
         Objects.requireNonNull(tradePair);
         Objects.requireNonNull(stopAt);
 
@@ -445,12 +442,13 @@ public class Kucoin extends Exchange {
     }
 
     @Override
-    public String getPrice() {
-        return null;
+    public double getLivePrice(TradePair tradePair) {
+        return 0;
     }
 
+
     @Override
-    public String getVolume() {
+    public ArrayList<Double> getVolume() {
         return null;
     }
 
@@ -565,9 +563,10 @@ public class Kucoin extends Exchange {
     }
 
     @Override
-    public void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) {
+    public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size, @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
 
     }
+
 
     @Override
     public void closeAllOrders() {
@@ -601,6 +600,21 @@ public class Kucoin extends Exchange {
     }
 
     @Override
+    public void getPositionBook(TradePair tradePair) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void getOpenOrder(TradePair tradePair) {
+
+    }
+
+    @Override
+    public void getOrderHistory(TradePair tradePair) throws IOException, InterruptedException {
+
+    }
+
+    @Override
     public void cancelOrder(long orderID) throws IOException, InterruptedException {
 
     }
@@ -623,7 +637,7 @@ public class Kucoin extends Exchange {
     }
 
     @Override
-    public List<Objects> getOrderBook() {
+    public List<OrderBook> getOrderBook(TradePair tradePair) {
         return null;
     }
 

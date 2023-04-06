@@ -1,6 +1,5 @@
 package cryptoinvestor.cryptoinvestor;
 
-import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import org.java_websocket.handshake.ServerHandshake;
@@ -10,10 +9,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.Instant;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class Exchange {
@@ -41,7 +37,6 @@ public abstract class Exchange {
      * <p>
      * This method only needs to be implemented to support live syncing.
      */
-    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt);
 
     public abstract String getName();
 
@@ -60,6 +55,8 @@ public abstract class Exchange {
     public abstract CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle();
 
 
+    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isAutoTrade);
+
     public abstract CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
             TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
 
@@ -73,9 +70,9 @@ public abstract class Exchange {
 
     public abstract String getSymbol();
 
-    public abstract String getPrice();
+    public abstract double getLivePrice(TradePair tradePair);
 
-    public abstract String getVolume();
+    public abstract ArrayList<Double> getVolume();
 
     public abstract String getOpen();
 
@@ -119,9 +116,11 @@ public abstract class Exchange {
 
     public abstract void withdraw(Double value);
 
+
     public abstract @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException;
 
-    public abstract void createOrder(TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException;
+    public abstract void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size,
+                                     @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException;
 
     public abstract void closeAllOrders() throws IOException, InterruptedException;
 
@@ -135,7 +134,7 @@ public abstract class Exchange {
 
     public abstract ListView<Order> getOrderView() throws IOException, InterruptedException, ParseException, URISyntaxException;
 
-    public abstract List<Objects> getOrderBook() throws IOException, InterruptedException;
+    public abstract List<OrderBook> getOrderBook(TradePair tradePair) throws IOException, InterruptedException;
 
     public abstract List<TradePair> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException;
 
@@ -146,4 +145,19 @@ public abstract class Exchange {
     public abstract Node getAllOrders() throws IOException, InterruptedException;
 
     public abstract Account getAccounts() throws IOException, InterruptedException;
+
+    public abstract void getPositionBook(TradePair tradePair) throws IOException, InterruptedException;
+
+    public abstract void getOpenOrder(TradePair tradePair) throws IOException, InterruptedException;
+
+    public abstract void getOrderHistory(TradePair tradePair) throws IOException, InterruptedException;
+
+    public ArrayList<CandleData> getCandleData() {
+        return
+                new ArrayList<>() {{
+                    add(
+                            new CandleData()
+                    );
+                }};
+    }
 }

@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serial;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -161,5 +162,9 @@ public static final Logger logger = LoggerFactory.getLogger(CandleData.class);
 
     public double getChangePercent() {
         return (closePrice - openPrice) / openPrice * 100;
+    }
+
+    public Date getTimestamp() {
+        return new Date(openTime * 1000L);
     }
 }

@@ -4,11 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.animation.Animation;
-import javafx.event.ActionEvent;
 import javafx.scene.control.Alert;
-import javafx.stage.Stage;
-import org.java_websocket.client.WebSocketClient;
-import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,8 +20,11 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.text.ParseException;
+import java.time.Duration;
 import java.util.*;
 
 import static java.lang.System.out;
@@ -89,7 +88,6 @@ public class TelegramClient {
     static String chat_title = "";
     static String chat_type = "";
     static String chat_username = "";
-    static String chat_photo_file_name;
     static File chat_voice_file_id;
     static File chat_caption_file_id;
 
@@ -156,31 +154,21 @@ public class TelegramClient {
     private String lastMessage;
     private String chatDescription;
 
-static HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
-static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
+    static HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
+    static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     private final DoubleSummaryStatistics initializationLatch;
-
-    public TelegramClient(String token) throws IOException, TelegramApiException, InterruptedException {
-
-        TelegramClient.token = token;
-        this.address = "https://api.telegram.org/bot" + token;
-        this.res = System.out;
-        this.initializationLatch = new DoubleSummaryStatistics();
-        initializationLatch.accept(
-                0
-        );
-
-        requestBuilder.header("Content-Type", "application/json");
-        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
-        requestBuilder.header("Accept", "application/json");
-        requestBuilder.header("Authorization", "Bearer " + token);
-        requestBuilder.header("Cache-Control", "no-cache");
-        requestBuilder.header("Accept-Encoding", "gzip, deflate, br");
-
-
-
-        logger.info("Telegram Client Created");
-    }
+    File thumb = new File("/photo/400PngdpiLogoBW.png");
+    private double latitude;
+    private double longitude;
+    private String city;
+    private String country;
+    private String timezone;
+    private String foursquare_id;
+    private String foursquare_type;
+    private String foursquare_name;
+    private String google_place_id;
+    private String google_place_type;
+    private Duration duration;
 
 
 
@@ -1055,92 +1043,35 @@ return new JSONObject();
         makeRequest("https://api.telegram.org/bot" + token + "/sendGame" + "?chat_id=" + chat_id + "&message_thread_id=" + message_thread_id + "&game_short_name=" + game_short_name + "&disable_notification=" + disable_notification + "&protect_content=" + protect_content + "&reply_to_message_id=" + reply_to_message_id + "&allow_sending_without_reply=" + allow_sending_without_reply + "&reply_markup=" + reply_markup, "POST");
     }
 
-    //sendPhoto to Telegram
-    public void sendPhoto(File file) {
-        try {
-            ActionEvent event = (ActionEvent) Stage.getWindows();
+    public TelegramClient(String token) throws IOException, TelegramApiException, InterruptedException {
 
-            Screenshot.capture(file);
-
-
-            //makeRequest("https://api.telegram.org/bot" + token + "/sendPhoto","POST");
-//
-//                            + "?chat_id=" + getChatId() +
-//                            // "&message_thread_id" +getMessage_thread_id() +
-//                            "&photo=" + file.toURI(),
-//                      "&caption=" + getCaption()+
-//                    "&parse_mode=" + getParse_mode() +
-//                     "&caption_entities=" + getCaption_entities()+
-//                     "&disable_notification=" + getDisable_notification() +
-//                    "&protect_content=" + protect_content +
-//                        "&reply_to_message_id=" + getReply_to_message_id()+
-//                    "&allow_sending_without_reply=" + allow_sending_without_reply
-//                        + "&reply_markup=" + reply_markup
-//                    , "POST");
+        TelegramClient.token = token;
+        this.address = "https://api.telegram.org/bot" + token;
+        this.res = System.out;
+        this.initializationLatch = new DoubleSummaryStatistics();
 
 
-            String url = "https://api.telegram.org/bot" + token + "/sendPhoto";
-            StringBuilder payLoading = new StringBuilder();
-            payLoading.append("chat_id=").append(getChatId()).append("\n").append("photo=").append(file.toURI()).append("\n").append("caption=").append(getCaption()).append("\n").append("parse_mode=").append(getParse_mode()).append("\n").append("caption_entities=").append(getCaption_entities()).append("\n").append("disable_notification=").append(getDisable_notification()).append("\n").append("protect_content=").append(protect_content).append("\n").append("reply_to_message_id=").append(getReply_to_message_id()).append("\n").append("allow_sending_without_reply=").append(allow_sending_without_reply).append("\n").append("reply_markup=").append(reply_markup).append("\n");
-
-            String jsonPayload = "{" + "\"chat_id\": \"" + getChatId() + "\"," +
-                    "\"photo\":\"" +
-                    photo +
-                    "\"," +
-                    "\"parse_mode\":\"" + "Markdown" +
-                    "\"" +
-                    "}";
-
-            URL urls = new URL(url + path);
+        requestBuilder.header("Content-Type", "application/json");
+        requestBuilder.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        requestBuilder.header("Accept", "application/json");
+        requestBuilder.header("Authorization", "Bearer " + token);
+        requestBuilder.header("Cache-Control", "no-cache");
 
 
-            HttpURLConnection conn = (HttpURLConnection) urls.openConnection();
-            conn.setDoOutput(true);
-            conn.setRequestMethod("POST");
-            // conn.setRequestProperty("X-WM-CLIENT-ID", 12332);
-            conn.setRequestProperty("Authorization", getToken());
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setRequestProperty("Accept", "application/json");
-            conn.setRequestProperty("Content-Length", String.valueOf(jsonPayload.getBytes().length));
-            conn.setRequestProperty("Content-Type", "application/urlencoded");
-
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
-
-            OutputStream os = conn.getOutputStream();
-            os.write(jsonPayload.getBytes());
-            os.flush();
-            os.close();
-
-            int statusCode = conn.getResponseCode();
-            logger.info("Telegram " + statusCode + " " + conn.getResponseMessage());
-
-            System.out.println("Status Code: " + statusCode);
-            BufferedReader br = new BufferedReader(new InputStreamReader(
-                    (statusCode == 200) ? conn.getInputStream() : conn.getErrorStream()
-            ));
-            String output;
-            while ((output = br.readLine()) != null) {
-                logger.info(output);
-            }
-            conn.disconnect();
+        sendKeyboard(
+                new KeyboardButton[]{new KeyboardButton("1", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE),
+                        new KeyboardButton("2", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE),
+                        new KeyboardButton("3", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE),
+                        new KeyboardButton("4", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE),
+                        new KeyboardButton("5", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE),
+                        new KeyboardButton("6", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE),
+                        new KeyboardButton("7", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE),
+                        new KeyboardButton("8", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE),
+                        new KeyboardButton("9", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE),
+                        new KeyboardButton("0", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE)});
 
 
-//
-//            chat_id	Integer or String	Yes	Unique identifier for the target chat or username of the target channel (in the format @channelusername)
-//            message_thread_id	Integer	Optional	Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
-//            photo	InputFile or String	Yes	Photo to send. Pass a file_id as String to send a photo that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a photo from the Internet, or upload a new photo using multipart/form-data. The photo must be at most 10 MB in size. The photo's width and height must not exceed 10000 in total. Width and height ratio must be at most 20. More information on Sending Files »
-//            caption	String	Optional	Photo caption (may also be used when resending photos by file_id), 0-1024 characters after entities parsing
-//            parse_mode	String	Optional	Mode for parsing entities in the photo caption. See formatting options for more details.
-//            caption_entities	Array of MessageEntity	Optional	A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
-//            disable_notification	Boolean	Optional	Sends the message silently. Users will receive a notification with no sound.
-//            protect_content	Boolean	Optional	Protects the contents of the sent message from forwarding and saving
-//            reply_to_message_id	Integer	Optional	If the message is a reply, ID of the original message
-//            allow_sending_without_reply	Boolean	Optional	Pass True if the message should be sent even if the specified replied-to message is not found
-//            reply_markup
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        logger.info("Telegram Client Created");
     }
 
     @Contract(pure = true)
@@ -1234,20 +1165,181 @@ return new JSONObject();
 
     }
 
-    void sendAudio(File audioFile) throws IOException {
-        sendChatAction(ENUM_CHAT_ACTION.record_video);
-        setMethod("POST");
+    //sendPhoto to Telegram
+    public void sendPhoto(File file) {
+        try {
 
 
-        makeRequest("https://api.telegram.org/bot" + getToken() + "/sendAudio" + "?chat_id=" + getChatId()
-                        //  + "&disable_web_page_preview=" + disable_web_page_preview
-                        + "&audio=" + audioFile + "&audio=true" + "&caption=" + caption
-                //+ "&parse_mode=Markdown"
-                // + "&disable_notification=true"
-                , "POST");
+            String boundary =
+                    "-------3141592653589793238462643383279502884197169399375105820974944592";
+            String contentDisposition = "form-data; name=\"photo\"; filename=\"" + file.getName() + "\"";
+            requestBuilder.header(
+                    "Content-Type",
+                    "multipart/form-data; boundary=" + boundary
+            );
+            requestBuilder.header(
+                    "Content-Disposition",
+                    contentDisposition
+            );
+
+
+            requestBuilder.header(
+                    "User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.163 Safari/537.36"
+            );
+
+            requestBuilder.header(
+                    "Accept",
+                    "application/json"
+            );
+
+            requestBuilder.header(
+                    "Origin",
+                    "https://api.telegram.org"
+            );
+
+            requestBuilder.header(
+                    "Referer",
+                    "https://api.telegram.org/bot" + token + "/getUpdates"
+            );
+
+            sendChatAction(
+                    ENUM_CHAT_ACTION.upload_photo
+            );
+            sendVenue();
+            String url = "https://api.telegram.org/bot" + token + "/sendPhoto";
+//
+//            Parameter	Type	Required	Description
+//            chat_id	Integer or String	Yes	Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+//            message_thread_id	Integer	Optional	Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+//            photo	InputFile or String	Yes	Photo to send. Pass a file_id as String to send a photo that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a photo from the Internet, or upload a new photo using multipart/form-data. The photo must be at most 10 MB in size. The photo's width and height must not exceed 10000 in total. Width and height ratio must be at most 20. More information on Sending Files »
+//            caption	String	Optional	Photo caption (may also be used when resending photos by file_id), 0-1024 characters after entities parsing
+//            parse_mode	String	Optional	Mode for parsing entities in the photo caption. See formatting options for more details.
+//            caption_entities	Array of MessageEntity	Optional	A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+//            has_spoiler	Boolean	Optional	Pass True if the photo needs to be covered with a spoiler animation
+//            disable_notification	Boolean	Optional	Sends the message silently. Users will receive a notification with no sound.
+//            protect_content	Boolean	Optional	Protects the contents of the sent message from forwarding and saving
+//            reply_to_message_id	Integer	Optional	If the message is a reply, ID of the original message
+//            allow_sending_without_reply	Boolean	Optional	Pass True if the message should be sent even if the specified replied-to message is not found
+//            reply_markup	InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply	Optional	Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+
+            logger.info("File Size: " + file.length());
+            logger.info("File Name: " + file.getName());
+            requestBuilder.POST(
+                    HttpRequest.BodyPublishers.ofString(
+                            "{\"chat_id\":\"" + getChatId() + "\"," +
+                                    "\"photo\":\"" + file.toURI() + "\"," +
+                                    "\"caption\":\"" + getCaption() + "\"," +
+                                    "\"parse_mode\":\"" + getParse_mode() + "\"," +
+                                    "\"caption_entities\":\"" + getCaption_entities() + "\"," +
+                                    "\"disable_notification\":\"" + getDisable_notification() + "\"," +
+                                    "\"protect_content\":\"" + protect_content + "\"," +
+                                    "\"reply_to_message_id\":\"" + getReply_to_message_id() + "\"," +
+                                    "\"allow_sending_without_reply\":\"" + allow_sending_without_reply + "\"," +
+                                    "\"reply_markup\":\"" + getReply_markup() + "\"}"
+                    )
+
+            );
+            requestBuilder.uri(
+                    URI.create(url)
+            );
+            HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+            System.out.println(response.body());
+            System.out.println(response.statusCode());
+            System.out.println(response.headers());
+            if (response.statusCode() != 200) {
+                System.out.println(response.body());
+                System.out.println(response.statusCode());
+                System.out.println(response.headers());
+                System.out.println(response.body());
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setHeaderText(null);
+                alert.setContentText(response.body());
+                alert.showAndWait();
+            } else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Success");
+                alert.setHeaderText(null);
+                alert.setContentText("Photo sent");
+                alert.showAndWait();
+            }
+
+
+//
+//            chat_id	Integer or String	Yes	Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+//            message_thread_id	Integer	Optional	Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+//            photo	InputFile or String	Yes	Photo to send. Pass a file_id as String to send a photo that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a photo from the Internet, or upload a new photo using multipart/form-data. The photo must be at most 10 MB in size. The photo's width and height must not exceed 10000 in total. Width and height ratio must be at most 20. More information on Sending Files »
+//            caption	String	Optional	Photo caption (may also be used when resending photos by file_id), 0-1024 characters after entities parsing
+//            parse_mode	String	Optional	Mode for parsing entities in the photo caption. See formatting options for more details.
+//            caption_entities	Array of MessageEntity	Optional	A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+//            disable_notification	Boolean	Optional	Sends the message silently. Users will receive a notification with no sound.
+//            protect_content	Boolean	Optional	Protects the contents of the sent message from forwarding and saving
+//            reply_to_message_id	Integer	Optional	If the message is a reply, ID of the original message
+//            allow_sending_without_reply	Boolean	Optional	Pass True if the message should be sent even if the specified replied-to message is not found
+//            reply_markup
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-    void sendDocument(@NotNull File document) throws IOException {
+    void sendAudio(File audioFile) throws IOException, InterruptedException {
+//        Parameter	Type	Required	Description
+//        chat_id	Integer or String	Yes	Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+//        message_thread_id	Integer	Optional	Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+//        audio	InputFile or String	Yes	Audio file to send. Pass a file_id as String to send an audio file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get an audio file from the Internet, or upload a new one using multipart/form-data. More information on Sending Files »
+//        caption	String	Optional	Audio caption, 0-1024 characters after entities parsing
+//        parse_mode	String	Optional	Mode for parsing entities in the audio caption. See formatting options for more details.
+//        caption_entities	Array of MessageEntity	Optional	A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+//        duration	Integer	Optional	Duration of the audio in seconds
+//        performer	String	Optional	Performer
+//        title	String	Optional	Track name
+//        thumbnail	InputFile or String	Optional	Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side. The thumbnail should be in JPEG format and less than 200 kB in size. A thumbnail's width and height should not exceed 320. Ignored if the file is not uploaded using multipart/form-data. Thumbnails can't be reused and can be only uploaded as a new file, so you can pass “attach://<file_attach_name>” if the thumbnail was uploaded using multipart/form-data under <file_attach_name>. More information on Sending Files »
+//        disable_notification	Boolean	Optional	Sends the message silently. Users will receive a notification with no sound.
+//        protect_content	Boolean	Optional	Protects the contents of the sent message from forwarding and saving
+//        reply_to_message_id	Integer	Optional	If the message is a reply, ID of the original message
+//        allow_sending_without_reply	Boolean	Optional	Pass True if the message should be sent even if the specified replied-to message is not found
+//        reply_markup	InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply
+        String url = "https://api.telegram.org/bot" + getToken() + "/sendAudio";
+        sendChatAction(ENUM_CHAT_ACTION.upload_audio);
+        requestBuilder.uri(URI.create(url));
+        int duration = 0;
+        String performer = "none";
+        String title = "audio";
+        String thumbnail = "";
+        requestBuilder.POST(
+                HttpRequest.BodyPublishers.ofString(
+                        "{\"chat_id\":\"" + chatId + "\"," +
+                                "\"audio\":\"" + audioFile.getAbsolutePath() + "\"," +
+                                "\"caption\":\"" + caption + "\"," +
+                                "\"parse_mode\":\"" + parse_mode + "\"," +
+                                "\"duration\":\"" + duration + "\"," +
+                                "\"performer\":\"" + performer + "\"," +
+                                "\"title\":\"" + title + "\"," +
+                                "\"thumbnail\":\"" + thumbnail + "\"," +
+                                "\"disable_notification\":\"" + disable_notification + "\"," +
+                                "\"reply_to_message_id\":\"" + reply_to_message_id + "\"," +
+                                "\"allow_sending_without_reply\":\"" + allow_sending_without_reply + "\"," +
+                                "\"reply_markup\":\"" + reply_markup + "}"
+                )
+        );
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 200) {
+            out.println("Audio file sent");
+        } else {
+            out.println("Audio file not sent");
+            out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+        }
+
+    }
+
+    public void sendDocument(@NotNull File document) throws IOException, InterruptedException {
         sendChatAction(ENUM_CHAT_ACTION.upload_document);
 //       chat_id	Integer or String	Yes	Unique identifier for the target chat or username of the target channel (in the format @channelusername)
 //       message_thread_id	Integer	Optional	Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
@@ -1263,9 +1355,38 @@ return new JSONObject();
 //       allow_sending_without_reply	Boolean	Optional	Pass True if the message should be sent even if the specified replied-to message is not found
 //       reply_markup	InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply	Optional	Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
         setMethod("POST");
+        String url = "https://api.telegram.org/bot" + getToken() +
+                "/sendDocument";
+        requestBuilder.uri(URI.create(url));
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
+                "{\"chat_id\":\"" + chatId + "\"," +
+                        "\"document\":\"" + document.getAbsolutePath() + "\"," +
+                        "\"thumb\":\"" + thumb.getAbsolutePath() + "\"," +
+                        "\"caption\":\"" + caption + "\"," +
+                        "\"parse_mode\":\"" + parse_mode + "\"," +
+                        "\"caption_entities\":\"" + caption_entities + "\"," +
+                        "\"disable_content_type_detection\":\"" + disable_content_type_detection + "\"," +
+                        "\"disable_notification\":\"" + disable_notification + "\"," +
+                        "\"reply_to_message_id\":\"" + reply_to_message_id + "\"," +
+                        "\"allow_sending_without_reply\":\"" + allow_sending_without_reply + "\"," +
+                        "\"reply_markup\":\"" + reply_markup + "\"}"
+        ));
 
-        String thumb = "";
-        makeRequest("https://api.telegram.org/bot/" + getToken() + "/sendDocument" + "?chat_id=" + getChatId() + "&message_thread_id" + getMessage_id() + "&document=" + document.getName() + "&thumb" + thumb + "&caption=" + caption + "&parse_mode=" + parse_mode + "&caption_entities" + caption_entities + "&disable_content_type_detection=" + disable_content_type_detection + "&disable_notification=" + disable_notification + "&protect_content=" + protect_content + "&reply_to_message_id=" + reply_to_message_id + "&allow_sending_without_reply=" + allow_sending_without_reply + "&reply_markup=" + reply_markup, "POST");
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+
+        if (response.statusCode() != 200 || response.statusCode() != 201) {
+            out.println("Document not sent");
+            out.println(response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText(response.body());
+            alert.showAndWait();
+        } else {
+            out.println("Document sent");
+        }
+
+
     }
 
     @Contract(pure = true)
@@ -1306,13 +1427,39 @@ return new JSONObject();
 
     }
 
-    void sendVoice(File file, String reply_markup) throws IOException {
+    public void sendVoice(File file, String reply_markup) throws IOException, InterruptedException {
+//       Parameter	Type	Required	Description
+//       chat_id	Integer or String	Yes	Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+//       message_thread_id	Integer	Optional	Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+//       voice	InputFile or String	Yes	Audio file to send. Pass a file_id as String to send a file that exists on the Telegram servers (recommended), pass an HTTP URL as a String for Telegram to get a file from the Internet, or upload a new one using multipart/form-data. More information on Sending Files »
+//       caption	String	Optional	Voice message caption, 0-1024 characters after entities parsing
+//       parse_mode	String	Optional	Mode for parsing entities in the voice message caption. See formatting options for more details.
+//       caption_entities	Array of MessageEntity	Optional	A JSON-serialized list of special entities that appear in the caption, which can be specified instead of parse_mode
+//       duration	Integer	Optional	Duration of the voice message in seconds
+//       disable_notification	Boolean	Optional	Sends the message silently. Users will receive a notification with no sound.
+//       protect_content	Boolean	Optional	Protects the contents of the sent message from forwarding and saving
+//       reply_to_message_id	Integer	Optional	If the message is a reply, ID of the original message
+//       allow_sending_without_reply	Boolean	Optional	Pass True if the message should be sent even if the specified replied-to message is not found
+//       reply_markup	InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply
         sendChatAction(ENUM_CHAT_ACTION.record_voice);
-        setMethod("POST");
-        makeRequest("https://api.telegram.org/" + file + "/bot" + getToken() + "/sendVoice" + "?chat_id=" + chat_id + "&disable_notification=" + disable_notification + "&caption=" + caption + "&parse_mode=Markdown" + "&disable_notification=true" + "&reply_to_message_id=" + reply_to_message_id + "&reply_markup=" + reply_markup + "&disable_web_page_preview=" + disable_web_page_preview, "POST"
+        requestBuilder.uri(URI.create("https://api.telegram.org/bot" + getToken() +
+                "/sendVoice"));
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
+                "chat_id=" + chat_id + "&message_thread_id=" + message_thread_id + "&voice=" + file.toURI() + "&caption=" + caption + "&parse_mode=" + parse_mode + "&caption_entities=" + caption_entities + "&duration=" + duration + "&disable_content_type_detection=" + disable_content_type_detection + "&disable_notification=" + disable_notification + "&protect_content=" + protect_content + "&reply_to_message_id=" + reply_to_message_id + "&allow_sending_without_reply=" + allow_sending_without_reply + "&reply_markup=" + reply_markup, StandardCharsets.UTF_8
+        ));
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
 
-        );
-
+        out.println(response.statusCode());
+        out.println(response.body());
+        if (response.statusCode() != 200 || response.statusCode() != 201) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Failed to send voice");
+            alert.setContentText(response.body());
+            alert.showAndWait();
+        } else {
+            logger.info("Voice sent");
+        }
     }
 
     void sendVideoNote(File file) throws IOException {
@@ -1367,14 +1514,43 @@ return new JSONObject();
         makeRequest("https://api.telegram.org/bot/" + getToken() + "/editMessageLiveLocation", "POST");
     }
 
-    void stopMessageLiveLocation() throws IOException {
+    public void stopMessageLiveLocation() throws IOException {
         setMethod("POST");
         makeRequest("https://api.telegram.org/bot" + getToken() + "stopMessageLiveLocation", "POST");
     }
 
-    void sendVenue() throws IOException {
-        setMethod("POST");
-        makeRequest("https://api.telegram.org/bot/" + getToken() + "/sendVenue" + "?chat_id=" + chat.getChat_id(), "POST");
+    public void sendVenue() throws IOException {
+
+        String url = "https://api.telegram.org/bot/" + getToken() + "/sendVenue" + "?chat_id=" + chat.getChat_id();
+//
+//        Parameter	Type	Required	Description
+//        chat_id	Integer or String	Yes	Unique identifier for the target chat or username of the target channel (in the format @channelusername)
+//        message_thread_id	Integer	Optional	Unique identifier for the target message thread (topic) of the forum; for forum supergroups only
+//        latitude	Float number	Yes	Latitude of the venue
+//        longitude	Float number	Yes	Longitude of the venue
+//        title	String	Yes	Name of the venue
+//        address	String	Yes	Address of the venue
+//        foursquare_id	String	Optional	Foursquare identifier of the venue
+//        foursquare_type	String	Optional	Foursquare type of the venue, if known. (For example, “arts_entertainment/default”, “arts_entertainment/aquarium” or “food/icecream”.)
+//        google_place_id	String	Optional	Google Places identifier of the venue
+//        google_place_type	String	Optional	Google Places type of the venue. (See supported types.)
+//        disable_notification	Boolean	Optional	Sends the message silently. Users will receive a notification with no sound.
+//        protect_content	Boolean	Optional	Protects the contents of the sent message from forwarding and saving
+//        reply_to_message_id	Integer	Optional	If the message is a reply, ID of the original message
+//        allow_sending_without_reply	Boolean	Optional	Pass True if the message should be sent even if the specified replied-to message is not found
+//        reply_markup	InlineKeyboardMarkup or ReplyKeyboardMarkup or ReplyKeyboardRemove or ForceReply	Optional	Additional interface options. A JSON-serialized object for an inline keyboard, custom reply keyboard, instructions to remove reply keyboard or to force a reply from the user.
+//
+
+
+        requestBuilder.uri(URI.create(url));
+        requestBuilder.POST(
+                HttpRequest.BodyPublishers.ofString(
+                        "{\"chat_id\":\"" + chat.getChat_id() + "\",\"latitude\":\"" + latitude + "\",\"longitude\":\"" + longitude + "\",\"title\":\"" + title + "\",\"address\":\"" + address + "\",\"foursquare_id\":\"" + foursquare_id + "\",\"foursquare_type\":\"" + foursquare_type + "\",\"google_place_id\":\"" + google_place_id + "\",\"google_place_type\":\"" + google_place_type + "\",\"disable_notification\":\"" + disable_notification + "\",\"protect_content\":\"" + protect_content + "\",\"reply_to_message_id\":\"" + reply_to_message_id + "\",\"allow_sending_without_reply\":\"" + allow_sending_without_reply + "\",\"reply_markup\":\"" + reply_markup +
+                                "}")
+
+
+        );
+
     }
 
     void sendContact(String chat_id, String phone_number, String first_name, String last_name, String vcard, String reply_markup) throws IOException {
@@ -2524,11 +2700,32 @@ return new JSONObject();
         updateMode = updateNormal;
     }
 
-    public void sendKeyboard(ArrayList<KeyboardButton> keyboard) throws IOException, InterruptedException {
-        makeRequest("https://api.telegram.org/bot" + getToken() + "/sendKeyboard" + "?chat_id=" + chat_id + "&text=" + keyboard + "&parse_mode=" + parse_mode + "&disable_web_page_preview=" + false + "&disable_notification=" + false, "POST"
+    public void sendKeyboard(KeyboardButton[] keyboard) throws IOException, InterruptedException {
 
-        );
+        if (keyboard.length > 0) {
+            String url = "https://api.telegram.org/bot" + getToken() + "/sendKeyboard";
+            requestBuilder.uri(URI.create(url));
+            requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
+                    "keyboard=" + Arrays.toString(keyboard)
+            ));
+            HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
+                lastMessage = response.body();
+                logger.info(response.body());
+            } else {
+                NETWORK_RESPONSE networkResponse = NETWORK_RESPONSE.CREATED;
+                if (networkResponse.verify(response.statusCode())) {
+                    logger.info(response.body());
+                }
+
+
+            }
+            logger.info("Network Error: " + networkError);
+            logger.info("Values :" + response.body());
+
+        }
     }
+
 
     public Object MarketInfo() {
         return marketInfo;

@@ -1,23 +1,27 @@
 package cryptoinvestor.cryptoinvestor;
 
-import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
-import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.geometry.Side;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.shape.StrokeLineJoin;
 import javafx.stage.Stage;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.Date;
 
 
 public class TradeView extends Region  {
@@ -70,7 +74,7 @@ public class TradeView extends Region  {
 
 
         final double[] price = new double[1];
-        double quantity = 0.3;
+        double quantity = 1000;
         long orderID = Math.round(Instant.now().getEpochSecond() * 1000000);
         double stopPrice = 100;
         double takeProfitPrice = 100;
@@ -91,8 +95,6 @@ symbolChoicebox.setValue(data1);
         final String[][] dat = new String[1][1];
 
 
-
-
         AddBtn.setOnAction(
                 event -> {
                     if (exchange instanceof Oanda) {
@@ -109,7 +111,7 @@ symbolChoicebox.setValue(data1);
                     DraggableTab tradeTab2 = new DraggableTab(dat[0][0] + " / " + dat[0][1], "");
                     CandleStickChartContainer container2;
                     try {
-                            TradePair tradePair3 = new TradePair(dat[0][0], dat[0][1]);
+                        TradePair tradePair3 = new TradePair(dat[0][0], dat[0][1]);
                         exchange.tradePair = tradePair3;
                         container2 = new CandleStickChartContainer(exchange, tradePair3, telegramToken, true
                         );
@@ -149,16 +151,17 @@ symbolChoicebox.setValue(data1);
                             event1 -> {
                                 try {
                                     exchange.createOrder(
-                                            new TradePair(
-                                                    dat[0][0], dat[0][1]
+                                            new TradePair(dat[0][0], dat[0][1]
                                             ),
-                                            POSITION_FILL.DEFAULT_FILL,
-                                            0,
-                                            ENUM_ORDER_TYPE.MARKET
-                                            , cryptoinvestor.cryptoinvestor.Side.BUY,
+                                            cryptoinvestor.cryptoinvestor.Side.BUY,
+
+                                            ENUM_ORDER_TYPE.MARKET, price[0],
+
                                             quantity,
-                                            stopPrice,
-                                            takeProfitPrice
+                                            new Date(), stopPrice,
+                                            takeProfitPrice,
+                                            orderID
+
 
                                     );
                                 } catch (IOException | InterruptedException e) {
@@ -178,13 +181,12 @@ symbolChoicebox.setValue(data1);
                                     exchange.createOrder(
                                             new TradePair(dat[0][0], dat[0][1]
                                             ),
-                                            POSITION_FILL.DEFAULT_FILL,
-                                            price[0],
-                                            ENUM_ORDER_TYPE.MARKET
-                                            , cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            ENUM_ORDER_TYPE.MARKET, price[0],
                                             quantity,
-                                            stopPrice,
-                                            takeProfitPrice
+                                            new Date(), stopPrice,
+                                            takeProfitPrice,
+                                            orderID
 
 
                                     );
@@ -213,13 +215,17 @@ symbolChoicebox.setValue(data1);
 
                         try {
                             exchange.createOrder(
-                                    new TradePair(dat[0][0], dat[0][1]),
-                                    POSITION_FILL.DEFAULT_FILL, price[0],
-                                    ENUM_ORDER_TYPE.TRAILING_STOP_SELL,
-                                    cryptoinvestor.cryptoinvestor.Side.SELL,
+                                    new TradePair(dat[0][0], dat[0][1]
+                                    ),
+                                    cryptoinvestor.cryptoinvestor.Side.BUY,
+
+                                    ENUM_ORDER_TYPE.TRAILING_STOP_SELL, price[0],
+
                                     quantity,
-                                    stopPrice,
-                                    takeProfitPrice
+                                    new Date(), stopPrice,
+                                    takeProfitPrice,
+                                    orderID
+
                             );
                         } catch (IOException | InterruptedException e) {
                             throw new RuntimeException(e);
@@ -231,13 +237,16 @@ symbolChoicebox.setValue(data1);
 
                         try {
                             exchange.createOrder(
-                                    new TradePair(dat[0][0], dat[0][1]),
-                                    POSITION_FILL.DEFAULT_FILL, price[0],
-                                    ENUM_ORDER_TYPE.TRAILING_STOP_BUY,
+                                    new TradePair(dat[0][0], dat[0][1]
+                                    ),
                                     cryptoinvestor.cryptoinvestor.Side.BUY,
+
+                                    ENUM_ORDER_TYPE.TRAILING_STOP_BUY, price[0],
+
                                     quantity,
-                                    stopPrice,
-                                    takeProfitPrice
+                                    new Date(), stopPrice,
+                                    takeProfitPrice,
+                                    orderID
 
 
                             );
@@ -266,13 +275,17 @@ symbolChoicebox.setValue(data1);
                             event3 -> {
                                 try {
                                     exchange.createOrder(
-                                            new TradePair(dat[0][0], dat[0][1]),
-                                            POSITION_FILL.DEFAULT_FILL, price[0],
-                                            ENUM_ORDER_TYPE.STOP_LOSS,
-                                            cryptoinvestor.cryptoinvestor.Side.SELL,
+                                            new TradePair(dat[0][0], dat[0][1]
+                                            ),
+                                            cryptoinvestor.cryptoinvestor.Side.BUY,
+
+                                            ENUM_ORDER_TYPE.STOP_LOSS, price[0],
+
                                             quantity,
-                                            stopPrice,
-                                            takeProfitPrice);
+                                            new Date(), stopPrice,
+                                            takeProfitPrice,
+                                            orderID
+                                    );
                                 } catch (IOException | InterruptedException  e) {
                                     throw new RuntimeException(e);
                                 }
@@ -280,13 +293,18 @@ symbolChoicebox.setValue(data1);
                                         event4 -> {
                                             try {
                                                 exchange.createOrder(
-                                                        new TradePair(dat[0][0], dat[0][1]),
-                                                        POSITION_FILL.DEFAULT_FILL, price[0],
-                                                        ENUM_ORDER_TYPE.STOP_LOSS,
+                                                        new TradePair(dat[0][0], dat[0][1]
+                                                        ),
                                                         cryptoinvestor.cryptoinvestor.Side.SELL,
+
+                                                        ENUM_ORDER_TYPE.STOP_LOSS, price[0],
+
                                                         quantity,
-                                                        stopPrice,
-                                                        takeProfitPrice
+                                                        new Date(), stopPrice,
+                                                        takeProfitPrice,
+                                                        orderID
+
+
                                                 );
                                             } catch (IOException | InterruptedException e) {
                                                 throw new RuntimeException(e);
@@ -411,8 +429,41 @@ symbolChoicebox.setValue(data1);
         Button connexionBtn = new Button("CONNECTION");
         connexionBtn.setOnAction(
                 event8 -> new ConnectionScene(exchange));
+        Button allOrdersBtn = new Button("ALL ORDERS");
+        Button sendScreenShotBtn = new Button("SEND SCREENSHOT");
+        sendScreenShotBtn.setOnAction(event -> {
+
+            try {
+                try {
+                    TelegramClient telegramClient = new TelegramClient(telegramToken);
+                    File fil = File.createTempFile(
+                            exchange.getName(), "png"
+                    );
+                    Screenshot.capture(fil);
+                    telegramClient.sendPhoto(fil);
+                } catch (TelegramApiException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        allOrdersBtn.setOnAction(event -> {
+            try {
+                exchange.getAllOrders();
+
+                Stage stage = new Stage();
+                stage.setScene(new Scene(new OrdersDisplay(exchange)));
+                stage.show();
+            } catch (IOException | InterruptedException | ParseException | URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        });
         HBox hBox = new HBox(removeBtn, AddBtn, tradingBtn, new HBox(symbolChoicebox, counterChoicebox), orderHistoryBtn,
-                connexionBtn, walletBtn);
+                connexionBtn, walletBtn,
+                orderViewBtn,
+                allOrdersBtn,
+                sendScreenShotBtn);
 
         setPadding(new Insets(10, 10, 10, 10));
 
@@ -422,6 +473,11 @@ symbolChoicebox.setValue(data1);
 
         setPadding(new Insets(10, 10, 10, 10));
         getChildren().add(anchorPane);
+        setPadding(new Insets(10, 10, 10, 10));
+
+        new StrategyTester();
+
+    }
 
 
-    }}
+}

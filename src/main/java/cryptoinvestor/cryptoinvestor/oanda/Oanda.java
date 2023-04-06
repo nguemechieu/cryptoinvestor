@@ -8,20 +8,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import cryptoinvestor.cryptoinvestor.*;
 import cryptoinvestor.cryptoinvestor.Coinbase.Candle;
 import cryptoinvestor.cryptoinvestor.Coinbase.Fill;
 import cryptoinvestor.cryptoinvestor.Coinbase.Product;
-import cryptoinvestor.cryptoinvestor.Coinbase.TransactionSummary;
 import cryptoinvestor.cryptoinvestor.Currency;
-import cryptoinvestor.cryptoinvestor.*;
-import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
+import cryptoinvestor.cryptoinvestor.Coinbase.TransactionSummary;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.DialogPane;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import org.java_websocket.handshake.ServerHandshake;
 import org.jetbrains.annotations.Contract;
@@ -38,9 +42,9 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -48,7 +52,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
-
 
 import static java.lang.System.out;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
@@ -62,24 +65,27 @@ public class Oanda extends Exchange {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private static final Set<TradePair> tradePairs = CurrencyDataProvider.getTradePairs();
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
-    static TelegramClient telegramBot;
-    static String account_id;
+    private final ArrayList<OrderCancelTransaction> getOrderCancelTransaction = new ArrayList<>();
     static HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
-    static String url = "https://api-fxtrade.oanda.com/v3/accounts/" + Oanda.account_id;
+    String account_id;
+    String url;
+    ArrayList<Double> voulumeSoFarList = new ArrayList<>();
     String apiKey;
     //    Advanced Trade endpoint URL: /api/v3/brokerage/{resource}
 //
 //    API	Method	Resource	Required Scope
 //    List Accounts	GET	/accounts	wallet:accounts:read
     private String api_secret;
+    List<OrderCreateTransaction> getOrderCreateTransaction = new ArrayList<>();
+    String orderBookUrl = "https://api-fxtrade.oanda.com/v3/instruments/USD_JPY/orderBook";
+    String positionBookUrl = "https://api-fxtrade.oanda.com/v3/instruments/USD_JPY/positionBook";
 
-
-    public Oanda(String account_id, String apiKey, String accountID)
+    public Oanda(String account_id, String apiKey)
             throws TelegramApiException, IOException, NoSuchAlgorithmException {
-        super(null);
+        super(webSocketUrl(account_id, apiKey));
 
-
-        Oanda.account_id = accountID = account_id;
+        this.url = "https://api-fxtrade.oanda.com/v3/accounts/" + account_id;
+        this.account_id = account_id;
         requestBuilder.header("Authorization", "Bearer " + apiKey);
         this.apiKey = apiKey;
         requestBuilder.header("Content-Type", "application/json");
@@ -105,91 +111,27 @@ public class Oanda extends Exchange {
 
     }
 
-    @Contract(pure = true)
-    public static @NotNull List<Account> getAccountsList() throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        if (data.statusCode() != 200) {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
+    private static @NotNull ExchangeWebSocketClient webSocketUrl(String accountId, String apiKey) {
+        OandaWebSocket oandaWebSocket = new OandaWebSocket(accountId);
+        oandaWebSocket.addHeader("Authorization", "Bearer " + apiKey);
+        oandaWebSocket.addHeader("Content-Type:", "application/octet-stream");
+        oandaWebSocket.addHeader("Origin", "https://api-fxtrade.oanda.com");
+        oandaWebSocket.addHeader("Referer", "https://api-fxtrade.oanda.com/v3/accounts/" + accountId);
+        oandaWebSocket.addHeader("Sec-Fetch-Dest", "empty");
+        oandaWebSocket.addHeader("Sec-Fetch-Mode", "cors");
+        oandaWebSocket.addHeader("Sec-Fetch-Site", "same-origin");
+        oandaWebSocket.addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36");
+        oandaWebSocket.addHeader("Access-Control-Allow-Credentials", "true");
+        oandaWebSocket.addHeader(
+                "Access-Control-Allow-Headers",
+                "Origin, X-Requested-With, Content-Type, Accept"
+        );
+        oandaWebSocket.addHeader(
+                "Access-Control-Allow-Methods",
+                "GET, POST, PUT, DELETE, OPTIONS"
+        );
 
-        } else {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            List<Account> accounts = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
-            });
-
-
-            logger.info("Coinbase: " + accounts.size());
-
-            ListView<Account> accountsListView = new ListView<>();
-            for (Account account : accounts) {
-                accountsListView.getItems().add(account);
-            }
-            accountsListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                if (newValue != null) {
-                    try {
-                        Account account = getAccount(newValue.getId());
-                        assert account != null;
-                        account.setBalance(newValue.getBalance());
-                        account.setAvailable(newValue.getAvailable());
-                    } catch (IOException | InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-            return accounts;
-        }
-        return new ArrayList<>();
-
-    }
-
-
-    //    Get Account	GET	/accounts/:account_id	wallet:accounts:read
-    @Nullable
-    static Account getAccount(String accountId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url));
-        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(accountId));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        Account account;
-        if (data.statusCode() == 200) {
-            logger.info("Oanda: " + data.statusCode() + " " + data.body());
-            account = OBJECT_MAPPER.readValue(data.body(), Account.class);
-            logger.info("Oanda: " + account.toString());
-        } else {
-            logger.error("Oana: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return account;
-    }
-
-    private static @Nullable String timestampSignature(
-            String apiKey,
-            String passphrase
-    ) throws NoSuchAlgorithmException {
-        Objects.requireNonNull(apiKey);
-        Objects.requireNonNull(passphrase);
-
-        String timestamp = new Date().toString();
-        String stringToSign = timestamp + "\n" + apiKey + "\n" + passphrase;
-
-//        try {
-//            byte[] hash = MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes());
-//            return Base64.getEncoder().encodeToString(hash);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return null;
-//        }
-
-        return Base64.getEncoder().encodeToString(MessageDigest.getInstance("SHA-256").digest(stringToSign.getBytes()));
+        return oandaWebSocket;
     }
 
     //
@@ -240,316 +182,69 @@ public class Oanda extends Exchange {
         return orders;
     }
 
-    //    List Products	GET	/products	wallet:user:read
-    public ArrayList<Product> listFills() throws IOException, InterruptedException {
-        ArrayList<Product> products = new ArrayList<>();
+    public String getUrl() {
+        return url;
+    }
 
-        requestBuilder.uri(URI.create(url + "/orders/historical"));
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    @Contract(pure = true)
+    public @NotNull List<Account> getAccountsList() throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(getUrl() + "/accounts"));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        if (data.statusCode() == 200) {
-            logger.info("Oanda: " + data.statusCode() + " " + data.body());
-            products = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
+        if (data.statusCode() != 200) {
+            logger.error("Oanda: " + data.statusCode() + " " + data.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Oanda Error");
+            alert.setHeaderText(null);
+            alert.setContentText(data.body());
+            alert.showAndWait();
+
+        } else {
+            logger.info("   Oanda: " + data.statusCode() + " " + data.body());
+            List<Account> accounts = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
             });
-            logger.info("Coinbase: " + products.size());
-        } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return products;
-    }
 
-    //    Get Product	GET	/products/{product_id}	wallet:user:read
-    public ArrayList<Order> listOrders() throws IOException, InterruptedException {
-        ArrayList<Order> orders;
 
-        requestBuilder.uri(URI.create(url + "/orders"));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            orders = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
-            });
-            logger.info("Coinbase: " + orders.size());
-        } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return orders;
-    }
+            logger.info("Oanda: " + accounts.size());
 
-    //    Get Product Candles	GET	/products/{product_id}/candles	none
-    public ArrayList<Candle> listCandles(String product_id) throws IOException, InterruptedException {
-        ArrayList<Candle> candles;
-
-        requestBuilder.uri(URI.create(url + "/products/" + product_id + "/candles"));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            candles = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
-            });
-            logger.info("Coinbase: " + candles.size());
-        } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return candles;
-    }
-//    Get Transactions Summary	GET	/transaction_summary	wallet:transactions:read
-
-    //    Create Order	POST	/orders	wallet:buys:create
-    Order createOrder(@NotNull Order order) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/orders"));
-        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(order.toString()));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            order = OBJECT_MAPPER.readValue(data.body(), Order.class);
-            logger.info("Coinbase: " + order.toString());
-        } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return order;
-    }
-
-    //    Get Market Trades	GET	/products/{product_id}/ticker	wallet:user:read
-    public ArrayList<Trade> listTrades(String product_id) throws IOException, InterruptedException {
-        ArrayList<Trade> trades;
-
-        requestBuilder.uri(URI.create(url + "/products/" + product_id + "/candles"));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            trades = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
-
-            });
-            logger.info("Coinbase: " + trades.size());
-        } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return trades;
-    }
-
-    //    Cancel Orders	POST	/orders/batch_cancel	wallet:buys:create
-    public Order cancelOrder(String orderId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "/orders/batch_cancel"));
-
-        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(orderId));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        Order order;
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            order = OBJECT_MAPPER.readValue(data.body(), Order.class);
-            logger.info("Coinbase: " + order.toString());
-        } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return order;
-    }
-
-    //    List Orders	GET	/orders/historical/batch	wallet:orders:read
-    List<Order> getOrdersHistorical(String orderId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "orders/historical/batch"));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        List<Order> orders;
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            orders = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
-            });
-            logger.info("Coinbase: " + orders.size());
-            ListView<Order> orderListView = new ListView<>();
-
-            for (Order order : orders) {
-                orderListView.getItems().add(order);
+            ListView<Account> accountsListView = new ListView<>();
+            for (Account account : accounts) {
+                accountsListView.getItems().add(account);
             }
-            Stage stage = new Stage();
-            Scene scene = new Scene(orderListView);
-            stage.setScene(scene);
-            stage.show();
-        } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return orders;
-    }
-
-    //    List Fills	GET	/orders/historical/fills	wallet:transactions:read
-    List<Fill> getFills() throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "orders/historical/fills"));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        List<Fill> fills;
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            fills = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
+            accountsListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                if (newValue != null) {
+                    try {
+                        Account account = getAccount(newValue.getId());
+                        Objects.requireNonNull(account).setBalance(newValue.getBalance());
+                        account.setAvailable(newValue.getAvailable());
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
             });
-            logger.info("Coinbase: " + fills.size());
-        } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
+            return accounts;
         }
-        return fills;
-    }
+        return new ArrayList<>();
 
-    //    Get Order	GET	/orders/historical/{order_id}	wallet:transactions:read
-    Order getOrderHistorical(String orderId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "orders/historical/" + orderId));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        Order order;
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            order = OBJECT_MAPPER.readValue(data.body(), Order.class);
-            logger.info("Coinbase: " + order.toString());
-            ListView<Order> orderListView = new ListView<>();
-            orderListView.getItems().add(order);
-            orderListView.getSelectionModel().select(order);
-            logger.info("Coinbase: " + orderListView.getSelectionModel().getSelectedItem().toString());
-            Stage stage = new Stage();
-            stage.setScene(new Scene(orderListView));
-            stage.setTitle("Coinbase");
-            stage.setResizable(false);
-            stage.show();
-        } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return order;
-    }
-
-    //    List Products	GET	/products	wallet:user:read
-    List<Product> getProducts() throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "products"));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        List<Product> products;
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            products = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
-            });
-            logger.info("Oanda: " + products.size());
-
-            ListView<Product> productListView = new ListView<>();
-
-            productListView.getItems().addAll(products);
-
-            productListView.getSelectionModel().select(products.get(0));
-            logger.info("Oanda: " + productListView.getSelectionModel().getSelectedItem().toString());
-
-            Stage stage = new Stage();
-            stage.setScene(new Scene(productListView));
-            stage.setTitle("Oanda");
-
-            stage.show();
-        } else {
-            logger.error("Oanda: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return products;
-    }
-
-    //    Get Product	GET	/products/{product_id}	wallet:user:read
-    Product getProduct(String productId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "products/" + productId));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        Product product;
-        if (data.statusCode() == 200) {
-            logger.info("Oanda: " + data.statusCode() + " " + data.body());
-            product = OBJECT_MAPPER.readValue(data.body(), Product.class);
-            logger.info("Oanda: " + product.toString());
-        } else {
-            logger.error("Oanda: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return product;
-    }
-
-    //    Get Product Candles	GET	/products/{product_id}/candles	none
-    List<Candle> getProductCandles(String productId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "products/" + productId + "/candles"));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        List<Candle> candles;
-        if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
-            candles = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
-            });
-            logger.info("Coinbase: " + candles.size());
-        } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return candles;
     }
 //    Get Transactions Summary	GET	/transaction_summary	wallet:transactions:read
 
-    TransactionSummary getTransactionSummary() throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "transaction_summary"));
+    //    Get Account	GET	/accounts/:account_id	wallet:accounts:read
+    @Nullable
+    Account getAccount(String accountId) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(url));
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(accountId));
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        TransactionSummary transactionSummary;
+        Account account;
         if (data.statusCode() == 200) {
             logger.info("Oanda: " + data.statusCode() + " " + data.body());
-            transactionSummary = OBJECT_MAPPER.readValue(data.body(), TransactionSummary.class);
-            logger.info("Oanda: " + transactionSummary.toString());
+            account = OBJECT_MAPPER.readValue(data.body(), Account.class);
+            logger.info("Oanda: " + account.toString());
         } else {
-            logger.error("Oanda: " + data.statusCode() + " " + data.body());
+            logger.error("Oana: " + data.statusCode() + " " + data.body());
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Oanda Error");
             alert.setHeaderText(null);
@@ -557,7 +252,7 @@ public class Oanda extends Exchange {
             alert.showAndWait();
             return null;
         }
-        return transactionSummary;
+        return account;
     }
 //    See Also:
 //
@@ -578,28 +273,6 @@ public class Oanda extends Exchange {
     public String getName() {
         return
                 "Oanda";
-    }
-
-    //    Get Market Trades	GET	/products/{product_id}/ticker	wallet:user:read
-    List<Trade> getMarketTrades(String productId) throws IOException, InterruptedException {
-        requestBuilder.uri(URI.create(url + "products/" + productId + "/ticker"));
-        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        List<Trade> trades;
-        if (data.statusCode() == 200) {
-            logger.info("Oanda: " + data.statusCode() + " " + data.body());
-            trades = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
-            });
-            logger.info("Oanda: " + trades.size());
-        } else {
-            logger.error("Oanda: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
-            return null;
-        }
-        return trades;
     }
 
     @Override
@@ -627,202 +300,70 @@ public class Oanda extends Exchange {
         };
     }
 
-    public Set<Integer> getSupportedGranularities() {
+    //    Cancel Orders	POST	/orders/batch_cancel	wallet:buys:create
+    public Order cancelOrder(String orderId) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(url + "/cancel"));
 
-
-        return Set.of(60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24);
-
-    }
-
-
-    /**
-     * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
-     * <p>
-     * This method only needs to be implemented to support live syncing.
-     */
-    @Override
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
-        Objects.requireNonNull(tradePair);
-        Objects.requireNonNull(stopAt);
-
-        if (stopAt.isAfter(Instant.now())) {
-            return CompletableFuture.completedFuture(Collections.emptyList());
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(orderId));
+        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        Order order;
+        if (data.statusCode() == 200) {
+            logger.info("Oanda: " + data.statusCode() + " " + data.body());
+            order = OBJECT_MAPPER.readValue(data.body(), Order.class);
+            logger.info("Oanda: " + order.toString());
+        } else {
+            logger.error("Oanda: " + data.statusCode() + " " + data.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Oanda Error");
+            alert.setHeaderText(null);
+            alert.setContentText(data.body());
+            alert.showAndWait();
+            return null;
         }
-
-        CompletableFuture<List<Trade>> futureResult = new CompletableFuture<>();
-        CompletableFuture.runAsync(() -> {
-            IntegerProperty afterCursor = new SimpleIntegerProperty(0);
-            List<Trade> tradesBeforeStopTime = new ArrayList<>();
-
-            // For Public Endpoints, our rate limit is 3 requests per second, up to 6 requests per second in
-            // burst.
-            // We will know if we get rate limited if we get a 429 response code.
-            for (int i = 0; !futureResult.isDone(); i++) {
-                String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" + account_id + "/trades?instrument=" +
-                        tradePair.toString('_');
-                //  uriStr += "products/" + tradePair.toString('-') + "/trades";
-
-                if (i != 0) {
-                    uriStr += "?after=" + afterCursor.get();
-                }
-                requestBuilder.uri(URI.create(uriStr));
-                try {
-                    HttpResponse<String> response = client.send(requestBuilder.build()
-                            ,
-                            HttpResponse.BodyHandlers.ofString());
-
-                    Log.info("response headers: ", response.headers().toString());
-                    if (response.headers().firstValue("date").isEmpty()) {
-                        futureResult.completeExceptionally(new RuntimeException(
-                                "Oanda trades response did not contain header \"date\": " + response));
-                        return;
-                    }
-
-                    afterCursor.setValue(Integer.valueOf((response.headers().firstValue("date").get())));
-
-                    JsonNode tradesResponse = OBJECT_MAPPER.readTree(response.body());
-
-                    if (!tradesResponse.isArray()) {
-                        futureResult.completeExceptionally(new RuntimeException("Oanda trades response was not an array!"));
-
-
-                    } else if (tradesResponse.isEmpty()) {
-                        futureResult.completeExceptionally(new IllegalArgumentException("tradesResponse was empty"));
-                    } else if (tradesResponse.has("message")) {
-
-
-                        Alert alert = new Alert(Alert.AlertType.WARNING);
-                        alert.setTitle("oanda Error");
-                        alert.setHeaderText("oanda Error");
-                        alert.setContentText(tradesResponse.get("message").asText());
-                        alert.showAndWait();
-
-
-                    } else {
-
-                        for (int j = 0; j < tradesResponse.size(); j++) {
-                            JsonNode trade = tradesResponse.get(j);
-                            Instant time = Instant.from(ISO_INSTANT.parse(trade.get("time").asText()));
-                            if (time.compareTo(stopAt) <= 0) {
-                                futureResult.complete(tradesBeforeStopTime);
-                                break;
-                            } else {
-                                tradesBeforeStopTime.add(new Trade(tradePair,
-                                        trade.get("price").asDouble(),
-                                        trade.get("size").asDouble(),
-                                        Side.getSide(trade.get("side").asText()), trade.get("trade_id").asLong(), time.getEpochSecond()));
-                            }
-                        }
-                    }
-                } catch (IOException | InterruptedException ex) {
-                    Log.error("ex: " + ex);
-                    futureResult.completeExceptionally(ex);
-                } catch (ParseException | URISyntaxException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        });
-
-        return futureResult;
+        return order;
     }
 
-    /**
-     * This method only needs to be implemented to support live syncing.
-     */
-    @Override
-    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
-            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
-        String startDateString1 = ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
-                currentCandleStartedAt, ZoneOffset.UTC));
-        long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
-        // Get the closest supported granularity to the ideal granularity.
-        int actualGranularity = getSupportedGranularities().stream()
-                .min(Comparator.comparingInt(i -> (int) Math.abs(i - idealGranularity)))
-                .orElseThrow(() -> new NoSuchElementException("Supported granularities was empty!"));
+    //    Get Product	GET	/products/{product_id}	wallet:user:read
+    Product getProduct(String productId) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(url + "/instrument/" + productId));
+        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        Product product;
+        if (data.statusCode() == 200) {
+            logger.info("Oanda: " + data.statusCode() + " " + data.body());
+            product = OBJECT_MAPPER.readValue(data.body(), Product.class);
+            logger.info("Oanda: " + product.toString());
+        } else {
+            logger.error("Oanda: " + data.statusCode() + " " + data.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Oanda Error");
+            alert.setHeaderText(null);
+            alert.setContentText(data.body());
+            alert.showAndWait();
+            return null;
+        }
+        return product;
+    }
 
-        return client.sendAsync(
-                        requestBuilder
-                                .uri(URI.create(
-                                        "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair.toString('_') +
-                                                "/candles?count=200&price=A&from=2016-01-01T00%3A00%3A00.000000000Z&granularity=" + granularityToString(actualGranularity)
-                                ))
-                                .GET().build(),
-                        HttpResponse.BodyHandlers.ofString())
-                .thenApply(HttpResponse::body)
-                .thenApply(response -> {
-                    Log.info("Oanda response2: ", response);
-                    JsonNode res;
-                    try {
-                        res = OBJECT_MAPPER.readTree(response);
-                    } catch (JsonProcessingException ex) {
-                        throw new RuntimeException(ex);
-                    }
-
-                    if (res.isEmpty()) {
-                        return Optional.empty();
-                    }
-
-
-                    // Iterator<JsonNode> candleItr = res.elements();
-
-                    logger.info("currCandle: " + res.elements());
-
-                    for (JsonNode currCandle : res) {
-
-                        // logger.info("currCandle: " + candleItr.next().toString());
-                        int currentTill = -1;
-                        double openPrice = -1;
-                        double highSoFar = -1;
-                        double lowSoFar = Double.MAX_VALUE;
-                        double volumeSoFar = 0;
-                        double lastTradePrice = -1;
-                        boolean foundFirst = false;
-
-                        if (currCandle.has("time")) {
-
-                            logger.info("currCandle: " + currCandle + " ");
-                            int time = Instant.from(ISO_INSTANT.parse(currCandle.get("time").asText())).getNano();
-                            logger.info("time: " + currCandle.elements().toString() + " " + time);
-
-                            if (time < currentCandleStartedAt.getEpochSecond() ||
-                                    time >= currentCandleStartedAt.getEpochSecond() +
-                                            secondsPerCandle) {
-                                // skip this sub-candle if it is not in the parent candle's duration (this is just a
-                                //  Coinbase is  not respecting start/end times
-                                continue;
-
-                            } else {
-                                //if (!foundFirst) {
-
-                                currentTill = time;
-                                lastTradePrice = currCandle.get("ask").findValue("c").asDouble();
-                                foundFirst = true;
-                                // }
-                            }
-
-                            openPrice = currCandle.get("ask").findValue("o").asDouble();
-
-                            if (openPrice > highSoFar) {
-                                highSoFar = openPrice;
-                            }
-                            lowSoFar = currCandle.get("ask").findValue("l").asDouble();
-                            if (currCandle.get("ask").findValue("l").asDouble() < lowSoFar) {
-                                lowSoFar = currCandle.get("ask").findValue("l").asDouble();
-                            }
-
-                            volumeSoFar += currCandle.findValue("volume").asDouble();
-
-                            int openTime = (int) (currentCandleStartedAt.toEpochMilli() / 1000L);
-
-                            return Optional.of(new InProgressCandleData(openTime, openPrice, highSoFar, lowSoFar,
-                                    currentTill, lastTradePrice, volumeSoFar));
-                        } else {
-                            logger.info("No time in response " + currCandle);
-                            return Optional.empty();
-                        }
-                    }
-                    return Optional.empty();
-                });
+    //    Get Product Candles	GET	/products/{product_id}/candles	none
+    List<Candle> getProductCandles(String productId) throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(url + "/products/" + productId + "/candles"));
+        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        List<Candle> candles;
+        if (data.statusCode() == 200) {
+            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
+            candles = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
+            });
+            logger.info("Coinbase: " + candles.size());
+        } else {
+            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Coinbase Error");
+            alert.setHeaderText(null);
+            alert.setContentText(data.body());
+            alert.showAndWait();
+            return null;
+        }
+        return candles;
     }
 
     @Override
@@ -877,14 +418,173 @@ public class Oanda extends Exchange {
         return tradePairs.toString();
     }
 
-    @Override
-    public String getPrice() {
-        return null;
+    TransactionSummary getTransactionSummary() throws IOException, InterruptedException {
+        requestBuilder.uri(URI.create(url + "/transaction_summary"));
+        HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        TransactionSummary transactionSummary;
+        if (data.statusCode() == 200) {
+            logger.info("Oanda: " + data.statusCode() + " " + data.body());
+            transactionSummary = OBJECT_MAPPER.readValue(data.body(), TransactionSummary.class);
+            logger.info("Oanda: " + transactionSummary.toString());
+        } else {
+            logger.error("Oanda: " + data.statusCode() + " " + data.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Oanda Error");
+            alert.setHeaderText(null);
+            alert.setContentText(data.body());
+            alert.showAndWait();
+            return null;
+        }
+        return transactionSummary;
     }
 
+    public Set<Integer> getSupportedGranularities() {
+
+
+        return Set.of(60, 60 * 2, 60 * 5, 60 * 30, 3600, 3600 * 4, 3600 * 6, 3600 * 12, 3600 * 24 * 7, 3600 * 24 * 7 * 4);
+
+    }
+
+    /**
+     * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
+     * <p>
+     * This method only needs to be implemented to support live syncing.
+     */
     @Override
-    public String getVolume() {
-        return null;
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt,
+                                                                 boolean isAutoTrade) {
+        Objects.requireNonNull(tradePair);
+        Objects.requireNonNull(stopAt);
+
+        if (stopAt.isAfter(Instant.now())) {
+            return CompletableFuture.completedFuture(Collections.emptyList());
+        }
+
+        CompletableFuture<List<Trade>> futureResult = new CompletableFuture<>();
+        CompletableFuture.runAsync(() -> {
+            IntegerProperty afterCursor = new SimpleIntegerProperty(0);
+
+
+            List<Trade> tradesBeforeStopTime = new ArrayList<>();
+
+
+            // For Public Endpoints, our rate limit is 3 requests per second, up to 6 requests per second in
+            // burst.
+            // We will know if we get rate limited if we get a 429 response code.
+
+            String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" + account_id +
+                    "/trades?instrument=" +
+                    tradePair.toString('_');
+            //  uriStr += "products/" + tradePair.toString('-') + "/trades";
+
+
+            requestBuilder.uri(URI.create(uriStr));
+
+            HttpResponse<String> response;
+            try {
+                response = client.send(requestBuilder.build()
+                        ,
+                        HttpResponse.BodyHandlers.ofString());
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            Log.info("oanda response headers: ", response.headers().toString());
+            if (response.headers().firstValue("date").isEmpty()) {
+                futureResult.completeExceptionally(new RuntimeException(
+                        "Oanda trades response did not contain header \"date\": " + response));
+
+            }
+            afterCursor.setValue((int) Date.from(Instant.parse(response.headers().firstValue("date").get())).getTime());
+            JsonNode tradesResponse;
+            try {
+                tradesResponse = OBJECT_MAPPER.readTree(response.body());
+                logger.info("Oanda trade: " + tradesResponse);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+
+            if (tradesResponse.get("trades").isEmpty()) {
+
+                try {
+                    double price = getLivePrice(tradePair);
+
+
+                    double distance = (price - getLivePrice(tradePair) / 2);
+                    double sl = price - distance;
+                    double tp = price + distance;
+
+                    createOrder(
+                            tradePair, Side.BUY,
+                            ENUM_ORDER_TYPE.STOP_LOSS,
+                            price,
+                            tradesResponse.get("size").get(0).asDouble(),
+                            new Date(), sl, tp, 0
+
+
+                    );
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                futureResult.completeExceptionally(new IllegalArgumentException("tradesResponse was empty"));
+            } else if (tradesResponse.has("message")) {
+
+
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("oanda Error");
+                alert.setHeaderText("oanda Error");
+                alert.setContentText(tradesResponse.get("message").asText());
+                alert.showAndWait();
+
+            } else {
+
+                for (int j = 0; j < tradesResponse.size(); j++) {
+                    JsonNode trade = tradesResponse.get(j);
+                    Instant time = Instant.from(ISO_INSTANT.parse(trade.get("time").asText()));
+                    if (time.compareTo(stopAt) <= 0) {
+                        futureResult.complete(tradesBeforeStopTime);
+                        return;
+                    } else {
+                        try {
+
+
+                            logger.info("Oanda trade: " + trade);
+                            Trade trade0 = new Trade(tradePair,
+                                    trade.get("price").asDouble(),
+                                    trade.get("size").asDouble(),
+                                    Side.getSide(trade.get("side").asText()),
+                                    trade.get("lastTransactionID").asLong(), time.getEpochSecond());
+
+                            trade0.setLastTransactionID(trade.get("lastTransactionID").asLong());
+                            trade0.setPrice(trade.get("price").asDouble());
+                            trade0.setSize(trade.get("units").asDouble());
+                            trade0.setSide(Side.getSide(trade.get("side").asText()));
+                            trade0.setInstrument(tradePair.toString('_'));
+                            trade0.setTradeID(getOrderCreateTransaction.size() + 1);
+                            trade0.setAccountID(account_id);
+                            trade0.setTime(time.getEpochSecond());
+
+                            trade0.run();
+                            tradesBeforeStopTime.add(trade0);
+                        } catch (IOException |
+                                 InterruptedException |
+                                 ParseException |
+                                 URISyntaxException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                        logger.info("Oanda trade: " + trade);
+                    }
+                }
+            }
+
+
+//
+
+
+        });
+        return futureResult;
+
     }
 
     @Override
@@ -907,9 +607,99 @@ public class Oanda extends Exchange {
         return null;
     }
 
+    /**
+     * This method only needs to be implemented to support live syncing.
+     */
     @Override
-    public String getTimestamp() {
-        return null;
+    public CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
+            TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle) {
+        String startDateString1 = ISO_LOCAL_DATE_TIME.format(LocalDateTime.ofInstant(
+                currentCandleStartedAt, ZoneOffset.UTC));
+        long idealGranularity = Math.max(10, secondsIntoCurrentCandle / 200);
+        // Get the closest supported granularity to the ideal granularity.
+        int actualGranularity = getSupportedGranularities().stream()
+                .min(Comparator.comparingInt(i -> (int) Math.abs(i - idealGranularity)))
+                .orElseThrow(() -> new NoSuchElementException("Supported granularities was empty!"));
+
+        return client.sendAsync(
+                        requestBuilder
+                                .uri(URI.create(
+                                        "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair.toString('_') +
+                                                "/candles?count=" + 200 + "&price=M&granularity=" + granularityToString(actualGranularity)
+                                ))
+                                .GET().build(),
+                        HttpResponse.BodyHandlers.ofString())
+                .thenApply(HttpResponse::body)
+                .thenApply(response -> {
+                    Log.info("Oanda response2: ", response);
+                    JsonNode res;
+                    try {
+                        res = OBJECT_MAPPER.readTree(response);
+                    } catch (JsonProcessingException ex) {
+                        throw new RuntimeException(ex);
+                    }
+
+                    if (res.isEmpty()) {
+                        return Optional.empty();
+                    }
+
+
+                    // Iterator<JsonNode> candleItr = res.elements();
+
+                    logger.info("currCandle: " + res.elements());
+                    int currentTill = -1;
+                    double openPrice = -1;
+                    double highSoFar = -1;
+                    double lowSoFar = Double.MAX_VALUE;
+                    double volumeSoFar = 0;
+                    double lastTradePrice = -1;
+
+                    int openTime = 0;
+
+                    for (JsonNode res0 : res.get("candles")) {
+                        for (JsonNode currCandle : res0.get("mid")) {
+
+                            // logger.info("currCandle: " + candleItr.next().toString());
+
+
+                            if (res0.has("time")) {
+
+                                logger.info("currCandle: " + currCandle + " ");
+                                int time = Instant.from(ISO_INSTANT.parse(res0.get("time").asText())).getNano();
+                                logger.info("time: " + Date.from(Instant.ofEpochSecond(
+                                        res0.findValue("time").asLong() / 1000L)));
+
+
+                                currentTill = time;
+                                if (currCandle.has("c")) lastTradePrice = currCandle.findValue("c").asDouble();
+
+                                if (currCandle.has("o")) openPrice = currCandle.findValue("o").asDouble();
+
+                                if (openPrice > highSoFar) {
+                                    highSoFar = openPrice;
+                                }
+                                if (currCandle.has("l")) lowSoFar = currCandle.findValue("l").asDouble();
+
+                                if (currCandle.has("o")) {
+                                    if (currCandle.findValue("o").asDouble() < lowSoFar) {
+                                        lowSoFar = currCandle.findValue("o").asDouble();
+                                    }
+                                }
+
+                                volumeSoFar += res0.findValue("volume").asDouble();
+
+                                openTime = (int) (currentCandleStartedAt.toEpochMilli() / 1000L);
+
+                            } else {
+                                logger.info("No time in response " + currCandle);
+                                return Optional.empty();
+                            }
+                        }
+                    }
+                    return Optional.of(new InProgressCandleData(openTime, openPrice, highSoFar, lowSoFar,
+                            currentTill, lastTradePrice, volumeSoFar));
+
+                });
     }
 
     @Override
@@ -918,8 +708,83 @@ public class Oanda extends Exchange {
     }
 
     @Override
-    public String getOrderId() {
-        return null;
+    public double getLivePrice(@NotNull TradePair tradePair) {
+
+        requestBuilder.header("Access-Control-Allow-Origin", "*");
+        requestBuilder.header("Content-Type", "application/octet-stream");
+        //  Access-Control-Allow-Headers: Authorization, Content-Type, Accept-Datetime-Format, OANDA-Agent
+        requestBuilder.header(
+                "OANDA-Agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36"
+        );
+
+
+        requestBuilder.uri(URI.create("https://stream-fxtrade.oanda.com/v3/accounts/" + account_id + "/pricing/stream?instruments=" + tradePair.toString('_')));
+        //"https://api-fxtrade.oanda.com/v3/instruments/" + tradePair.toString('_') + "/candles?count=6&price=M&granularity=" + granularityToString(actualGranularity) + "&from=" + "2016-10-17T15:16:40.000000000Z"));
+
+        final Product[] product = new Product[1];
+        client.sendAsync(requestBuilder.build(), HttpResponse.BodyHandlers.ofString()).thenApply(HttpResponse::body)
+                //.thenAccept(System.out::println)
+                .exceptionally(throwable -> {
+
+                    logger.error("Error getting live price", throwable);
+                    return null;
+                }).thenApply(response -> {
+                    logger.info("Response: " + response);
+                    ObjectMapper mapper = new ObjectMapper();
+                    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+                    mapper.registerModule(new JavaTimeModule());
+                    JsonNode res = null;
+//                    {"asks":[{"liquidity":10000000,"price":"1.11704"},{"liquidity":10000000,"price":"1.11706"}],"bids":                        [{"liquidity":10000000,"price":"1.11690"},{"liquidity":10000000,"price":"1.11688"}],"closeoutAsk":"1.11708","closeoutBid":"1.11686","instrument":"EUR_USD","status":"tradeable","time":"2016-09-20T15:05:47.960449532Z"}
+//                    {"asks":[{"liquidity":1000000,"price":"1.32149"},{"liquidity":2000000,"price":"1.32150"},{"liquidity":5000000,"price":"1.32151"},{"liquidity":10000000,"price":"1.32153"}],"bids":[{"liquidity":1000000,"price":"1.32128"},{"liquidity":2000000,"price":"1.32127"},{"liquidity":5000000,"price":"1.32126"},{"liquidity":10000000,"price":"1.32124"}],"closeoutAsk":"1.32153","closeoutBid":"1.32124","instrument":"USD_CAD","status":"tradeable","time":"2016-09-20T15:05:48.157162748Z"}
+//                    {"asks":[{"liquidity":1000000,"price":"1.32145"},{"liquidity":2000000,"price":"1.32146"},{"liquidity":5000000,"price":"1.32147"},{"liquidity":10000000,"price":"1.32149"}],"bids":[{"liquidity":1000000,"price":"1.32123"},{"liquidity":2000000,"price":"1.32122"},{"liquidity":5000000,"price":"1.32121"},{"liquidity":10000000,"price":"1.32119"}],"closeoutAsk":"1.32149","closeoutBid":"1.32119","instrument":"USD_CAD","status":"tradeable","time":"2016-09-20T15:05:48.272079801Z"}
+//                    {"asks":[{"liquidity":1000000,"price":"1.32147"},{"liquidity":2000000,"price":"1.32148"},{"liquidity":5000000,"price":"1.32149"},{"liquidity":10000000,"price":"1.32151"}],"bids":[{"liquidity":1000000,"price":"1.32126"},{"liquidity":2000000,"price":"1.32125"},{"liquidity":5000000,"price":"1.32124"},{"liquidity":10000000,"price":"1.32122"}],"closeoutAsk":"1.32151","closeoutBid":"1.32122","instrument":"USD_CAD","status":"tradeable","time":"2016-09-20T15:05:48.540813660Z"}
+//                    {"time":"2016-09-20T15:05:50.163791738Z","type":"HEARTBEAT"}
+                    try {
+                        res = mapper.readTree(response);
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                    logger.info("Response: " + res);
+                    assert res != null;
+                    if (res.has("asks") && res.has("bids")) {
+                        ArrayNode asks = (ArrayNode) res.get("asks");
+                        ArrayNode bids = (ArrayNode) res.get("bids");
+                        if (asks.size() > 0 && bids.size() > 0) {
+                            List<Fill> asksList = new ArrayList<>();
+                            List<Fill> bidsList = new ArrayList<>();
+                            for (int i = 0; i < asks.size(); i++) {
+                                JsonNode ask = asks.get(i);
+                                JsonNode bid = bids.get(i);
+                                asksList.add(new Fill(ask.get("liquidity").asInt(), ask.get("price").asDouble()));
+
+
+                                bidsList.add(new Fill(bid.get("liquidity").asInt(), bid.get("price").asDouble()));
+
+                                voulumeSoFarList.add(ask.get("bucketWidth").asDouble());
+
+                                logger.info("volumeList: " + voulumeSoFarList);
+
+                            }
+                            logger.info("tradePair: " + tradePair.toString('_'));
+                            logger.info("Asks: " + asksList);
+                            logger.info("Bids: " + bidsList);
+                            product[0] = new Product(asksList, bidsList, tradePair);
+
+
+                            logger.info("product: " + product[0]);
+                            return product[0];
+                        }
+                    } else {
+                        logger.error("Error getting live price");
+                    }
+                    return null;
+
+                });
+        return product[0].getLivePrice();
+
+
     }
 
     @Override
@@ -988,39 +853,17 @@ public class Oanda extends Exchange {
     }
 
     @Override
-    public void withdraw(Double value) {
-
+    public ArrayList<Double> getVolume() {
+        return voulumeSoFarList;
     }
 
     // Get all orders
     //       GET
     //https://api.exchange.coinbase.com/orders
 
-    public Node getAllOrders() throws IOException, InterruptedException {
-        String uriStr = url + "/orders";
-
-        requestBuilder.uri(URI.create(uriStr));
-        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        System.out.println(response.statusCode());
-        System.out.println(response.body());
-        JSONObject jsonObject;
-        if (response.statusCode() == 200) {
-            jsonObject = new JSONObject(response.body());
-
-            System.out.println(jsonObject.toString(4));
-
-            jsonObject.put(
-                    "orders",
-                    jsonObject.getJSONArray("orders").toString()
-            );
-
-
-        } else {
-            System.out.println(response.statusCode());
-            System.out.println(response.body());
-        }
-
-        return null;
+    @Override
+    public String getTimestamp() {
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date());
     }
 
 
@@ -1085,12 +928,74 @@ public class Oanda extends Exchange {
     }
 
     @Override
-    public List<Objects> getOrderBook() {
+    public String getOrderId() {
+        return Long.toString(System.currentTimeMillis());
+
+    }
+
+    @Override
+    public void withdraw(Double value) {
+
+
+    }
+
+    public Node getAllOrders() throws IOException, InterruptedException {
+        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" + account_id + "/orders";
+
+        requestBuilder.uri(URI.create(uriStr));
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        JSONObject jsonObject;
+        if (response.statusCode() == 200) {
+            jsonObject = new JSONObject(response.body());
+
+            System.out.println(jsonObject.toString(4));
+
+            jsonObject.put(
+                    "orders",
+                    jsonObject.getJSONArray("orders").toString()
+            );
+
+
+        } else {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+        }
+
         return null;
     }
 
-    private void getOrderHistory(@NotNull TradePair tradePair) throws IOException, InterruptedException {
-        String uriStr = url + "orders";
+    @Override
+    public List<OrderBook> getOrderBook(@NotNull TradePair tradePair) throws IOException, InterruptedException {
+
+        requestBuilder.uri(URI.create(
+                orderBookUrl
+        ));
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+
+        if (response.statusCode() == 200) {
+            JSONObject jsonObject = new JSONObject(response.body());
+            System.out.println(jsonObject.toString(4));
+            JSONArray jsonArray = jsonObject.getJSONArray("orderbooks");
+            System.out.println(jsonArray.toString(4));
+            List<OrderBook> orderBooks = new ArrayList<>();
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject1 = jsonArray.getJSONObject(i);
+                OrderBook orderBook = new OrderBook(jsonObject1.names());
+                orderBooks.add(orderBook);
+                System.out.println("OrderBook :" + orderBooks);
+            }
+        }
+
+        return null;
+    }
+
+    public void getOrderHistory(@NotNull TradePair tradePair) throws IOException, InterruptedException {
+        String uriStr =
+                url + "orders/";
+        requestBuilder.uri(URI.create(uriStr));
         HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         requestBuilder.uri(URI.create(uriStr));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
@@ -1100,37 +1005,137 @@ public class Oanda extends Exchange {
         if (response.statusCode() == 200) {
             JSONObject jsonObject = new JSONObject(response.body());
             System.out.println(jsonObject.toString(4));
+            JSONArray jsonArray = jsonObject.getJSONArray("orders");
+            System.out.println(jsonArray.toString(4));
+            List<Order> orders = new ArrayList<>();
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject1 = jsonArray.getJSONObject(i);
+                Order order = new Order(jsonObject1.names());
+                orders.add(order);
+                System.out.println(orders);
+            }
+
+
         } else {
             System.out.println(response.statusCode());
             System.out.println(response.body());
         }
     }
 
-
+    @Override
     public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size,
                             @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
-        // JSONObject jsonObject = getJSON();
-        //   System.out.println(jsonObject.toString(4));
+//
+//        curl: Create EUR/USD Market Order to sell 100 units
+//        curl: Create a Take Profit Order @ 1.6000 for Trade with ID 6368
+//        curl: Create a Limit Order for -1000 USD_CAD @ 1.5000 with a Stop Loss on Fill @ 1.7000 and a Take Profit @ 1.14530
+//        curl: Create an Entry Order for 10000 EUR_CAD @ 1.2000 with Client Extensions
 
-        String symbol = tradePair.toString('-');
+        if (orderType == ENUM_ORDER_TYPE.MARKET && Side.SELL == side) {
+            createSellOrder(tradePair, price, size);
+        }
+        if (orderType == ENUM_ORDER_TYPE.MARKET && Side.BUY == side) {
+            createBuyOrder(tradePair, side, price, size, timestamp);
+        }
+        if (orderType == ENUM_ORDER_TYPE.LIMIT && Side.SELL == side) {
+            createSellLimitOrder(tradePair, side, price, size, timestamp);
+        }
+        if (orderType == ENUM_ORDER_TYPE.LIMIT && Side.BUY == side) {
+            createBuyLimitOrder(tradePair, side, price, size, takeProfit, stopLoss);
+        }
+        if (orderType == ENUM_ORDER_TYPE.TAKE_PROFIT && Side.SELL == side) {
+            createSellTakeProfitOrder(tradePair, side, price, size, takeProfit, stopLoss);
+        }
+        if (orderType == ENUM_ORDER_TYPE.TAKE_PROFIT && Side.BUY == side) {
+            createBuyTakeProfitOrder(tradePair, side, price, size, takeProfit, stopLoss);
+        }
+        if (orderType == ENUM_ORDER_TYPE.ENTRY && Side.SELL == side) {
+            createSellEntryOrder(tradePair, price, size, takeProfit, stopLoss);
+        }
+        if (orderType == ENUM_ORDER_TYPE.ENTRY && Side.BUY == side) {
+            createBuyEntryOrder(tradePair, side, price, size, takeProfit, stopLoss);
+        }
 
-        String uriStr = url + "orders";
 
-        String data =
-                String.format(
-                        "{\"product_id\": \"%s\", \"side\": \"%s\", \"type\": \"%s\", \"quantity\": %f, \"price\": %f, \"stop-loss\": %f, \"take-profit\": %f, \"take-profit-price\": %f, \"timestamp\": \"%s\"}",
-                        symbol, side, orderType, size, price, stopLoss, takeProfit, takeProfitPrice,
-                        timestamp);
+    }
 
-        data = String.format(data, orderType, side, price);
+    private void createBuyTakeProfitOrder(@NotNull TradePair tradePair, Side side, double price, double size, double takeProfit, double stopLoss) throws IOException, InterruptedException {
+        //   curl: Create a Buy Take Profit Order for 100 units
 
+        String symbol = tradePair.toString('_');
+        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" + account_id + "/orders";
         System.out.println(uriStr);
-        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(data));
         requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.POST(
+
+                HttpRequest.BodyPublishers.ofString(
+                        "{\n" +
+                                "  \"order\": {\n" +
+                                "    \"price\": \"" + price + "\",\n" +
+                                "    \"stopLossOnFill\": {\n" +
+                                "      \"timeInForce\": \"GTC\",\n" +
+                                "      \"price\": \"" + stopLoss + "\"\n" +
+                                "    },\n" +
+                                "    \"takeProfitOnFill\": {\n" +
+                                "      \"timeInForce\": \"GTC\",\n" +
+                                "      \"price\": \"" + takeProfit + "\"\n" +
+                                "    },\n" +
+                                "    \"timeInForce\": \"GTC\",\n" +
+                                "    \"instrument\": \"" + symbol + "\",\n" +
+                                "    \"units\": \"" + size + "\",\n" +
+                                "    \"type\": \"TAKE_PROFIT\"\n" +
+                                "  }\n" +
+                                "}"
+                ));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         System.out.println(response.statusCode());
         System.out.println(response.body());
+        if (response.statusCode() != 200 || response.statusCode() != 201) {
+            System.out.println(response.statusCode());
+            System.out.println("order error " + response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Order Error");
+            alert.setContentText(response.body());
+            alert.show();
+        } else {
+            JSONObject jsonObject = new JSONObject(response.body());
 
+
+            System.out.println(jsonObject.toString(4));
+        }
+    }
+
+    private void createSellTakeProfitOrder(@NotNull TradePair tradePair, Side side, double price, double size, double takeProfit, double stopLoss) throws IOException, InterruptedException {
+        //   curl: Create a Sell Take Profit Order for 100 units
+
+        String symbol = tradePair.toString('_');
+        String uriStr = url + "/orders";
+        System.out.println(uriStr);
+        requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.POST(
+
+                HttpRequest.BodyPublishers.ofString(
+                        "{\n" +
+                                "  \"order\": {\n" +
+                                "    \"price\": \"" + price + "\",\n" +
+                                "    \"stopLossOnFill\": {\n" +
+                                "      \"timeInForce\": \"GTC\",\n" +
+                                "      \"price\": \"" + stopLoss + "\"\n" +
+                                "    },\n" +
+                                "    \"takeProfitOnFill\": {\n" +
+                                "      \"timeInForce\": \"GTC\",\n" +
+                                "      \"price\": \"" + takeProfit + "\"\n" +
+                                "    },\n" +
+                                "    \"timeInForce\": \"GTC\",\n" +
+                                "    \"instrument\": \"" + symbol + "\",\n" +
+                                "    \"units\": \"" + size + "\",\n" +
+                                "    \"type\": \"TAKE_PROFIT\"\n" +
+                                "  }\n" +
+                                "}"
+                ));
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
         if (response.statusCode() != 200 || response.statusCode() != 201) {
             System.out.println(response.statusCode());
             System.out.println("order error " + response.body());
@@ -1140,7 +1145,80 @@ public class Oanda extends Exchange {
 
             alert.setContentText(response.body());
             alert.show();
+        }
+        JSONObject jsonObject = new JSONObject(response.body());
+        System.out.println(jsonObject.toString(4));
 
+    }
+
+    private void createBuyLimitOrder(TradePair tradePair, Side side, double price, double size, double takeProfit, double stopLoss) {
+        //   curl: Create a Buy Limit Order for 100 units
+
+        String symbol = tradePair.toString('_');
+        String uriStr = url + "/orders";
+        System.out.println(uriStr);
+        requestBuilder.uri(URI.create(uriStr));
+//
+//        body=$(cat << EOF
+//        {
+//            "order": {
+//            "price": "1.5000",
+//                    "stopLossOnFill": {
+//                "timeInForce": "GTC",
+//                        "price": "1.7000"
+//            },
+//            "takeProfitOnFill": {
+//                "price": "1.14530"
+//            },
+//            "timeInForce": "GTC",
+//                    "instrument": "USD_CAD",
+//                    "units": "-1000",
+//                    "type": "LIMIT",
+//                    "positionFill": "DEFAULT"
+//        }
+//        }
+//        EOF
+//)
+        requestBuilder.POST(
+
+                HttpRequest.BodyPublishers.ofString(
+                        "{\n" +
+                                "  \"order\": {\n" +
+                                "    \"price\": \"" + price + "\",\n" +
+                                "    \"stopLossOnFill\": {\n" +
+                                "      \"timeInForce\": \"GTC\",\n" +
+                                "      \"price\": \"" + stopLoss + "\"\n" +
+                                "    },\n" +
+                                "    \"takeProfitOnFill\": {\n" +
+                                "      \"price\": \"" + takeProfit + "\"\n" +
+                                "    },\n" +
+                                "    \"timeInForce\": \"GTC\",\n" +
+                                "    \"instrument\": \"" + symbol + "\",\n" +
+                                "    \"units\": \"" + size + "\",\n" +
+                                "    \"type\": \"LIMIT\",\n" +
+                                "    \"positionFill\": \"DEFAULT\"\n" +
+                                "  }\n" +
+                                "}"
+                ));
+        requestBuilder.uri(URI.create(uriStr));
+        HttpResponse<String> response;
+        try {
+            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        if (response.statusCode() != 200 || response.statusCode() != 201) {
+            System.out.println(response.statusCode());
+            System.out.println("order error " + response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Order Error");
+
+
+            alert.setContentText(response.body());
+            alert.show();
         } else {
             JSONObject jsonObject = new JSONObject(response.body());
 
@@ -1151,30 +1229,348 @@ public class Oanda extends Exchange {
 
     }
 
-    public void CloseAllOrders() throws IOException, InterruptedException {
-        String uriStr = url + "/orders/batch_cancel";
+    private void createSellLimitOrder(TradePair tradePair, Side side, double price, double size, Date timestamp) {
+        //   curl: Create a Sell Order for 100 units
+
+        String symbol = tradePair.toString('_');
+        String uriStr = url + "/orders";
         System.out.println(uriStr);
-        HttpRequest.Builder request = HttpRequest.newBuilder();
         requestBuilder.uri(URI.create(uriStr));
-        requestBuilder.DELETE();
-        HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
+//        body=$(cat << EOF
+//        {
+//            "order": {
+//            "price": "1.5000",
+//                    "stopLossOnFill": {
+//                "timeInForce": "GTC",
+//                        "price": "1.7000"
+//            },
+//            "takeProfitOnFill": {
+//                "price": "1.14530"
+//            },
+//            "timeInForce": "GTC",
+//                    "instrument": "USD_CAD",
+//                    "units": "-1000",
+//                    "type": "LIMIT",
+//                    "positionFill": "DEFAULT"
+//        }
+//        }
+//        EOF
+//)
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
+                "{\n" +
+                        "    \"order\": {\n" +
+                        "        \"price\": \"" + price + "\",\n" +
+                        "        \"timeInForce\": \"FOK\",\n" +
+                        "        \"instrument\": \"" + symbol + "\",\n" +
+                        "        \"units\": \"" + size + "\",\n" +
+                        "        \"type\": \"LIMIT\",\n" +
+                        "        \"positionFill\": \"DEFAULT\"\n" +
+                        "    }\n" +
+                        "}"));
+
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         System.out.println(response.statusCode());
         System.out.println(response.body());
-        if (response.statusCode() != 200) {
+        if (response.statusCode() != 200 || response.statusCode() != 201) {
             System.out.println(response.statusCode());
-            System.out.println(response.body());
+            System.out.println("order error " + response.body());
             Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText(response.body());
-            alert.showAndWait();
-            TelegramClient.sendMessage("Error: " + response.body());
-        } else {
-            JSONObject jsonObject = new JSONObject(response.body());
+            alert.setTitle("Order Error");
 
-            TelegramClient.sendMessage(jsonObject.toString(4));
-            System.out.println(jsonObject.toString(4));
+
+            alert.setContentText(response.body());
+            alert.show();
         }
+        JSONObject jsonObject = new JSONObject(response.body());
+        System.out.println(jsonObject.toString(4));
+
+
+    }
+
+    private void createBuyOrder(TradePair tradePair, Side side, double price, double size, Date timestamp) {
+        //   curl: Create a Buy Order for 100 units
+
+        String symbol = tradePair.toString('_');
+        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" + account_id + "/orders";
+        System.out.println(uriStr);
+        requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
+                "{\n" +
+                        "    \"order\": {\n" +
+                        "        \"price\": \"" + price + "\",\n" +
+                        "        \"timeInForce\": \"FOK\",\n" +
+                        "        \"instrument\": \"" + symbol + "\",\n" +
+                        "        \"units\": \"" + size + "\",\n" +
+                        "        \"type\": \"MARKET\",\n" +
+                        "        \"positionFill\": \"DEFAULT\"\n" +
+                        "    }\n" +
+                        "}"));
+        HttpResponse<String> response = null;
+        try {
+            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        if (response.statusCode() != 200 || response.statusCode() != 201) {
+            System.out.println(response.statusCode());
+            System.out.println("order error " + response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Order Error");
+
+
+            alert.setContentText(response.body());
+            alert.show();
+        }
+        JSONObject jsonObject = new JSONObject(response.body());
+        System.out.println(jsonObject.toString(4));
+//        {
+//            "orderCreateTransaction": {
+//            "accountID": "001-001-2783446-002",
+//                    "reason": "CLIENT_ORDER",
+//                    "requestID": "25063993365991929",
+//                    "instrument": "EUR_HKD",
+//                    "id": "143215",
+//                    "time": "2023-04-06T04:13:08.773992216Z",
+//                    "units": "1000",
+//                    "batchID": "143215",
+//                    "type": "MARKET_ORDER",
+//                    "userID": 2783446,
+//                    "timeInForce": "FOK",
+//                    "positionFill": "DEFAULT"
+//        },
+//            "orderCancelTransaction": {
+//            "accountID": "001-001-2783446-002",
+//                    "reason": "INSUFFICIENT_MARGIN",
+//                    "orderID": "143215",
+//                    "requestID": "25063993365991929",
+//                    "id": "143216",
+//                    "time": "2023-04-06T04:13:08.773992216Z",
+//                    "batchID": "143215",
+//                    "type": "ORDER_CANCEL",
+//                    "userID": 2783446
+//        },
+//            "lastTransactionID": "143216",
+//                "relatedTransactionIDs": [
+//            "143215",
+//                    "143216"
+//    ]
+//        }
+
+        String orderId = jsonObject.getJSONObject("orderCreateTransaction").getString("id");
+        System.out.println(orderId);
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("id"));
+        System.out.println(jsonObject.getJSONObject("lastTransactionID"));
+        System.out.println(jsonObject.getJSONObject("relatedTransactionIDs"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getLong("orderID"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getLong("requestID"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getLong("id"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("time"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("batchID"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("type"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("userID"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("timeInForce"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("positionFill"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("reason"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("instrument"));
+        OrderCreateTransaction orderCreateTransaction = new OrderCreateTransaction(jsonObject.getJSONObject("orderCreateTransaction"));
+        OrderCancelTransaction orderCancelTransaction = new OrderCancelTransaction(jsonObject.getJSONObject("orderCancelTransaction"));
+
+        getOrderCreateTransaction.add(orderCreateTransaction);
+        getOrderCancelTransaction.add(orderCancelTransaction);
+
+    }
+
+    private void createSellOrder(@NotNull TradePair tradePair, double price, double size) {
+        //   curl: Create a Sell Order for 100 units
+
+        String symbol = tradePair.toString('_');
+        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" + account_id + "/orders/";
+        System.out.println(uriStr);
+        requestBuilder.uri(URI.create(uriStr));
+//        body=$(cat << EOF
+//        {
+//            "order": {
+//            "units": "-100",
+//                    "instrument": "EUR_USD",
+//                    "timeInForce": "FOK",
+//                    "type": "MARKET",
+//                    "positionFill": "DEFAULT"
+//        }
+//        }
+//        EOF
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
+                "{\n" +
+                        "    \"order\": {\n" +
+                        "        \"price\": \"" + price + "\",\n" +
+                        "        \"timeInForce\": \"FOK\",\n" +
+                        "        \"instrument\": \"" + symbol + "\",\n" +
+                        "        \"units\": \"" + size + "\",\n" +
+                        "        \"type\": \"MARKET\",\n" +
+                        "        \"positionFill\": \"DEFAULT\"\n" +
+                        "    }\n" +
+                        "}"));
+        HttpResponse<String> response;
+        try {
+            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        if (response.statusCode() != 200 || response.statusCode() != 201) {
+            System.out.println(response.statusCode());
+            System.out.println("Order error " + response.body());
+
+
+            Stage stage = new Stage();
+            DialogPane dialogPane = new DialogPane();
+            dialogPane.setContent(new VBox(new Label("order error "), new TextArea(
+                    response.body()
+            )));
+            dialogPane.getStylesheets().add(Objects.requireNonNull(getClass().getResource("/app.css")).toExternalForm());
+
+            dialogPane.getButtonTypes().addAll(
+                    ButtonType.OK,
+                    ButtonType.CANCEL
+            );
+            dialogPane.getStyleClass().add("dialog");
+            dialogPane.setPrefSize(400, 200);
+            dialogPane.setMaxSize(400, 200);
+            dialogPane.setMinSize(400, 200);
+            dialogPane.setMaxWidth(400);
+            dialogPane.setMaxHeight(200);
+            dialogPane.setMinWidth(400);
+            dialogPane.setMinHeight(200);
+
+            dialogPane.setOpacity(0.8);
+            dialogPane.setBackground(new Background(new BackgroundFill(Paint.valueOf("rgba(23,23,189,0.7)"), CornerRadii.EMPTY,
+                    Insets.EMPTY)));
+            Scene scene = new Scene(dialogPane, 800, 600);
+            stage.setScene(scene);
+            stage.show();
+
+
+        }
+        JSONObject jsonObject = new JSONObject(response.body());
+        System.out.println(jsonObject.toString(4));
+        System.out.println(jsonObject.getJSONObject("orderCreateTransaction").getString("id"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("id"));
+        System.out.println(jsonObject.getJSONObject("lastTransactionID"));
+        System.out.println(jsonObject.getJSONObject("relatedTransactionIDs"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("orderID"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("requestID"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("id"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("time"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("batchID"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("type"));
+        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("userID"));
+
+        OrderCreateTransaction orderCreateTransaction = new OrderCreateTransaction(jsonObject.getJSONObject("orderCreateTransaction"));
+        OrderCancelTransaction orderCancelTransaction = new OrderCancelTransaction(jsonObject.getJSONObject("orderCancelTransaction"));
+        getOrderCreateTransaction.add(orderCreateTransaction);
+        getOrderCancelTransaction.add(orderCancelTransaction);
+
+
+        logger.info(
+
+                "Order Create Transaction: " + orderCreateTransaction + "\n" +
+                        "Order Cancel Transaction: " + orderCancelTransaction + "\n" +
+                        "Last Transaction ID: " + jsonObject.getJSONObject("lastTransactionID").toString() + "\n" +
+                        "Related Transaction IDs: " + jsonObject.getJSONObject("relatedTransactionIDs").toString(4) + "\n" +
+                        "Order ID: " + jsonObject.getJSONObject("orderCancelTransaction").getString("orderID") + "\n" +
+                        "Request ID: " + jsonObject.getJSONObject("orderCancelTransaction").getString("requestID") + "\n" +
+                        "ID: " + jsonObject.getJSONObject("orderCancelTransaction").getString("id") + "\n" +
+                        "Time: " + jsonObject.getJSONObject("orderCancelTransaction").getString("time") + "\n"
+        );
+
+    }
+
+    private void createSellEntryOrder(@NotNull TradePair tradePair, double price, double units, double takeProfit, double stopLoss) {
+        //   curl: Create a Sell Entry Order for 10000 EUR_CAD
+
+        String symbol = tradePair.toString('_');
+        String uriStr = url + "/orders";
+        System.out.println(uriStr);
+        requestBuilder.uri(URI.create(uriStr));
+//
+//        body=$(cat << EOF
+//        {
+//            "order": {
+//            "price": "1.2000",
+//                    "timeInForce": "GTC",
+//                    "instrument": "EUR_CAD",
+//                    "units": "10000",
+//                    "clientExtensions": {
+//                "comment": "New idea for trading",
+//                        "tag": "strategy_9",
+//                        "id": "my_order_100"
+//            },
+//            "type": "MARKET_IF_TOUCHED",
+//                    "positionFill": "DEFAULT"
+//        }
+//        }
+//        EOF
+//)
+
+        String strategy = "CryptoInvestor strategy";
+
+        requestBuilder.POST(
+                HttpRequest.BodyPublishers.ofString(
+                        "{\n" +
+                                "    \"order\": {\n" +
+                                "        \"price\": \"" + price + "\",\n" +
+                                "        \"timeInForce\": \"GTC\",\n" +
+                                "        \"instrument\": \"" + symbol + "\",\n" +
+                                "        \"units\": \"" + units + "\",\n" +
+                                "        \"clientExtensions\": {\n" +
+                                "            \"comment\": \"" + strategy + "\",\n" +
+                                "            \"tag\": \"strategy_9\",\n" +
+                                "            \"id\": \"" + getOrderId() + "\"\n" +
+                                "        },\n" +
+                                "        \"type\": \"MARKET_IF_TOUCHED\",\n" +
+                                "        \"positionFill\": \"DEFAULT\"\n" +
+                                "    }\n" +
+                                "}"));
+
+
+        HttpResponse<String> response;
+        try {
+            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        if (response.statusCode() != 200 || response.statusCode() != 201) {
+            System.out.println(response.statusCode());
+            System.out.println("order error " + response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Order Error");
+
+
+            alert.setContentText(response.body());
+            alert.show();
+        }
+        JSONObject jsonObject = new JSONObject(response.body());
+        System.out.println(jsonObject.toString(4));
+        String orderId = jsonObject.getString("id");
+        System.out.println(orderId);
+        System.out.println(jsonObject.getString("status"));
+        System.out.println(jsonObject.getString("clientExtensions"));
+        System.out.println(jsonObject.getString("timeInForce"));
+        System.out.println(jsonObject.getString("side"));
+        System.out.println(jsonObject.getString("price"));
+        System.out.println(jsonObject.getString("quantity"));
+        System.out.println(jsonObject.getString("filledQuantity"));
+        System.out.println(jsonObject.getString("remainingQuantity"));
+        System.out.println(jsonObject.getString("fills"));
 
     }
 
@@ -1301,38 +1697,95 @@ public class Oanda extends Exchange {
         return null;
     }
 
-    @Override
-    public void createOrder(@NotNull TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, Side buy, double quantity, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException {
+    private void createBuyEntryOrder(TradePair tradePair, Side side, double price, double size, double takeProfit,
+                                     double stopLoss) {
+        //    curl: Create a Buy Entry Order for 10000 EUR_CAD
+//        body=$(cat << EOF
+//        {
+//            "order": {
+//            "price": "1.2000",
+//                    "timeInForce": "GTC",
+//                    "instrument": "EUR_CAD",
+//                    "units": "10000",
+//                    "clientExtensions": {
+//                "comment": "New idea for trading",
+//                        "tag": "strategy_9",
+//                        "id": "my_order_100"
+//            },
+//            "type": "MARKET_IF_TOUCHED",
+//                    "positionFill": "DEFAULT"
+//        }
+//        }
+//        EOF
+//)
+//
+//        curl \
+//        -X POST \
+//        -H "Content-Type: application/json" \
+//        -H "Authorization: Bearer <AUTHENTICATION TOKEN>" \
+//        -d "$body" \
+//        "https://api-fxtrade.oanda.com/v3/accounts/<ACCOUNT>/orders"
 
-        String url1 = url + "/order/" + tradePair.toString('_');
-        Map<String, String> params = new HashMap<>();
-        params.put("type", "limit");
-        params.put("side", "buy");
-        params.put("price", String.valueOf(price));
-        params.put("quantity", String.valueOf(quantity));
-        params.put("stop_price", String.valueOf(stopPrice));
-        params.put("take_profit_price", String.valueOf(takeProfitPrice));
-        params.put("time_in_force", "GTC");
-        params.put("post_only", "false");
-        params.put("fill_or_kill", "true");
-        //  params.put("client_order_id", UUID.randomUUID().toString());
+        String symbol = tradePair.toString('_');
+        String uriStr = url + "/orders";
+        System.out.println(uriStr);
+        requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString("{\"order\": {\"price\": \""
+                + price + "\", \"timeInForce\": \"GTC\", \"instrument\": \"" + symbol + "\", \"units\": \"" + size + "\", \"clientExtensions\": {\"comment\": \"New idea for trading\", \"tag\": \"strategy_9\", \"id\": \"my_order_100\"}, \"type\": \"MARKET_IF_TOUCHED\"," +
+                "\"positionFill\": \"DEFAULT\"}}"));
+        HttpResponse<String> response;
+        try {
+            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        if (response.statusCode() != 200 || response.statusCode() != 201) {
+            System.out.println(response.statusCode());
+            System.out.println("order error " + response.body());
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Order Error");
 
-        requestBuilder.uri(URI.create(url1));
-        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(params.toString()));
-        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        logger.info(response.body());
-        if (response.statusCode() == 201) {
-            logger.info("Order created");
-            logger.info(response.body());
+
+            alert.setContentText(response.body());
+            alert.show();
         } else {
-            logger.info("Order creation failed");
+            JSONObject jsonObject = new JSONObject(response.body());
+
+            System.out.println(jsonObject.toString(4));
+        }
+
+
+    }
+
+    public void CloseAllOrders() throws IOException, InterruptedException {
+        String uriStr = url + "/cancel-all";
+        System.out.println(uriStr);
+        HttpRequest.Builder request = HttpRequest.newBuilder();
+        requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.DELETE();
+        HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.statusCode());
+        System.out.println(response.body());
+        if (response.statusCode() != 200) {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setTitle("Error");
             alert.setHeaderText(null);
-            alert.setContentText(String.valueOf(response.body()));
+            alert.setContentText(response.body());
             alert.showAndWait();
+            TelegramClient.sendMessage("Error: " + response.body());
+        } else {
+            JSONObject jsonObject = new JSONObject(response.body());
+
+            TelegramClient.sendMessage(jsonObject.toString(4));
+            System.out.println(jsonObject.toString(4));
         }
+
     }
+
 
     @Override
     public void closeAllOrders() throws IOException, InterruptedException {
@@ -1366,6 +1819,75 @@ public class Oanda extends Exchange {
         return true;
     }
 
+    @Override
+    public void getPositionBook(TradePair tradePair) throws IOException, InterruptedException {
+        String url1 = positionBookUrl;
+        requestBuilder.uri(URI.create(url1));
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info(response.body());
+        if (response.statusCode() == 200) {
+            JSONObject jsonObject = new JSONObject(response.body());
+            logger.info(jsonObject.toString());
+
+            Account account = new Account(jsonObject.getJSONObject("account"));
+            logger.info("account: " + account);
+            logger.info("Commission " + account.commission);
+
+            System.out.println(jsonObject.getJSONObject("account").getString("currency"));
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error getting position book");
+            alert.setContentText(
+                    "Error getting position book\n" +
+                            "Status Code: " + response.statusCode() + "\n" +
+                            "Response: " + response.body()
+            );
+            alert.show();
+            logger.error(alert.toString());
+
+        }
+
+
+    }
+
+    @Override
+    public void getOpenOrder(TradePair tradePair) throws IOException, InterruptedException {
+        String url1 = url + "orders/" + tradePair.toString('_');
+        requestBuilder.uri(URI.create(url1));
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        logger.info(response.body());
+        if (response.statusCode() == 200) {
+            JSONObject jsonObject = new JSONObject(response.body());
+            logger.info(jsonObject.toString());
+
+            Account account = new Account(jsonObject.getJSONObject("account"));
+            logger.info("account: " + account);
+            logger.info("Commission " + account.commission);
+
+            System.out.println(jsonObject.getJSONObject("account").getString("currency"));
+        } else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error getting open order");
+            alert.setContentText(
+                    "Error getting open order\n" +
+                            "Status Code: " + response.statusCode() + "\n" +
+                            "Response: " + response.body()
+            );
+            alert.show();
+            logger.error(alert.toString());
+
+        }
+    }
+
+    public String getApi_secret() {
+        return api_secret;
+    }
+
+    public void setApi_secret(String api_secret) {
+        this.api_secret = api_secret;
+    }
 
     static abstract class CoinbaseCandleDataSupplier extends CandleDataSupplier {
         private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
@@ -1423,14 +1945,8 @@ public class Oanda extends Exchange {
             }
             granularity = str + x;
 
-            uriStr = "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair.toString('_') + "/candles?price=BA&from=2016-10-17T15%3A00%3A00.000000000Z&granularity=" + granularity
-            ;
-//            "https://api-fxtrade.oanda.com/v3/instruments/" +
-//                    tradePair.toString('_') +
-//                    "/candles?count=6&price=M&granularity="
-//                    + granularity
-
-            // https://api-fxtrade.oanda.com/v3/instruments/EUR_USD/candles?count=6&price=M&granularity=S5
+            uriStr = "https://api-fxtrade.oanda.com/v3/instruments/" + tradePair.toString('_') +
+                    "/candles?count=" + numCandles + "&price=M&granularity=" + granularity;
 
             //  String uriStr = "https://api.pro.coinbase.com/" +
 //                    "products/" + tradePair.toString('-') + "/candles" +
@@ -1444,6 +1960,50 @@ public class Oanda extends Exchange {
             }
             requestBuilder.uri(URI.create(uriStr));
             //requestBuilder.header("CB-AFTER", String.valueOf(afterCursor.get()));
+
+//            Request
+//            Request Parameters
+//            Name	Located In	Type	Description
+//            Authorization	header	string	The authorization bearer token previously obtained by the client [required]
+//            Accept-Datetime-Format	header	AcceptDatetimeFormat	Format of DateTime fields in the request and response.
+//                    accountID	path	AccountID	Account Identifier [required]
+//            instrument	path	InstrumentName	Name of the Instrument [required]
+//            price	query	PricingComponent	The Price component(s) to get candlestick data for. [default=M]
+//            granularity	query	CandlestickGranularity	The granularity of the candlesticks to fetch [default=S5]
+//            count	query	integer	The number of candlesticks to return in the response. Count should not be specified if both the start and end parameters are provided, as the time range combined with the granularity will determine the number of candlesticks to return. [default=500, maximum=5000]
+//            from	query	DateTime	The start of the time range to fetch candlesticks for.
+//            to	query	DateTime	The end of the time range to fetch candlesticks for.
+//            smooth	query	boolean	A flag that controls whether the candlestick is “smoothed” or not. A smoothed candlestick uses the previous candle’s close price as its open price, while an unsmoothed candlestick uses the first price from its time range as its open price. [default=False]
+//            includeFirst	query	boolean	A flag that controls whether the candlestick that is covered by the from time should be included in the results. This flag enables clients to use the timestamp of the last completed candlestick received to poll for future candlesticks but avoid receiving the previous candlestick repeatedly. [default=True]
+//            dailyAlignment	query	integer	The hour of the day (in the specified timezone) to use for granularities that have daily alignments. [default=17, minimum=0, maximum=23]
+//            alignmentTimezone	query	string	The timezone to use for the dailyAlignment parameter. Candlesticks with daily alignment will be aligned to the dailyAlignment hour within the alignmentTimezone. Note that the returned times will still be represented in UTC. [default=America/New_York]
+//            weeklyAlignment	query	WeeklyAlignment	The day of the week used for granularities that have weekly alignment. [default=Friday]
+//            units	query	DecimalNumber	The number of units used to calculate the volume-weighted average bid and ask prices in the returned candles. [default=1]
+//
+
+
+            boolean smooth = true;
+            boolean includeFirst = true;
+            String dailyAlignment = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+                    + "T00:00:00Z";
+            String alignmentTimezone = "America/New_York";
+            String weeklyAlignment = "Wednesday";
+            int units = 2;
+            String body =
+                    "{\n" +
+                            "  \"instrument\": \"" + tradePair.toString('_') + "\",\n" +
+                            "  \"price\": \"" + granularity + "\",\n" +
+                            "  \"count\": " + numCandles + ",\n" +
+                            "  \"from\": \"" + startDateString + "\",\n" +
+                            "  \"to\": \"" + endDateString + "\",\n" +
+                            "  \"smooth\": " + smooth + ",\n" +
+                            "  \"includeFirst\": " + includeFirst + ",\n" +
+                            "  \"dailyAlignment\": " + dailyAlignment + ",\n" +
+                            "  \"alignmentTimezone\": \"" + alignmentTimezone + "\",\n" +
+                            "  \"weeklyAlignment\": \"" + weeklyAlignment + "\",\n" +
+                            "  \"units\": " + units + "\n" +
+                            "}";
+
             return client.sendAsync(
                             requestBuilder.build(),
                             HttpResponse.BodyHandlers.ofString())
@@ -1454,41 +2014,44 @@ public class Oanda extends Exchange {
                         try {
                             res = OBJECT_MAPPER.readTree(response);
 
-                            if (res.has("message")) {
-
-                                Alert alert = new Alert(Alert.AlertType.ERROR);
-                                alert.setTitle("Error");
-                                alert.setHeaderText(null);
-                                alert.setContentText(res.get("message").asText());
-                                alert.showAndWait();
-                                return
-                                        Collections.emptyList();
-                            }
-
                         } catch (JsonProcessingException ex) {
                             throw new RuntimeException(ex);
                         }
 
                         List<CandleData> candleData = null;
                         if (!res.isEmpty()) {
+
+                            logger.info("Oanda candle: " + res);
+
+
                             // Remove the current in-progress candle
+                            logger.info("Removing in-progress candle for " + tradePair.toString('_') + " " + startTime);
+                            //  logger.info("Oanda size " + res.get("candles").size());
 
                             int time = (int) Date.from(Instant.parse(res.findValue("time").asText())).getTime();//("time").asText())).getTime();
                             logger.info("Oanda time " + time);
+
+                            ArrayNode candles = (ArrayNode) res.get("candles");
                             if (time + secondsPerCandle > endTime.get()) {
-                                ((ArrayNode) res).remove(0);
-                                logger.info("Oanda remove " + res.get(time).asText());
+                                candles.remove(res.get("candles").size() - 1);
+
+                                logger.info("Oanda remove " + res.findValue("time").asText());
                             }
                             endTime.set(startTime);
                             candleData = new ArrayList<>();
-                            for (JsonNode candle : res.get("candles")) {
+
+
+                            for (JsonNode candle : candles) {
+                                double volume = candle.findValue("volume").asDouble();
+                                logger.info("Oanda volume " + volume);
                                 candleData.add(new CandleData(
-                                        candle.get("ask").get("o").asDouble(),  // open price
-                                        candle.get("ask").get("c").asDouble(),  // close price
-                                        candle.get("ask").get("h").asDouble(),  // high price
-                                        candle.get("ask").get("l").asDouble(),  // low price
-                                        (int) Date.from(Instant.parse(candle.findValue("time").asText())).getTime(),     // open time
-                                        candle.findValue("volume").asDouble()   // volume
+                                        candle.get("mid").get("o").asDouble(),  // open price
+                                        candle.get("mid").get("c").asDouble(),  // close price
+                                        candle.get("mid").get("h").asDouble(),  // high price
+                                        candle.get("mid").get("l").asDouble(),  // low price
+
+                                        time,  // time
+                                        volume
                                 ));
                                 logger.info(
                                         "CandleData: " + candleData

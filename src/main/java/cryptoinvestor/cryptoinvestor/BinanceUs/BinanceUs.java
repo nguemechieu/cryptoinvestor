@@ -10,7 +10,6 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cryptoinvestor.cryptoinvestor.Currency;
 import cryptoinvestor.cryptoinvestor.*;
-import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
@@ -611,7 +610,7 @@ public class BinanceUs extends Exchange {
      * This method only needs to be implemented to support live syncing.
      */
     @Override
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt) {
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isAutoTrade) {
         Objects.requireNonNull(tradePair);
         Objects.requireNonNull(stopAt);
 
@@ -881,13 +880,14 @@ public class BinanceUs extends Exchange {
     }
 
     @Override
-    public String getPrice() {
-        return null;
+    public double getLivePrice(TradePair tradePair) {
+        return 0;
+
     }
 
 
     @Override
-    public String getVolume() {
+    public ArrayList<Double> getVolume() {
         return null;
     }
 
@@ -3343,12 +3343,14 @@ public class BinanceUs extends Exchange {
         return currencies;
     }
 
+
     @Override
-    public void createOrder(@NotNull TradePair tradePair, POSITION_FILL defaultFill, double price, ENUM_ORDER_TYPE market, @NotNull Side buy, double quantity, double stopPrice, double takeProfitPrice) throws IOException, InterruptedException {
+    public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size,
+                            @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
 
         URI uri = URI.create("https://api.binance.us/api/v3/order/symbol?" + tradePair.toString('/')
-                + "&side=" + buy + "&type=LIMIT&timeInForce=GTC&quantity=" + quantity
-                + "&price=" + price + "&stopPrice=" + stopPrice + "&takeProfitPrice="
+                + "&side=" + side + "&type=LIMIT&timeInForce=GTC&quantity=" + size
+                + "&price=" + price + "&stopPrice=" + stopLoss + "&takeProfitPrice="
                 + takeProfitPrice + "&newClientOrderId=" + UUID.randomUUID());
 
         requestBuilder.uri(uri);
@@ -3525,6 +3527,21 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
         return null;
     }
 
+    @Override
+    public void getPositionBook(TradePair tradePair) throws IOException, InterruptedException {
+
+    }
+
+    @Override
+    public void getOpenOrder(TradePair tradePair) {
+
+    }
+
+    @Override
+    public void getOrderHistory(TradePair tradePair) throws IOException, InterruptedException {
+
+    }
+
 
     @Override
     public void cancelOrder(long orderID) throws IOException, InterruptedException {
@@ -3698,7 +3715,7 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
     }
 
     @Override
-    public List<Objects> getOrderBook() throws IOException, InterruptedException {
+    public List<OrderBook> getOrderBook(TradePair tradePair) throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(url + "orderBook"));
         requestBuilder.GET();
         HttpResponse<String> response = client.send(

@@ -87,8 +87,6 @@ public class TradingWindow extends AnchorPane {
 
                             "77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99"
 
-                            , "001-001-2783446-002"
-
                     );
                     break;
                 case POLONIEX:

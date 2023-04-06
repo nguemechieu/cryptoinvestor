@@ -26,6 +26,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
@@ -37,18 +38,21 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    private final Account connectionEstablished;
+    Account connectionEstablished;
 
 
 //    curl \
 //            -H "Authorization: Bearer <AUTHENTICATION TOKEN>" \
 //            "https://stream-fxtrade.oanda.com/v3/accounts/<ACCOUNT>/pricing/stream?instruments=EUR_USD%2CUSD_CAD"
 
-    public OandaWebSocket(Account connectionEstablished) {
-        super(URI.create("ws://api-fxtrade.oanda.com/v3/accounts/001-001-2783446-002/pricing/stream?instruments=" + "EUR_USD&USD_CAD"), new Draft_6455());
+
+    public OandaWebSocket(String accountId) {
+        super(URI.create("ws://stream-fxtrade.oanda.com/v3/accounts/" + accountId + "/pricing/stream?instruments=EUR_USD%2CUSD_CAD"),
+
+                new Draft_6455());
 
 
-        this.connectionEstablished = connectionEstablished;
+        this.connectionEstablished = new Account();
     }
 
     @Override
@@ -61,11 +65,16 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
             throw new RuntimeException(ex);
         }
 
-        if (messageJson.has("event") && messageJson.get("event").asText().equalsIgnoreCase("info")) {
+        //                    {"asks":[{"liquidity":10000000,"price":"1.11704"},{"liquidity":10000000,"price":"1.11706"}],"bids":                        [{"liquidity":10000000,"price":"1.11690"},{"liquidity":10000000,"price":"1.11688"}],"closeoutAsk":"1.11708","closeoutBid":"1.11686","instrument":"EUR_USD","status":"tradeable","time":"2016-09-20T15:05:47.960449532Z"}
+//                    {"asks":[{"liquidity":1000000,"price":"1.32149"},{"liquidity":2000000,"price":"1.32150"},{"liquidity":5000000,"price":"1.32151"},{"liquidity":10000000,"price":"1.32153"}],"bids":[{"liquidity":1000000,"price":"1.32128"},{"liquidity":2000000,"price":"1.32127"},{"liquidity":5000000,"price":"1.32126"},{"liquidity":10000000,"price":"1.32124"}],"closeoutAsk":"1.32153","closeoutBid":"1.32124","instrument":"USD_CAD","status":"tradeable","time":"2016-09-20T15:05:48.157162748Z"}
+//                    {"asks":[{"liquidity":1000000,"price":"1.32145"},{"liquidity":2000000,"price":"1.32146"},{"liquidity":5000000,"price":"1.32147"},{"liquidity":10000000,"price":"1.32149"}],"bids":[{"liquidity":1000000,"price":"1.32123"},{"liquidity":2000000,"price":"1.32122"},{"liquidity":5000000,"price":"1.32121"},{"liquidity":10000000,"price":"1.32119"}],"closeoutAsk":"1.32149","closeoutBid":"1.32119","instrument":"USD_CAD","status":"tradeable","time":"2016-09-20T15:05:48.272079801Z"}
+//                    {"asks":[{"liquidity":1000000,"price":"1.32147"},{"liquidity":2000000,"price":"1.32148"},{"liquidity":5000000,"price":"1.32149"},{"liquidity":10000000,"price":"1.32151"}],"bids":[{"liquidity":1000000,"price":"1.32126"},{"liquidity":2000000,"price":"1.32125"},{"liquidity":5000000,"price":"1.32124"},{"liquidity":10000000,"price":"1.32122"}],"closeoutAsk":"1.32151","closeoutBid":"1.32122","instrument":"USD_CAD","status":"tradeable","time":"2016-09-20T15:05:48.540813660Z"}
+//                    {"time":"2016-09-20T15:05:50.163791738Z","type":"HEARTBEAT"}
+
+        if (messageJson.has("event") && messageJson.get("event").asText().equalsIgnoreCase("subscribe")) {
             connectionEstablished.setValue(true);
             logger.info(
-                    "oanda websocket client: connection established with account: " +
-                            messageJson.get("account_id").asText()
+                    "oanda websocket client: connection established with account: "
             );
         }
 
@@ -74,25 +83,23 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
             tradePair = parseTradePair(messageJson);
         } catch (CurrencyNotFoundException exception) {
             logger.error("oanda websocket client: could not initialize trade pair: " +
-                    messageJson.get("product_id").asText(), exception);
+                    messageJson.get("asks").asText(), exception);
         }
 
         Side side = messageJson.has("side") ? Side.getSide(messageJson.get("side").asText()) : null;
 
         switch (messageJson.get("type").asText()) {
-            case "heartbeat" ->
-                    sendText(OBJECT_MAPPER.createObjectNode().put("type", "heartbeat").put("on","").toPrettyString(),false);
+            case "HEARTBEAT" ->
+                    sendText(OBJECT_MAPPER.createObjectNode().put("type", "HEARTBEAT").put("on", true).toPrettyString(), false);
             case "match" -> {
                 if (liveTradeConsumers.containsKey(tradePair)) {
                     assert tradePair != null;
                     Trade newTrade;
                     try {
                         newTrade = new Trade(tradePair,
-                                messageJson.get("price").asDouble(),
-
-                                messageJson.get("size").asDouble(),
-
-                                side, messageJson.at("trade_id").asLong(),
+                                messageJson.get("asks").get("price").asDouble(),
+                                messageJson.get("liquidity").asDouble(),
+                                side, Long.parseLong(UUID.randomUUID().toString()),
                                 Date.from(Instant.from(ISO_INSTANT.parse(messageJson.get("time").asText()))).getTime());
                     } catch (IOException | InterruptedException | ParseException |
                              URISyntaxException e) {
@@ -109,18 +116,18 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
     }
 
     private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
-        final String productId = messageJson.get("product_id").asText();
-        final String[] products = productId.split("-");
+        final String productId = messageJson.get("instrument").asText();
+        final String[] products = productId.split("_");
         TradePair tradePair;
-        if (products[0].equalsIgnoreCase("BTC")) {
-            tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
+        if (products[0].equalsIgnoreCase("USD")) {
+            tradePair = TradePair.parse(productId, "_", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
         } else {
             // products[0] == "ETH"
             if (products[1].equalsIgnoreCase("usd")) {
-                tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
+                tradePair = TradePair.parse(productId, "_", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
             } else {
                 // productId == "ETH-BTC"
-                tradePair = TradePair.parse(productId, "-", new Pair<>(CryptoCurrency.class, CryptoCurrency.class));
+                tradePair = TradePair.parse(productId, "_", new Pair<>(CryptoCurrency.class, CryptoCurrency.class));
             }
         }
 
@@ -132,7 +139,7 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
     public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
 
         sendText(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
-                .put("product_id", tradePairs.toString()).toPrettyString(), false);
+                .put("ask", tradePairs.toString()).toPrettyString(), true);
         liveTradeConsumers.put(tradePairs.iterator().next(), liveTradesConsumer);
 
     }
