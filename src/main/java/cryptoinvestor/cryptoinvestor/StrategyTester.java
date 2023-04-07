@@ -5,14 +5,14 @@ import javafx.stage.Stage;
 
 public class StrategyTester extends Stage {
 
-    public StrategyTester() {
+    public StrategyTester(Exchange exchange) {
         super();
         setTitle(
                 "Strategy Tester"
         );
         setResizable(false);
         setScene(new Scene(
-                new StrategyTesterView()
+                new StrategyTesterView(exchange)
         ));
         show();
     }

@@ -157,6 +157,11 @@ public class Kucoin extends Exchange {
 
 
     @Override
+    public ExchangeWebSocketClient getWebsocketClient() {
+        return null;
+    }
+
+    @Override
     public Set<Integer> getSupportedGranularities() {
         return
                 Set.of(
@@ -574,9 +579,9 @@ public class Kucoin extends Exchange {
     }
 
     @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+    public List<String> getTradePair() throws IOException, InterruptedException {
         ArrayList<TradePair> tradePairs = new ArrayList<>();
-        return tradePairs;
+        return null;
     }
 
     @Override

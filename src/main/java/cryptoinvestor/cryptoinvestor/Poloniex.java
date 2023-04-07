@@ -174,6 +174,11 @@ public class Poloniex extends Exchange {
 
 
     @Override
+    public ExchangeWebSocketClient getWebsocketClient() {
+        return null;
+    }
+
+    @Override
     public Set<Integer> getSupportedGranularities() {
         return
                 Set.of(
@@ -575,16 +580,40 @@ public class Poloniex extends Exchange {
     @Override
     public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size, @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
 
+        requestBuilder.uri(
+                URI.create("https://api.exchange.coinbase.com/orders"));
+        requestBuilder.method("POST", HttpRequest.BodyPublishers.ofString(
+                "{\"symbol\":\"" + tradePair.toString('-') + "\",\"side\":\"" + side + "\",\"type\":\"" + orderType + "\",\"price\":\"" + price + "\",\"size\":\"" + size + "\",\"timestamp\":\"" + timestamp + "\",\"stop_loss\":\"" + stopLoss + "\",\"take_profit\":\"" + takeProfit + "\",\"take_profit_price\":\"" + takeProfitPrice + "\"}"
+        ));
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 200) {
+            JSONObject jsonObject = new JSONObject(response.body());
+            System.out.println(jsonObject.toString(4));
+        } else {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+        }
     }
 
 
     @Override
-    public void closeAllOrders() {
+    public void closeAllOrders() throws IOException, InterruptedException {
+        requestBuilder.uri(
+                URI.create("https://api.exchange.coinbase.com/orders"));
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() == 200) {
+            JSONObject jsonObject = new JSONObject(response.body());
+            System.out.println(jsonObject.toString(4));
+        } else {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+        }
 
     }
 
+
     @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+    public List<String> getTradePair() throws IOException, InterruptedException {
         requestBuilder.uri(
                 URI.create("https://api.poloniex.com/trade-pairs"));
 //        ;
@@ -603,7 +632,7 @@ public class Poloniex extends Exchange {
 //            System.out.println(response.statusCode());
 //            System.out.println(response.body());
 //        }
-        return new ArrayList<>();
+        return null;
     }
 
     @Override

@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.time.Instant;
@@ -329,7 +330,7 @@ public class CandleStickChart extends Region {
                 -(priceText.getLayoutBounds().getWidth())
         );
         priceText.setTranslateY(price);
-        priceText.setText("Current :" + price + "$");
+        priceText.setText("Current :" + price + tradePair.counterCurrency.symbol);
         priceText.setFill(Color.WHITE);
 
         priceText.setOnMouseEntered(event -> priceText.setFill(Color.RED));

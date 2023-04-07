@@ -11,7 +11,6 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import cryptoinvestor.cryptoinvestor.*;
 import cryptoinvestor.cryptoinvestor.Coinbase.Candle;
 import cryptoinvestor.cryptoinvestor.Coinbase.Fill;
-import cryptoinvestor.cryptoinvestor.Coinbase.Product;
 import cryptoinvestor.cryptoinvestor.Currency;
 import cryptoinvestor.cryptoinvestor.Coinbase.TransactionSummary;
 import javafx.beans.property.IntegerProperty;
@@ -24,7 +23,6 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import org.java_websocket.handshake.ServerHandshake;
@@ -63,7 +61,7 @@ public class Oanda extends Exchange {
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    private static final Set<TradePair> tradePairs = CurrencyDataProvider.getTradePairs();
+    private final List<String> tradePairs = getTradePair();
     static HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
     private final ArrayList<OrderCancelTransaction> getOrderCancelTransaction = new ArrayList<>();
     static HttpClient client = HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1).build();
@@ -81,7 +79,7 @@ public class Oanda extends Exchange {
     String positionBookUrl = "https://api-fxtrade.oanda.com/v3/instruments/USD_JPY/positionBook";
 
     public Oanda(String account_id, String apiKey)
-            throws TelegramApiException, IOException, NoSuchAlgorithmException {
+            throws TelegramApiException, IOException, NoSuchAlgorithmException, InterruptedException {
         super(webSocketUrl(account_id, apiKey));
 
         this.url = "https://api-fxtrade.oanda.com/v3/accounts/" + account_id;
@@ -149,11 +147,10 @@ public class Oanda extends Exchange {
             logger.info("Oanda: " + accounts.size());
         } else {
             logger.error("Oanda: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
+            new Message(
+                    Message.MessageType.ERROR,
+                    data.statusCode() + " " + data.body()
+            );
             return null;
         }
         return accounts;
@@ -172,11 +169,11 @@ public class Oanda extends Exchange {
             logger.info("Oanda: " + orders.size());
         } else {
             logger.error("Oanda: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
+            new Message(
+                    Message.MessageType.ERROR,
+                    data.statusCode() + " " + data.body()
+            );
+
             return null;
         }
         return orders;
@@ -196,11 +193,11 @@ public class Oanda extends Exchange {
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         if (data.statusCode() != 200) {
             logger.error("Oanda: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
+            new Message(
+                    Message.MessageType.ERROR,
+                    data.statusCode() + " " + data.body()
+            );
+
 
         } else {
             logger.info("   Oanda: " + data.statusCode() + " " + data.body());
@@ -245,11 +242,11 @@ public class Oanda extends Exchange {
             logger.info("Oanda: " + account.toString());
         } else {
             logger.error("Oana: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
+            new Message(
+                    Message.MessageType.ERROR,
+                    data.statusCode() + " " + data.body()
+            );
+
             return null;
         }
         return account;
@@ -313,11 +310,11 @@ public class Oanda extends Exchange {
             logger.info("Oanda: " + order.toString());
         } else {
             logger.error("Oanda: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
+            new Message(
+                    Message.MessageType.ERROR,
+                    data.statusCode() + " " + data.body()
+            );
+
             return null;
         }
         return order;
@@ -334,11 +331,11 @@ public class Oanda extends Exchange {
             logger.info("Oanda: " + product.toString());
         } else {
             logger.error("Oanda: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
+            new Message(
+                    Message.MessageType.ERROR,
+                    data.statusCode() + " " + data.body()
+            );
+
             return null;
         }
         return product;
@@ -350,17 +347,17 @@ public class Oanda extends Exchange {
         HttpResponse<String> data = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         List<Candle> candles;
         if (data.statusCode() == 200) {
-            logger.info("Coinbase: " + data.statusCode() + " " + data.body());
+            logger.info("OANDA: " + data.statusCode() + " " + data.body());
             candles = OBJECT_MAPPER.readValue(data.body(), new TypeReference<>() {
             });
-            logger.info("Coinbase: " + candles.size());
+            logger.info("Oanda: " + candles.size());
         } else {
-            logger.error("Coinbase: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Coinbase Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
+            logger.error("Oanda: " + data.statusCode() + " " + data.body());
+            new Message(
+                    Message.MessageType.ERROR,
+                    data.statusCode() + " " + data.body()
+            );
+
             return null;
         }
         return candles;
@@ -428,14 +425,19 @@ public class Oanda extends Exchange {
             logger.info("Oanda: " + transactionSummary.toString());
         } else {
             logger.error("Oanda: " + data.statusCode() + " " + data.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Oanda Error");
-            alert.setHeaderText(null);
-            alert.setContentText(data.body());
-            alert.showAndWait();
+            new Message(
+                    Message.MessageType.ERROR,
+                    data.statusCode() + " " + data.body()
+            );
+
             return null;
         }
         return transactionSummary;
+    }
+
+    @Override
+    public ExchangeWebSocketClient getWebsocketClient() {
+        return null;
     }
 
     public Set<Integer> getSupportedGranularities() {
@@ -530,11 +532,11 @@ public class Oanda extends Exchange {
             } else if (tradesResponse.has("message")) {
 
 
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.setTitle("oanda Error");
-                alert.setHeaderText("oanda Error");
-                alert.setContentText(tradesResponse.get("message").asText());
-                alert.showAndWait();
+                new Message(
+                        Message.MessageType.ERROR,
+                        tradesResponse.get("message").asText()
+                );
+
 
             } else {
 
@@ -1092,11 +1094,11 @@ public class Oanda extends Exchange {
         System.out.println(response.body());
         if (response.statusCode() != 200 || response.statusCode() != 201) {
             System.out.println(response.statusCode());
-            System.out.println("order error " + response.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Order Error");
-            alert.setContentText(response.body());
-            alert.show();
+            new Message(
+                    Message.MessageType.ERROR,
+                    "Error creating order: " + response.body()
+            )
+            ;
         } else {
             JSONObject jsonObject = new JSONObject(response.body());
 
@@ -1139,12 +1141,12 @@ public class Oanda extends Exchange {
         if (response.statusCode() != 200 || response.statusCode() != 201) {
             System.out.println(response.statusCode());
             System.out.println("order error " + response.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Order Error");
 
-
-            alert.setContentText(response.body());
-            alert.show();
+            new Message(
+                    Message.MessageType.ERROR,
+                    "Error creating order: " + response.body()
+            )
+            ;
         }
         JSONObject jsonObject = new JSONObject(response.body());
         System.out.println(jsonObject.toString(4));
@@ -1212,13 +1214,13 @@ public class Oanda extends Exchange {
         System.out.println(response.body());
         if (response.statusCode() != 200 || response.statusCode() != 201) {
             System.out.println(response.statusCode());
-            System.out.println("order error " + response.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Order Error");
+            new Message(
+
+                    Message.MessageType.ERROR,
+                    "Error creating order: " + response.body()
+            );
 
 
-            alert.setContentText(response.body());
-            alert.show();
         } else {
             JSONObject jsonObject = new JSONObject(response.body());
 
@@ -1279,12 +1281,11 @@ public class Oanda extends Exchange {
         if (response.statusCode() != 200 || response.statusCode() != 201) {
             System.out.println(response.statusCode());
             System.out.println("order error " + response.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Order Error");
 
-
-            alert.setContentText(response.body());
-            alert.show();
+            new Message(
+                    Message.MessageType.ERROR,
+                    "Error creating order: " + response.body()
+            );
         }
         JSONObject jsonObject = new JSONObject(response.body());
         System.out.println(jsonObject.toString(4));
@@ -1321,12 +1322,11 @@ public class Oanda extends Exchange {
         if (response.statusCode() != 200 || response.statusCode() != 201) {
             System.out.println(response.statusCode());
             System.out.println("order error " + response.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Order Error");
 
-
-            alert.setContentText(response.body());
-            alert.show();
+            new Message(
+                    Message.MessageType.ERROR,
+                    "Error creating order: " + response.body()
+            );
         }
         JSONObject jsonObject = new JSONObject(response.body());
         System.out.println(jsonObject.toString(4));
@@ -1460,17 +1460,7 @@ public class Oanda extends Exchange {
         }
         JSONObject jsonObject = new JSONObject(response.body());
         System.out.println(jsonObject.toString(4));
-        System.out.println(jsonObject.getJSONObject("orderCreateTransaction").getString("id"));
-        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("id"));
-        System.out.println(jsonObject.getJSONObject("lastTransactionID"));
-        System.out.println(jsonObject.getJSONObject("relatedTransactionIDs"));
-        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("orderID"));
-        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("requestID"));
-        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("id"));
-        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("time"));
-        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("batchID"));
-        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("type"));
-        System.out.println(jsonObject.getJSONObject("orderCancelTransaction").getString("userID"));
+
 
         OrderCreateTransaction orderCreateTransaction = new OrderCreateTransaction(jsonObject.getJSONObject("orderCreateTransaction"));
         OrderCancelTransaction orderCancelTransaction = new OrderCancelTransaction(jsonObject.getJSONObject("orderCancelTransaction"));
@@ -1551,12 +1541,10 @@ public class Oanda extends Exchange {
         if (response.statusCode() != 200 || response.statusCode() != 201) {
             System.out.println(response.statusCode());
             System.out.println("order error " + response.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Order Error");
-
-
-            alert.setContentText(response.body());
-            alert.show();
+            new Message(
+                    Message.MessageType.ERROR,
+                    response.body()
+            );
         }
         JSONObject jsonObject = new JSONObject(response.body());
         System.out.println(jsonObject.toString(4));
@@ -1744,12 +1732,12 @@ public class Oanda extends Exchange {
         if (response.statusCode() != 200 || response.statusCode() != 201) {
             System.out.println(response.statusCode());
             System.out.println("order error " + response.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Order Error");
 
-
-            alert.setContentText(response.body());
-            alert.show();
+            new Message(
+                    Message.MessageType.ERROR,
+                    "Order Error" +
+                            response.body()
+            );
         } else {
             JSONObject jsonObject = new JSONObject(response.body());
 
@@ -1771,16 +1759,17 @@ public class Oanda extends Exchange {
         if (response.statusCode() != 200) {
             System.out.println(response.statusCode());
             System.out.println(response.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText(response.body());
-            alert.showAndWait();
-            TelegramClient.sendMessage("Error: " + response.body());
+
+            new Message(
+                    Message.MessageType.ERROR,
+                    "Order Error" +
+                            response.body()
+            );
+
         } else {
             JSONObject jsonObject = new JSONObject(response.body());
 
-            TelegramClient.sendMessage(jsonObject.toString(4));
+            //   TelegramClient.sendMessage(jsonObject.toString(4));
             System.out.println(jsonObject.toString(4));
         }
 
@@ -1798,13 +1787,104 @@ public class Oanda extends Exchange {
     }
 
     @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
-        List<TradePair> tradePairs = new ArrayList<>();
-        for (Currency currency : getAvailableSymbols()) {
-            tradePairs.add(new TradePair(currency.getCode(), "USD"));
+    public List<String> getTradePair() throws IOException, InterruptedException {
 
+        String uriStr = "https://api-fxtrade.oanda.com/v3/accounts/" + account_id + "/instruments";
+        System.out.println(uriStr);
+
+        requestBuilder.uri(URI.create(uriStr));
+        requestBuilder.GET();
+        HttpResponse<String> response;
+        try {
+            response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
         }
-        return tradePairs;
+        System.out.println(response.statusCode());
+        System.out.println("Oanda Instruments " + response.body());
+
+
+//        "instruments": [
+//        {
+//            "displayName": "USD/THB",
+//                "displayPrecision": 3,
+//                "marginRate": "0.05",
+//                "maximumOrderUnits": "100000000",
+//                "maximumPositionSize": "0",
+//                "maximumTrailingStopDistance": "100.000",
+//                "minimumTradeSize": "1",
+//                "minimumTrailingStopDistance": "0.050",
+//                "name": "USD_THB",
+//                "pipLocation": -2,
+//                "tradeUnitsPrecision": 0,
+//                "type": "CURRENCY"
+//        },
+
+        Instruments instruments = new Instruments(
+                "USD_THB",
+                "CURRENCY",
+                "USD/THB",
+                -2,
+                0,
+                5,
+                1,
+                5,
+                50,
+                100.000,
+                100.000,
+                5,
+                "",
+                "t1"
+        );
+        out.println("Instruments " + instruments);
+
+
+        List<String> data = new ArrayList<>();
+        if (response.statusCode() != 200) {
+            System.out.println(response.statusCode());
+            System.out.println(response.body());
+
+        } else {
+
+
+            JsonNode jsonNode;
+            try {
+                jsonNode = new ObjectMapper().readTree(response.body());
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+            JsonNode instrumentsNode = jsonNode.get("instruments");
+            // String name, String type, String displayName, int pipLocation, int displayPrecision, int tradeUnitsPrecision, int minimumTradeSize, int maximumTrailingStopDistance, int minimumTrailingStopDistance, double maximumPositionSize, double maximumOrderUnits, double marginRate, String guaranteedStopLossOrderMode, String tags
+            logger.info("Instruments:  " + instrumentsNode.toString());
+
+            for (JsonNode instrumentNode : instrumentsNode) {
+
+                String symb = instrumentNode.get("displayName").asText();
+
+                if (symb.contains("/") || symb.contains("_")) {
+                    String[] symb1 = symb.split("/");
+                    String[] symb2 = symb1[1].split("_");
+                    logger.info(symb1[0] + " " + symb2[0]);
+                    symb = symb1[0] + "/" + symb2[0];
+                } else {
+                    logger.info(
+                            "Error: " + symb + " is not a valid instrument"
+                    );
+
+                }
+                System.out.println(symb);
+                String symb1 = symb.split("/")[0];
+                String symb2 = symb.split("/")[1];
+
+                data.add(
+                        symb1 + "/" + symb2
+                );
+
+            }
+        }
+        logger.info(data.toString());
+
+        return data;
     }
 
     @Override
@@ -1835,16 +1915,13 @@ public class Oanda extends Exchange {
 
             System.out.println(jsonObject.getJSONObject("account").getString("currency"));
         } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Error getting position book");
-            alert.setContentText(
+
+            new Message(
+                    Message.MessageType.ERROR,
                     "Error getting position book\n" +
                             "Status Code: " + response.statusCode() + "\n" +
                             "Response: " + response.body()
             );
-            alert.show();
-            logger.error(alert.toString());
 
         }
 
@@ -1867,16 +1944,13 @@ public class Oanda extends Exchange {
 
             System.out.println(jsonObject.getJSONObject("account").getString("currency"));
         } else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText("Error getting open order");
-            alert.setContentText(
+
+
+            new Message(
+                    Message.MessageType.ERROR,
                     "Error getting open order\n" +
                             "Status Code: " + response.statusCode() + "\n" +
-                            "Response: " + response.body()
-            );
-            alert.show();
-            logger.error(alert.toString());
+                            "Response: " + response.body());
 
         }
     }

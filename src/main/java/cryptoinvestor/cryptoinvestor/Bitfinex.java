@@ -154,12 +154,18 @@ public class Bitfinex extends Exchange {
 
 
     @Override
+    public ExchangeWebSocketClient getWebsocketClient() {
+        return null;
+    }
+
+    @Override
     public Set<Integer> getSupportedGranularities() {
         return
                 Set.of(
                         60, 60 * 5, 60 * 15, 3600, 3600 * 6,
                         3600 * 60, 3600 * 60 * 24 * 7 * 4, 3600 * 60 * 24 * 7 * 4 * 2, 3600 * 60 * 24 * 7
-                );    }
+                );
+    }
 
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
@@ -574,9 +580,9 @@ public class Bitfinex extends Exchange {
     }
 
     @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+    public List<String> getTradePair() throws IOException, InterruptedException {
 
-        return new ArrayList<>();
+        return null;
 
     }
 

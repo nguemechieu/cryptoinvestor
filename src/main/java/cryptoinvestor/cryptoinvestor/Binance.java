@@ -117,7 +117,12 @@ public class Binance extends Exchange {
     }
 
 
-//    private @Nullable String timestampSignature(
+    @Override
+    public ExchangeWebSocketClient getWebsocketClient() {
+        return null;
+    }
+
+    //    private @Nullable String timestampSignature(
 //            String apiKey,
 //            String passphrase
 //    ) {
@@ -600,15 +605,50 @@ if (response.statusCode() == 200) {
     }
 
     @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException {
-        ArrayList<TradePair> tradePairs = new ArrayList<>();
+    public List<String> getTradePair() throws IOException, InterruptedException {
 
-       for (Currency currency : getAvailableSymbols()) {
-           tradePairs.add(new TradePair(currency.getCode(),"USD"));
+        Set<TradePair> tradePairs =
+                new HashSet<>();
+        requestBuilder.uri(URI.create("https://api.binance.us/api/v3/exchangeInfo"));
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        System.out.println(response.body());
+        if (response.statusCode() == 200) {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+            mapper.registerModule(new JavaTimeModule());
+            JsonNode root = mapper.readTree(response.body());
+            ArrayNode symbols = (ArrayNode) root.get("symbols");
+            List<Currency> currencies = new ArrayList<>();
+            for (int i = 0; i < symbols.size(); i++) {
+                currencies.add(new Currency(CurrencyType.CRYPTO,
+                        symbols.get(i).get("baseAsset").asText(),
+                        symbols.get(i).get("baseAsset").asText(),
+                        symbols.get(i).get("symbol").asText(),
+                        symbols.get(i).get("baseAssetPrecision").asInt(),
+                        symbols.get(i).get("filters").get(0).get("filterType").asText(),
+                        ""
+                ) {
+                    @Override
+                    public int compareTo(@NotNull Currency o) {
+                        return 0;
+                    }
 
-       }
+                    @Override
+                    public int compareTo(java.util.@NotNull Currency o) {
+                        return 0;
+                    }
+                });
+                tradePairs.add(new TradePair(
+                        symbols.get(i).get("baseAsset").asText(),
+                        symbols.get(i).get("quoteAsset").asText()
+                ));
+            }
+        }
+
+
         return
-                tradePairs;
+                null;
     }
 
     @Override

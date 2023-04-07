@@ -42,8 +42,14 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
     private static final Logger logger = LoggerFactory.getLogger(cryptoinvestor.cryptoinvestor.Coinbase.CoinbaseWebSocketClient.class);
 
 
-    public BinanceUsWebSocket(@NotNull URI uri) {
-        super(uri, new Draft_6455());
+    public BinanceUsWebSocket(@NotNull TradePair tradePair) {
+        super(
+                URI.create(
+                        "wss://stream.binance.com:9443/ws/" + tradePair.getBaseCurrency().getCode().toLowerCase() + tradePair.getCounterCurrency().getCode().toLowerCase()
+                )
+
+                , new Draft_6455());
+
 
     }
 

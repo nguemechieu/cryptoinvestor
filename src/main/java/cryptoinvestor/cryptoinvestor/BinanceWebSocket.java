@@ -15,8 +15,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.websocket.*;
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
@@ -29,7 +27,6 @@ import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
-import static java.security.CryptoPrimitive.SIGNATURE;
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 
@@ -48,7 +45,7 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
          Set<TradePair> tradePairs;
 
 
-        public BinanceWebSocket() {
+        public BinanceWebSocket(String apiKey) {
             super(URI.create(
                     "wss://stream.binance.us:9443/ws"
             ), new Draft_6455());

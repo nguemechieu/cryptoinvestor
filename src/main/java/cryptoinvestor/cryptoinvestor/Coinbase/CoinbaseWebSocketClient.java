@@ -27,7 +27,6 @@ import java.nio.ByteBuffer;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -47,22 +46,10 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     private static final Logger logger = LoggerFactory.getLogger(CoinbaseWebSocketClient.class);
     private Account connectionEstablished;
 
-    public CoinbaseWebSocketClient() {
+    public CoinbaseWebSocketClient(TradePair tradePair) {
 
-        super(URI.create("wss://advanced-trade-ws.coinbase.com/level2"//market_trades" +
+        super(URI.create("wss://advanced-trade-ws.coinbase.com/level2"
         ), new Draft_6455());
-        tradePairs.add(new TradePair("BTC", "USD"));
-        tradePairs.add(new TradePair("ETH", "USD"));
-        tradePairs.add(new TradePair("LTC", "USD"));
-        tradePairs.add(new TradePair("BCH", "USD"));
-        tradePairs.add(new TradePair("XRP", "USD"));
-        tradePairs.add(new TradePair("EOS", "USD"));
-        tradePairs.add(new TradePair("ETC", "USD"));
-        tradePairs.add(new TradePair("ZEC", "USD"));
-        tradePairs.add(new TradePair("XMR", "USD"));
-        tradePairs.add(new TradePair("DASH", "USD"));
-        tradePairs.add(new TradePair("XLM", "USD"));
-        tradePairs.add(new TradePair("XEM", "USD"));
 
 
     }

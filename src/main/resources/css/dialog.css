@@ -1,0 +1,6 @@
+
+dialog {
+    -moz-animation: alternate;
+    -moz-animation-delay: 0.5s;
+    -fx-background-color: rgba(15, 23, 45, 0.7)
+}

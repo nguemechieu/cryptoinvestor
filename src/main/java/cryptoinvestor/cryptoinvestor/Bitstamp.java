@@ -168,6 +168,11 @@ public class Bitstamp extends Exchange {
 
 
     @Override
+    public ExchangeWebSocketClient getWebsocketClient() {
+        return null;
+    }
+
+    @Override
     public Set<Integer> getSupportedGranularities() {
         return Set.of(60, 60 * 5, 60 * 15, 3600, 3600 * 6, 3600 * 24, 3600 * 24 * 7, 3600 * 24 * 30, 3600 * 24 * 30 * 7, 3600 * 24 * 30 * 365);
     }
@@ -574,9 +579,11 @@ public class Bitstamp extends Exchange {
     }
 
     @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
-        ArrayList<TradePair>tradePairs = new ArrayList<>();
-        return tradePairs;
+    public List<String> getTradePair() throws IOException, InterruptedException {
+
+        requestBuilder.uri(URI.create("https://api.coinbase.com/v2/exchange-rates"));
+
+        return null;
     }
 
     @Override

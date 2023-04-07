@@ -1,5 +1,6 @@
 package cryptoinvestor.cryptoinvestor;
 
+import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
@@ -8,19 +9,23 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import jdk.internal.jimage.ImageReader;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class StrategyTesterView extends Parent {
     private static final Logger logger = LoggerFactory.getLogger(StrategyTesterView.class);
 
-    public StrategyTesterView() {
+    public StrategyTesterView(@NotNull Exchange exchange) {
         super();
         ChoiceBox<String> strategyChoiceBox = new ChoiceBox<>();
         strategyChoiceBox.getItems().addAll("Indicator", "Expert Advisor");
@@ -39,16 +44,7 @@ public class StrategyTesterView extends Parent {
 
             if (strategyChoiceBox.getValue().equals("Indicator")) {
                 expertAdviserChoiceBox.getItems().addAll(
-                        "Moving Average",
-                        "MACD",
-                        "RSI",
-                        "Stochastic",
-                        "MACD",
-                        "RSI",
-                        "Stochastic",
-                        "Fibonacci",
-                        "RSI",
-                        "Parabolic"
+                        exchange.getIndicatorList()
                 );
 
             } else if (strategyChoiceBox.getValue().equals("Expert Advisor")) {
@@ -67,19 +63,21 @@ public class StrategyTesterView extends Parent {
         symbolLabel.setText("Symbol:");
         gridPane.add(symbolLabel, 0, 1);
         ChoiceBox<Object> symbolChoiceBox = new ChoiceBox<>();
-        symbolChoiceBox.getItems().addAll(
-                "BTC-USD",
-                "ETH-USD",
-                "LTC-USD",
-                "BCH-USD",
-                "XRP-USD",
-                "EOS-USD",
-                "NEO-USD",
-                "XMR-USD",
-                "XEM-USD",
-                "XLM-USD",
-                "XEM-BTC"
-        );
+        try {
+            if (exchange instanceof Oanda) {
+                for (String symbol : ((Oanda) exchange).getAvailableSymbols().stream().map(c -> c.code).toList()) {
+                    symbolChoiceBox.getItems().add(symbol.replace("_", "/"));
+                }
+            } else {
+                for (String symbol : exchange.getAvailableSymbols().stream().map(c -> c.code).toList()) {
+                    symbolChoiceBox.getItems().add(symbol + "/USD");
+                }
+            }
+
+
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         symbolChoiceBox.getSelectionModel().selectFirst();
 
         gridPane.add(symbolChoiceBox, 1, 1);
@@ -144,6 +142,8 @@ public class StrategyTesterView extends Parent {
         StackPane pane = new StackPane(gridPane
 
         );
+
+        setStyle("-fx-background-color: rgb(15, 125, 185,0.6);");
         gridPane.setVgap(20);
         gridPane.setHgap(20);
         gridPane.setPadding(new javafx.geometry.Insets(20, 20, 10, 20));

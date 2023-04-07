@@ -13,25 +13,23 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public abstract class Exchange {
-    public TradePair tradePair;
+    public static TradePair tradePair;
     protected ExchangeWebSocketClient webSocketClient;
 
-     protected Exchange(ExchangeWebSocketClient webSocketClient) {
-         this.webSocketClient = webSocketClient;
-     }
-
+    protected Exchange(ExchangeWebSocketClient webSocketClient) {
+        this.webSocketClient = webSocketClient;
+    }
 
 
     /**
      * @return this exchange's {@code ExchangeWebSocketClient} instance, which is responsible for grabbing
      * live-streaming data (such as trades, orders, etc).
      */
-    public ExchangeWebSocketClient getWebsocketClient() {
-        return webSocketClient;
-    }
+    public abstract ExchangeWebSocketClient getWebsocketClient();
 
 
-    public abstract Set<Integer> getSupportedGranularities() ;
+    public abstract Set<Integer> getSupportedGranularities();
+
     /**
      * Fetches the recent trades for the given trade pair from  {@code stopAt} till now (the current time).
      * <p>
@@ -132,11 +130,20 @@ public abstract class Exchange {
     public abstract void cancelAllOpenOrders() throws IOException, InterruptedException;
 
 
+    @Override
+    public String toString() {
+        return "Exchange{" +
+                "tradePair=" + tradePair +
+                ", webSocketClient=" + webSocketClient +
+                '}';
+    }
+
     public abstract ListView<Order> getOrderView() throws IOException, InterruptedException, ParseException, URISyntaxException;
 
     public abstract List<OrderBook> getOrderBook(TradePair tradePair) throws IOException, InterruptedException;
 
-    public abstract List<TradePair> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException;
+
+    public abstract List<String> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException;
 
     public abstract void connect(String text, String text1, String userIdText) throws IOException, InterruptedException;
 
@@ -160,4 +167,26 @@ public abstract class Exchange {
                     );
                 }};
     }
+
+    public ArrayList<Object> getIndicatorList() {
+        return
+                new ArrayList<>() {{
+                    add(MA.class);
+                    add(EMA.class);
+                    add(SMA.class);
+                    // add(DEMA.class);
+
+
+                    // add(WMA.class);
+
+                    //,StochRSI.class,MACD.class,RSI.class
+
+                    add(StochRSI.class);
+                    add(MACD.class);
+                    add(RSI.class);
+
+
+                }};
+    }
+
 }

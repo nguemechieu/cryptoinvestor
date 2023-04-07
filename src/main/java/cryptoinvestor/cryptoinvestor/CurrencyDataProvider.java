@@ -3,6 +3,8 @@ package cryptoinvestor.cryptoinvestor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
+import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
 import javafx.scene.control.Alert;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -15,6 +17,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -70,15 +73,15 @@ public class CurrencyDataProvider {
     }
 
 
-
     @Contract(" -> new")
-    public static @NotNull List<Currency> getInstance() {
+    public static @NotNull List<Currency> getInstance(Exchange exchange) {
         ConcurrentHashMap<SymmetricPair<String, CurrencyType>, Currency> currencies = CURRENCIES;
 
         if (currencies.isEmpty()) {
             try {
-                registerCurrencies();
-            } catch (IOException | InterruptedException | ParseException | URISyntaxException e) {
+                registerCurrencies(exchange);
+            } catch (IOException | InterruptedException | ParseException | URISyntaxException |
+                     NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -86,8 +89,7 @@ public class CurrencyDataProvider {
 
     }
 
-    protected static void registerCurrencies() throws IOException, InterruptedException, ParseException, URISyntaxException {
-
+    protected static void registerCurrencies(Exchange exchange) throws IOException, InterruptedException, ParseException, URISyntaxException, NoSuchAlgorithmException {
         List<Currency> coinsToRegister = new ArrayList<>();
 
         HttpRequest.Builder request = HttpRequest.newBuilder();
@@ -224,12 +226,57 @@ public class CurrencyDataProvider {
         }
 
 
-        for (CryptoMarketData data : marketData) {
-            coinsToRegister.add(new Currency(CurrencyType.CRYPTO, data.name, data.id, data.symbol, data.roi.percentage.length(), data.symbol, data.image) {
+        for (String data : exchange.getTradePair()) {
+            coinsToRegister.add(new Currency(CurrencyType.CRYPTO, data.split("/")[0], data.split("/")[0], data.split("/")[0], 8, data.split("/")[0], "") {
                 @Override
                 public int compareTo(@NotNull Currency o) {
                     return 0;
                 }
+
+                @Override
+                public int compareTo(@NotNull java.util.Currency o) {
+                    if (!o.getCurrencyCode().equals(this.getCode())) {
+                        java.util.Currency.getAvailableCurrencies().add(java.util.Currency.getInstance(o.getCurrencyCode()));
+                        java.util.Currency currency = java.util.Currency.getInstance(o.getCurrencyCode());
+                        if (currency == null) {
+                            return -1;
+                        }
+                        return this.getCode().compareTo(o.getCurrencyCode());
+                    }
+                    return 0;
+                }
+            });
+            coinsToRegister.add(new Currency(CurrencyType.CRYPTO, data.split("/")[1], data.split("/")[0], data.split("/")[0], 10, data.split("/")[0], "") {
+                @Override
+                public int compareTo(@NotNull Currency o) {
+                    return 0;
+                }
+
+                @Override
+                public int compareTo(@NotNull java.util.Currency o) {
+                    if (!o.getCurrencyCode().equals(this.getCode())) {
+                        java.util.Currency.getAvailableCurrencies().add(java.util.Currency.getInstance(o.getCurrencyCode()));
+                        java.util.Currency currency = java.util.Currency.getInstance(o.getCurrencyCode());
+                        if (currency == null) {
+                            return -1;
+                        }
+                        return this.getCode().compareTo(o.getCurrencyCode());
+                    }
+                    return 0;
+                }
+            });
+
+
+        }
+
+
+        for (CryptoMarketData data : marketData) {
+            coinsToRegister.add(new Currency(CurrencyType.CRYPTO, data.name, data.id, data.symbol, 8, data.symbol, data.image) {
+                @Override
+                public int compareTo(@NotNull Currency o) {
+                    return 0;
+                }
+
                 @Override
                 public int compareTo(@NotNull java.util.Currency o) {
                     if (!o.getCurrencyCode().equals(this.getCode())) {
@@ -248,17 +295,9 @@ public class CurrencyDataProvider {
         }
 
 
-        for (Currency c : coinsToRegister) {
-            CURRENCIES.put(new SymmetricPair<>(c.getSymbol(), c.getCurrencyType()), c);
-            if (c.getCurrencyType() == CurrencyType.CRYPTO) {
-                CURRENCIES.put(new SymmetricPair<>(c.getSymbol(), c.getCurrencyType()), c);
-            }
-            if (c.getCurrencyType() == CurrencyType.FIAT) {
-                CURRENCIES.put(new SymmetricPair<>(c.getSymbol(), c.getCurrencyType()), c);
-            } else if (c.getCurrencyType() == CurrencyType.NULL) {
-                CURRENCIES.put(new SymmetricPair<>(c.getSymbol(), c.getCurrencyType()), c);
-            }
-        }
+        // Coinbase coinbase = new Coinbase("rt","rty");
+
+
         out.println("Available Currencies " + java.util.Currency.getAvailableCurrencies());
 
 
@@ -1211,4 +1250,3 @@ public class CurrencyDataProvider {
 //    }
     }
 }
-

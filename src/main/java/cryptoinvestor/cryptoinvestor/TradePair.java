@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Objects;
@@ -21,16 +22,7 @@ public class TradePair extends Pair<Currency, Currency> {
 
     static final Logger logger = LoggerFactory.getLogger(TradePair.class);
 
-    static {
-        try {
-            logger.debug("CurrencyDataProvider loaded");
-            CurrencyDataProvider.registerCurrencies();
-        } catch (IOException | InterruptedException | ParseException | URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
 
-
-    }
 
     Currency baseCurrency;
     Currency counterCurrency;

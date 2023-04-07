@@ -47,6 +47,11 @@ public class Bittrex extends Exchange {
 
 
     @Override
+    public ExchangeWebSocketClient getWebsocketClient() {
+        return null;
+    }
+
+    @Override
     public Set<Integer> getSupportedGranularities() {
         return
                 new HashSet<>(Arrays.asList(
@@ -227,10 +232,7 @@ public class Bittrex extends Exchange {
 
     }
 
-    @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
-        return null;
-    }
+
 
     @Override
     public void connect(String text, String text1, String userIdText) {
@@ -265,6 +267,14 @@ public class Bittrex extends Exchange {
     @Override
     public void getOrderHistory(TradePair tradePair) throws IOException, InterruptedException {
 
+    }
+
+
+    @Override
+    public List<String> getTradePair() {
+        return new ArrayList<>(
+
+        );
     }
 
     @Override

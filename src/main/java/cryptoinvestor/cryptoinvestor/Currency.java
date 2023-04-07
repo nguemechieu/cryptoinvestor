@@ -3,10 +3,7 @@ package cryptoinvestor.cryptoinvestor;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.ParseException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -52,19 +49,6 @@ public abstract class Currency  implements Comparable<Currency> {
     };
     private static final Logger logger = LoggerFactory.getLogger(Currency.class);
 
-
-        /*
-        ServiceLoader<CurrencyDataProvider> serviceLoader = ServiceLoader.load(CurrencyDataProvider.class);
-        logger.info("service loader: " + serviceLoader);
-        for (CurrencyDataProvider provider : serviceLoader) {
-            logger.info("calling provider.registerCurrencies()");
-            try {
-                provider.registerCurrencies();
-            } catch (Exception e) {
-                logger.error("could not register currencies: ", e);
-            }
-        }
-         */
 
 
     private String image;

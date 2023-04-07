@@ -33,88 +33,78 @@ public class TradingWindow extends AnchorPane {
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
    
            for (ENUM_EXCHANGE_LIST i : ENUM_EXCHANGE_LIST.values()) {
-            DraggableTab tab = new DraggableTab(i.name(), "");
-            if (i.getIcon() != null) {
-                tab.setGraphic(new ImageView((String) i.getIcon()));}
-            tabPane.getTabs().add(tab);
-            @NotNull Exchange exchange;
+               DraggableTab tab = new DraggableTab(i.name(), "");
+               if (i.getIcon() != null) {
+                   tab.setGraphic(new ImageView((String) i.getIcon()));
+               }
+               tabPane.getTabs().add(tab);
+               @NotNull Exchange exchange;
                String api_key = "";
-            String api_secret = "";
-            String account_id = "";
-            switch (i) {
-                case
-                        BINANCE:
-                    new Binance(
-                            api_key,
-                            api_secret,
-                            account_id);
-                case BINANCE_US:
+               String api_secret = "";
+               String account_id = "";
+               exchange = switch (i) {
+//                case
+//                        BINANCE:
+//                    new Binance(
+//                            api_key,
+//                            api_secret,
+//                            account_id);
+                   case BINANCE_US -> new BinanceUs(
+                           api_key);
+//                case BITSTAMP: {
+//
+//                     new Bitstamp(
+//                            api_key,
+//                            api_secret,
+//                            account_id);
+//
+//                }
+//               case BITFINEX:
+//                    exchange = new Bitfinex(
+//                            api_key,
+//
+//                            api_secret,
+//                            account_id
+//                    );
+//                    break;
+//                case BITTREX:
+//                    exchange =
+//                            new Bittrex(
+//
+//                                    api_key,
+//
+//                                    api_secret,
+//                                    account_id
+//                            );
+//                    break;
 
-                    exchange = new BinanceUs(
-                            api_key,
-                            api_secret,
-                            account_id);
-                    break;
-                case BITSTAMP: {
+                   case OANDA -> new Oanda("001-001-2783446-002",
 
-                     new Bitstamp(
-                            api_key,
-                            api_secret,
-                            account_id);
+                           "77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99");
+//                case POLONIEX:
+//                    exchange = new Poloniex(
+//
+//                            api_key,
+//                            api_secret,
+//                            account_id
+//                    );
+//                    break;
+//                case KUCOIN:
+//                    exchange = new Kucoin(
+//
+//                            api_key,
+//                            api_secret,
+//                            account_id
+//                    );
+//                    break;
 
-                }
-                case BITFINEX:
-                    exchange = new Bitfinex(
-                            api_key,
-
-                            api_secret,
-                            account_id
-                    );
-                    break;
-                case BITTREX:
-                    exchange =
-                            new Bittrex(
-
-                                    api_key,
-
-                                    api_secret,
-                                    account_id
-                            );
-                    break;
-
-                case OANDA:
-                    exchange = new Oanda("001-001-2783446-002",
-
-                            "77be89b17b7fe4c04affd4200454827c-dea60a746483dc7702878bdfa372bb99"
-
-                    );
-                    break;
-                case POLONIEX:
-                    exchange = new Poloniex(
-
-                            api_key,
-                            api_secret,
-                            account_id
-                    );
-                    break;
-                case KUCOIN:
-                    exchange = new Kucoin(
-
-                            api_key,
-                            api_secret,
-                            account_id
-                    );
-                    break;
-
-                default:
-                    exchange = new Coinbase(
-                            account_id, "2032573404:AAE3yV0yFvtO8irplRnj2YK59dOXUITC1Eo", "ULaVf9zteLbuLb8Pz8g+0tIlUStLsWP0A8bNHtJA7WIc7/vrYYFtKBvvz9Ady6offn+Nu3P7s"
+                   default -> new Coinbase(
+                           "gUl2gfk/zu9o6rqicLtBokMupgGG3j8AqC1kQvZfOj8qDUQdPT0dhDiK0NIOkFPLsGNQ9MjfYtIBHKSieQaJDw==",
+                           "zdkva105scm"
 
 
-                    );
-                    break;
-
-            }
+                   );
+               };
 
                tab.setContent(
                        new VBox(new Label(i.name(),

@@ -21,11 +21,11 @@ public class ExchangeViewPane extends TabPane {
         exChangeList.add(ENUM_EXCHANGE_LIST.BINANCE_US);
         exChangeList.add(ENUM_EXCHANGE_LIST.COINBASE_PRO);
         exChangeList.add(ENUM_EXCHANGE_LIST.OANDA);
-        exChangeList.add(ENUM_EXCHANGE_LIST.KRAKEN);
-        exChangeList.add(ENUM_EXCHANGE_LIST.KUCOIN);
-        exChangeList.add(ENUM_EXCHANGE_LIST.BITFINEX);
-        exChangeList.add(ENUM_EXCHANGE_LIST.BITMEX);
-        exChangeList.add(ENUM_EXCHANGE_LIST.BITSTAMP);
+//        exChangeList.add(ENUM_EXCHANGE_LIST.KRAKEN);
+//        exChangeList.add(ENUM_EXCHANGE_LIST.KUCOIN);
+//        exChangeList.add(ENUM_EXCHANGE_LIST.BITFINEX);
+//        exChangeList.add(ENUM_EXCHANGE_LIST.BITMEX);
+//        exChangeList.add(ENUM_EXCHANGE_LIST.BITSTAMP);
 
         for (ENUM_EXCHANGE_LIST enumExchangeList : exChangeList) {
             ENUM_EXCHANGE_LIST i =

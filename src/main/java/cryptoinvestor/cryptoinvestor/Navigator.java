@@ -1,30 +1,44 @@
 package cryptoinvestor.cryptoinvestor;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 
-import java.awt.*;
 
-public class Navigator extends Region {
-    public Navigator() {
+public class Navigator extends Stage {
+    public Navigator(@NotNull Exchange exchange) {
         super();
-        getStyleClass().add("navigator");
-
-        setPrefSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        setPrefSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE);
-        VBox vBox = new VBox();
-        HBox hBox = new HBox(new Region(), new Region(), new Region());
+        javafx.scene.control.Label title = new javafx.scene.control.Label(exchange.getName());
 
 
-        vBox.getChildren().addAll(hBox);
+        VBox vBox = new VBox(title);
+        HBox hBox = new HBox();
+        hBox.getChildren().addAll(new HomeButton(), new AboutButton(), new ExitButton());
 
+        vBox.setPrefSize(
+                800, 600
+        );
+        ObservableList<?> observableList = FXCollections.observableArrayList(exchange);
+        vBox.getChildren().addAll(hBox, new ListView<>(observableList
+        ));
 
-        getChildren().add(vBox);
+        setScene(
+                new Scene(vBox)
+        );
+        setResizable(true);
+        setTitle(exchange.getName());
+        show();
 
     }
 
-    private class HomeButton extends Button {
+    private static class HomeButton extends javafx.scene.control.Button {
         public HomeButton() {
             super();
             getStyleClass().add("home-button");
@@ -32,7 +46,7 @@ public class Navigator extends Region {
         }
     }
 
-    private class AboutButton extends Button {
+    private static class AboutButton extends javafx.scene.control.Button {
         public AboutButton() {
             super();
             getStyleClass().add("about-button");

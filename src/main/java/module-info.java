@@ -1,4 +1,5 @@
 module cryptoinvestor.cryptoinvestor {
+    uses cryptoinvestor.cryptoinvestor.CurrencyDataProvider;
     requires javafx.controls;
     requires jakarta.persistence;
     requires org.hibernate.orm.core;

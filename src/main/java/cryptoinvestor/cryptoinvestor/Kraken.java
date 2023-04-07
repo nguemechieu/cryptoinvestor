@@ -159,6 +159,11 @@ public class Kraken extends Exchange {
 
 
     @Override
+    public ExchangeWebSocketClient getWebsocketClient() {
+        return null;
+    }
+
+    @Override
     public Set<Integer> getSupportedGranularities() {
         return
                 Set.of(
@@ -577,17 +582,17 @@ public class Kraken extends Exchange {
     }
 
     @Override
-    public List<TradePair> getTradePair() throws IOException, InterruptedException {
+    public List<String> getTradePair() throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(
                 "https://api.kraken.com/0/public/Assets"
         ));
 
-        HttpResponse<String>response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         System.out.println(response.body());
         JSONObject jsonObject = new JSONObject(response.body());
         System.out.println(jsonObject.toString(4));
         List<TradePair> tradePairs = new ArrayList<>();
-        JSONObject jsonArray= jsonObject.getJSONObject("result");
+        JSONObject jsonArray = jsonObject.getJSONObject("result");
         for (int i = 0; i < jsonArray.length(); i++) {
 
             TradePair tradePair;
@@ -595,8 +600,7 @@ public class Kraken extends Exchange {
                 tradePair = new TradePair(jsonArray.getString("altname"),"USD");
                 tradePairs.add(tradePair);}
         }
-
-        return tradePairs;
+        return null;
     }
 
     @Override
