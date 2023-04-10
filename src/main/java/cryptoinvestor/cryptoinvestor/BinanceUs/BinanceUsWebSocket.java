@@ -23,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
@@ -125,13 +126,25 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
         TradePair tradePair = null;
         if (symb.contains("USDT")) {
             symb = symb.replace("USDT", "");
-            tradePair = new TradePair(symb, "USDT");
+            try {
+                tradePair = new TradePair(symb, "USDT");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         } else if (symb.contains("USD") && symb.length() > 3) {
             symb = symb.replace("USD", "");
-            tradePair = new TradePair(symb, "USD");
+            try {
+                tradePair = new TradePair(symb, "USD");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         } else if (symb.subSequence(3, symb.length()).equals("BTC")) {
             symb = symb.replace("BTC", "");
-            tradePair = new TradePair(symb, "BTC");
+            try {
+                tradePair = new TradePair(symb, "BTC");
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
 
@@ -171,7 +184,7 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
 
     }
 
-    private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
+    private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException, SQLException {
         String productId0 = messageJson.get("s").asText();
         String productId1;
         if (productId0.contains("USDT") || productId0.contains("USD")) {

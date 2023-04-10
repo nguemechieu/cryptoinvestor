@@ -21,6 +21,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
@@ -84,6 +85,8 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
         } catch (CurrencyNotFoundException exception) {
             logger.error("oanda websocket client: could not initialize trade pair: " +
                     messageJson.get("asks").asText(), exception);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
 
         Side side = messageJson.has("side") ? Side.getSide(messageJson.get("side").asText()) : null;
@@ -115,7 +118,7 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
         }
     }
 
-    private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
+    private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException, SQLException {
         final String productId = messageJson.get("instrument").asText();
         final String[] products = productId.split("_");
         TradePair tradePair;

@@ -27,6 +27,7 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -582,7 +583,7 @@ public class Kraken extends Exchange {
     }
 
     @Override
-    public List<String> getTradePair() throws IOException, InterruptedException {
+    public List<String> getTradePair() throws IOException, InterruptedException, SQLException {
         requestBuilder.uri(URI.create(
                 "https://api.kraken.com/0/public/Assets"
         ));

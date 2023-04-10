@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Date;
@@ -24,7 +24,7 @@ import java.util.Date;
 public class TradeView extends Region  {
     private static final Logger logger = LoggerFactory.getLogger(TradeView.class);
 
-    public TradeView(@NotNull Exchange exchange, String telegramToken) throws IOException, InterruptedException, ParseException, URISyntaxException, NoSuchAlgorithmException {
+    public TradeView(@NotNull Exchange exchange, String telegramToken) throws IOException, InterruptedException, ParseException, URISyntaxException {
 
         super();
         TabPane tradingTabPane = new TabPane();
@@ -42,7 +42,11 @@ public class TradeView extends Region  {
 
         logger.info(CurrencyDataProvider.getInstance(exchange).toString());
 
-        symbolChoicebox.getItems().addAll(exchange.getTradePair());
+        try {
+            symbolChoicebox.getItems().addAll(exchange.getTradePair());
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
 
         final double[] price = new double[1];
         double quantity = 1000;
@@ -86,7 +90,7 @@ public class TradeView extends Region  {
                         tradeTab2.setContent(container2);
                         tradingTabPane.getTabs().add(tradeTab2);
                         tradingTabPane.getSelectionModel().select(tradeTab2);
-                    } catch (URISyntaxException | IOException e) {
+                    } catch (URISyntaxException | IOException | SQLException e) {
                         throw new RuntimeException(e);
                     }
                 });
@@ -133,7 +137,7 @@ public class TradeView extends Region  {
 
 
                                     );
-                                } catch (IOException | InterruptedException e) {
+                                } catch (IOException | InterruptedException | SQLException e) {
                                     throw new RuntimeException(e);
                                 }
 
@@ -161,7 +165,7 @@ public class TradeView extends Region  {
 
 
                                     );
-                                } catch (IOException | InterruptedException  e) {
+                                } catch (IOException | InterruptedException | SQLException e) {
                                     throw new RuntimeException(e);
                                 }
                             }
@@ -202,7 +206,7 @@ public class TradeView extends Region  {
                                     orderID
 
                             );
-                        } catch (IOException | InterruptedException e) {
+                        } catch (IOException | InterruptedException | SQLException e) {
                             throw new RuntimeException(e);
                         }
                     });
@@ -227,7 +231,7 @@ public class TradeView extends Region  {
 
 
                             );
-                        } catch (IOException | InterruptedException e) {
+                        } catch (IOException | InterruptedException | SQLException e) {
                             throw new RuntimeException(e);
                         }
                     });
@@ -264,7 +268,7 @@ public class TradeView extends Region  {
                                             takeProfitPrice,
                                             orderID
                                     );
-                                } catch (IOException | InterruptedException  e) {
+                                } catch (IOException | InterruptedException | SQLException e) {
                                     throw new RuntimeException(e);
                                 }
                                 sellStopBtn.setOnAction(
@@ -286,7 +290,7 @@ public class TradeView extends Region  {
 
 
                                                 );
-                                            } catch (IOException | InterruptedException e) {
+                                            } catch (IOException | InterruptedException | SQLException e) {
                                                 throw new RuntimeException(e);
                                             }
                                         });
@@ -386,7 +390,7 @@ public class TradeView extends Region  {
                                     symbolChoicebox.getValue().split("/")[1]
                             ), telegramToken, true)
                     );
-                } catch (URISyntaxException | IOException e) {
+                } catch (URISyntaxException | IOException | SQLException e) {
                     throw new RuntimeException(e);
                 }
             } else {
@@ -396,7 +400,7 @@ public class TradeView extends Region  {
                             symbolChoicebox.getValue().split("/")[0],
                             symbolChoicebox.getValue().split("/")[1]
                     ), telegramToken, true));
-                } catch (URISyntaxException | IOException e) {
+                } catch (URISyntaxException | IOException | SQLException e) {
                     throw new RuntimeException(e);
                 }
             }

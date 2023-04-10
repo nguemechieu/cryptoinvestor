@@ -1,26 +1,17 @@
 package cryptoinvestor.cryptoinvestor;
 
 import cryptoinvestor.cryptoinvestor.oanda.Oanda;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
-import jdk.internal.jimage.ImageReader;
-
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.Objects;
 
 public class StrategyTesterView extends Parent {
     private static final Logger logger = LoggerFactory.getLogger(StrategyTesterView.class);

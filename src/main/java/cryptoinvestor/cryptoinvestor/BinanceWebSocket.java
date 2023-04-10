@@ -20,6 +20,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpRequest;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.Collections;
@@ -83,7 +84,7 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
             TradePair tradePair = null;
             try {
                 tradePair = parseTradePair(messageJson);
-            } catch (CurrencyNotFoundException exception) {
+            } catch (CurrencyNotFoundException | SQLException exception) {
                 logger.error("coinbase websocket client: could not initialize trade pair: " +
                         messageJson.get("product_id").asText(), exception);
             }
@@ -120,17 +121,17 @@ public class BinanceWebSocket  extends ExchangeWebSocketClient {
             }
         }
 
-        private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
-            final String productId = messageJson.get("product_id").asText();
-            final String[] products = productId.split("/");
-            TradePair tradePair;
-            if (products[0].equalsIgnoreCase("BTC")) {
+    private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException, SQLException {
+        final String productId = messageJson.get("product_id").asText();
+        final String[] products = productId.split("/");
+        TradePair tradePair;
+        if (products[0].equalsIgnoreCase("BTC")) {
+            tradePair = TradePair.parse(productId, "/", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
+        } else {
+            // products[0] == "ETH"
+            if (products[1].equalsIgnoreCase("usd")) {
                 tradePair = TradePair.parse(productId, "/", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
             } else {
-                // products[0] == "ETH"
-                if (products[1].equalsIgnoreCase("usd")) {
-                    tradePair = TradePair.parse(productId, "/", new Pair<>(CryptoCurrency.class, FiatCurrency.class));
-                } else {
                     // productId == "ETH-BTC"
                     tradePair = TradePair.parse(productId, "/", new Pair<>(CryptoCurrency.class, CryptoCurrency.class));
                 }

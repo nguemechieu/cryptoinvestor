@@ -5,49 +5,62 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="4943c154-124d-45be-8fbc-163761f7194c" name="Changes" comment="change02">
-      <change afterPath="$PROJECT_DIR$/.idea/cssdialects.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/TestCoinbase.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/EMA.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/MA.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/MACD.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/RSI.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/SMA.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/StochRSI.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/resources/css/dialog.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OandaPairs.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/DEMA.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Db.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Db1.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/NullFiatCurrency.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/User.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/WMA.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sqlDataSources.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Binance.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Binance.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUs.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUs.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUsAccount.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUsAccount.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUsWebSocket.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUsWebSocket.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/JsonConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/JsonConverter.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceWebSocket.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceWebSocket.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bitfinex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bitfinex.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bitstamp.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bitstamp.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bittrex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Bittrex.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/CandleStickChart.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/CandleStickChart.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/Coinbase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/Coinbase.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/CoinbaseAccount.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/CoinbaseAccount.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/CoinbaseWebSocketClient.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/CoinbaseWebSocketClient.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/Fill.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/Fill.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/Product.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/TestCoinbase.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/TestCoinbase.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/ConnectionScene.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/ConnectionScene.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Currency.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Currency.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/CurrencyDataProvider.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/CurrencyDataProvider.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/CurrencyPair.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/ENUM_EXCHANGE_LIST.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/ENUM_EXCHANGE_LIST.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/DataPane.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/DataPane.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/DataSource.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/DataSource.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/DataWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/DataWindow.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/DefaultMoney.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/DefaultMoney.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/EMA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/EMA.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Exchange.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Exchange.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/ExchangeViewPane.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/ExchangeViewPane.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/InProgressCandle.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/InProgressCandle.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/FastMoney.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/FastMoney.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/ImageDisplayer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/ImageDisplayer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Kraken.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Kraken.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Kucoin.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Kucoin.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/MA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/MA.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/MACD.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/MACD.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Message.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Message.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Navigator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Navigator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/OrdersDisplay.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/OrdersDisplay.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Poloniex.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Poloniex.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Money.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Money.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/MoneyAxisFormatter.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/MoneyAxisFormatter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/RSI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/RSI.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/SMA.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/SMA.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/StochRSI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/StochRSI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/StrategyTester.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/StrategyTester.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/StrategyTesterView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/StrategyTesterView.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Trade.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Trade.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/TradePair.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/TradePair.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/TradeView.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/TradeView.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/TradingWindow.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/TradingWindow.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Wallet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Wallet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/Oanda.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/Oanda.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/OandaWebSocket.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/OandaWebSocket.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/OrderCancelTransaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/OrderCancelTransaction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/OrderCreateTransaction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/oanda/OrderCreateTransaction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/test.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/test.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/module-info.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/module-info.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/Config.ini" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/Config.ini" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/app.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/app.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -75,8 +88,8 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="JUnit5 Test Class" />
-        <option value="Interface" />
         <option value="CSS File" />
+        <option value="Interface" />
         <option value="Class" />
       </list>
     </option>
@@ -109,14 +122,24 @@
       </MavenImportingSettings>
     </option>
   </component>
+  <component name="MigrationScriptOptions">
+    <option name="ignoreImplicitObjects" value="true" />
+    <option name="ignoreSourceCode" value="false" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectId" id="2NkdBO8f22cxkZ1NHucjpQTDTBT" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
+    "ASKED_ADD_EXTERNAL_FILES": "true",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "SHARE_PROJECT_CONFIGURATION_FILES": "true",
@@ -124,6 +147,7 @@
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrary": "JUnit5",
     "com.intellij.testIntegration.createTest.CreateTestDialog.defaultLibrarySuperClass.JUnit5": "",
     "com.intellij.testIntegration.createTest.CreateTestDialog.includeInheritedMembers": "true",
+    "grid.search.filter.rows": "true",
     "last_opened_file_path": "C:/Users/nguem/source/cryptoinvestor",
     "list.type.of.created.stylesheet": "CSS",
     "node.js.detected.package.eslint": "true",
@@ -134,8 +158,19 @@
     "project.structure.last.edited": "Artifacts",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.47816092",
+    "settings.editor.selected.configurable": "database.data.views",
     "spring.configuration.checksum": "5dbfc2f19f95a92ce7ff842ed36d47ad",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "java.sql.Driver",
+      "sqlite",
+      "mysql"
+    ],
+    "com.intellij.ide.scratch.LRUPopupBuilder$1/SQL Dialect": [
+      "SQLite"
+    ]
   }
 }]]></component>
   <component name="RecentsManager">
@@ -240,7 +275,11 @@
       <workItem from="1680212391061" duration="171597000" />
       <workItem from="1680545187099" duration="52272000" />
       <workItem from="1680632250834" duration="72245000" />
-      <workItem from="1680727376375" duration="117121000" />
+      <workItem from="1680727376375" duration="122462000" />
+      <workItem from="1680878359072" duration="23815000" />
+      <workItem from="1680902483435" duration="14461000" />
+      <workItem from="1680919883195" duration="76636000" />
+      <workItem from="1681032588638" duration="34778000" />
     </task>
     <task id="LOCAL-00001" summary="run">
       <created>1680213237448</created>
@@ -347,7 +386,14 @@
       <option name="project" value="LOCAL" />
       <updated>1680799160126</updated>
     </task>
-    <option name="localTasksCounter" value="16" />
+    <task id="LOCAL-00016" summary="change02">
+      <created>1680862698626</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1680862698626</updated>
+    </task>
+    <option name="localTasksCounter" value="17" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -370,6 +416,7 @@
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_SMELLS_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT" value="true" />
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="run" />
     <MESSAGE value="change01" />
     <MESSAGE value="change02" />
@@ -383,7 +430,7 @@
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUs.java</url>
           <line>497</line>
-          <properties class="cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs" method="createOrder">
+          <properties class="cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs">
             <option name="EMULATED" value="true" />
             <option name="WATCH_EXIT" value="false" />
           </properties>
@@ -392,16 +439,30 @@
         <line-breakpoint enabled="true" type="java-method">
           <url>file://$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/BinanceUs/BinanceUs.java</url>
           <line>98</line>
-          <properties class="cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs" method="binanceUsWebSocket">
+          <properties class="cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs">
             <option name="EMULATED" value="true" />
             <option name="WATCH_EXIT" value="false" />
           </properties>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-method">
+          <url>file://$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Coinbase/CoinbaseWebSocketClient.java</url>
+          <line>105</line>
+          <properties class="cryptoinvestor.cryptoinvestor.Coinbase.CoinbaseWebSocketClient" method="parseTradePair">
+            <option name="EMULATED" value="true" />
+            <option name="WATCH_EXIT" value="false" />
+          </properties>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/Account.java</url>
           <line>28</line>
           <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/cryptoinvestor/cryptoinvestor/User.java</url>
+          <line>18</line>
+          <option name="timeStamp" value="4" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

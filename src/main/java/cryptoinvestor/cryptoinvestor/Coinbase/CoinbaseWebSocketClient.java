@@ -24,6 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.HashMap;
@@ -72,7 +73,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         try {
             logger.info("onMessage: {}", messageJson);
             tradePair = parseTradePair(messageJson);
-        } catch (CurrencyNotFoundException exception) {
+        } catch (CurrencyNotFoundException | SQLException exception) {
             logger.error("coinbase websocket client: could not initialize trade pair: " +
                     messageJson.get("product_id").asText(), exception);
         }
@@ -102,7 +103,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         }
     }
 
-    private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException {
+    private @NotNull TradePair parseTradePair(@NotNull JsonNode messageJson) throws CurrencyNotFoundException, SQLException {
         final String productId = messageJson.get("product_id").asText();
         final String[] products = productId.split("-");
         TradePair tradePair;

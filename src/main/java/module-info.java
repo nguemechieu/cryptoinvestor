@@ -1,5 +1,5 @@
 module cryptoinvestor.cryptoinvestor {
-    uses cryptoinvestor.cryptoinvestor.CurrencyDataProvider;
+
     requires javafx.controls;
     requires jakarta.persistence;
     requires org.hibernate.orm.core;
@@ -21,6 +21,8 @@ module cryptoinvestor.cryptoinvestor {
     requires java.prefs;
     requires java.scripting;
     requires org.slf4j;
+    requires mysql.connector.j;
+
 
     exports cryptoinvestor.cryptoinvestor;
     exports cryptoinvestor.cryptoinvestor.JsonToCsv;

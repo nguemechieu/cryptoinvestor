@@ -155,7 +155,7 @@ public class DataSource implements javax.sql.DataSource {
 
 
             System.out.println("Successfully connected to MySQL database ");
-            ps = conn.prepareStatement("insert into users (username, password, Email, first_name, last_name, Phone, middle_name, Country, City, State, Address, Zip) values (?,?,?,?,?,?,?,?,?,?,?,?)");
+            ps = conn.prepareStatement("insert into users (username, password, email, first_name, last_name, Phone, middle_name, Country, City, State, Address, Zip) values (?,?,?,?,?,?,?,?,?,?,?,?)");
             ps.setString(1, username);
             ps.setString(2, password);
             ps.setString(3, email);

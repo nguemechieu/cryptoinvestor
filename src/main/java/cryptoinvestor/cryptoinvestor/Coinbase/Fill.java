@@ -2,11 +2,7 @@ package cryptoinvestor.cryptoinvestor.Coinbase;
 
 public class Fill {
 
-    private double price;
-
-    public Fill() {
-
-    }
+     double price;
 
     public Fill(int liquidity, double price) {
         this.price = price;

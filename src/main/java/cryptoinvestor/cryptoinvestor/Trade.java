@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
@@ -589,7 +590,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
         this.amount = amount;
     }
 
-    public double getTotal() {
+    public double getTotal() throws SQLException {
 
         // different currencies..maybe involve a TradePair? btc * usd/btc = usd, which
         // is technically what we are doing here
@@ -602,7 +603,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
         try {
             OnTick();
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException | InterruptedException | SQLException e) {
             throw new RuntimeException(e);
         }
     }
@@ -657,7 +658,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
     }
 
-    private void OnTick() throws IOException, InterruptedException {
+    private void OnTick() throws IOException, InterruptedException, SQLException {
         logger.info("OnTick");
         logger.info(tradePair.getCounterCurrency().code);
         logger.info(tradePair.getBaseCurrency().code);

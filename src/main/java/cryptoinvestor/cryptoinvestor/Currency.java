@@ -1,17 +1,17 @@
 package cryptoinvestor.cryptoinvestor;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.text.ParseException;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class Currency  implements Comparable<Currency> {
+import java.sql.SQLException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+
+public abstract class Currency implements Comparable<Currency> {
     CurrencyType currencyType;
     String fullDisplayName;
     String shortDisplayName;
@@ -122,12 +122,7 @@ public abstract class Currency  implements Comparable<Currency> {
         CURRENCIES.put(SymmetricPair.of(currency.code, currency.currencyType), currency);
     }
 
-    protected static void registerCurrencies(Collection<Currency> currencies) {
-        Objects.requireNonNull(currencies, "currencies must not be null");
-        currencies.forEach(Currency::registerCurrency);
-    }
-
-    public static Currency of(String code) {
+    public static Currency of(String code) throws SQLException, ClassNotFoundException {
         Objects.requireNonNull(code, "code must not be null");
         if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.FIAT))
                 && CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
@@ -137,10 +132,28 @@ public abstract class Currency  implements Comparable<Currency> {
         } else {
             if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
                 return CURRENCIES.get(SymmetricPair.of(code, CurrencyType.CRYPTO));
-            } else {
+            } else if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.FIAT))) {
                 return CURRENCIES.getOrDefault(SymmetricPair.of(code, CurrencyType.FIAT), NULL_CRYPTO_CURRENCY);
+            } else {
+                logger.error("unknown currency code: " + code);
+                logger.error("known codes: " + CURRENCIES.keySet());
+                logger.info("Trying to fetch from database");
+                Db1 db1 = new Db1();
+
+                if (db1.getCurrency(code) != null) {
+                    return db1.getCurrency(code);
+                } else {
+                    logger.error("could not fetch from database");
+                    throw new IllegalArgumentException("unknown currency code: " + code);
+                }
             }
         }
+
+    }
+
+    public void registerCurrencies(Collection<Currency> currencies) {
+        Objects.requireNonNull(currencies, "currencies must not be null");
+        currencies.forEach(Currency::registerCurrency);
     }
 
     /**

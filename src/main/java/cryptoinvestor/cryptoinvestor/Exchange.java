@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
@@ -143,7 +144,7 @@ public abstract class Exchange {
     public abstract List<OrderBook> getOrderBook(TradePair tradePair) throws IOException, InterruptedException;
 
 
-    public abstract List<String> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException;
+    public abstract List<String> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException, SQLException;
 
     public abstract void connect(String text, String text1, String userIdText) throws IOException, InterruptedException;
 

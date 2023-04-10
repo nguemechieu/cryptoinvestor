@@ -12,7 +12,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="cryptoinvestor" options="--add-exports com.fasterxml.jackson.databind/com.fasterxml.jackson.databind.util.internal=cryptoinvestor.cryptoinvestor --add-exports java.base/jdk.internal.jimage=cryptoinvestor.cryptoinvestor" />
+      <module name="cryptoinvestor" options="--add-exports java.base/jdk.internal.jimage=cryptoinvestor.cryptoinvestor" />
     </option>
   </component>
 </project>

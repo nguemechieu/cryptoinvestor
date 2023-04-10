@@ -1569,7 +1569,7 @@ public class Coinbase extends Exchange {
         private static final int EARLIEST_DATA = 1422144000; // roughly the first trade
 
         CoinbaseCandleDataSupplier(int secondsPerCandle, TradePair tradePair) {
-            super(200, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
+            super(300, secondsPerCandle, tradePair, new SimpleIntegerProperty(-1));
         }
 
 

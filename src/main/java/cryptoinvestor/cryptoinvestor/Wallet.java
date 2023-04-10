@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.sql.SQLException;
 import java.text.ParseException;
 
 public class Wallet extends Stage {
@@ -26,7 +27,7 @@ public class Wallet extends Stage {
         gridPane.add(new Label("Name: " + exchange.getName()), 0, 0);
         try {
             gridPane.add(new Label("Symbol: " + exchange.getTradePair()), 0, 1);
-        } catch (IOException | InterruptedException | ParseException | URISyntaxException e) {
+        } catch (IOException | InterruptedException | ParseException | URISyntaxException | SQLException e) {
             throw new RuntimeException(e);
         }
         gridPane.add(new Label("Volume: " + exchange.getVolume()), 0, 3);

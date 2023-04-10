@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Objects;
@@ -31,7 +32,7 @@ public class TradePair extends Pair<Currency, Currency> {
     private long orderListId;
     private long id;
 
-    public TradePair(Currency baseCurrency, Currency counterCurrency) {
+    public TradePair(Currency baseCurrency, Currency counterCurrency) throws SQLException {
         super(baseCurrency, counterCurrency);
         this.baseCurrency = baseCurrency;
         this.counterCurrency = counterCurrency;
@@ -41,7 +42,7 @@ public class TradePair extends Pair<Currency, Currency> {
         this.id = CurrencyDataProvider.of(baseCurrency.code).getId();
     }
 
-    public TradePair(String baseCurrency, String counterCurrency) {
+    public TradePair(String baseCurrency, String counterCurrency) throws SQLException {
         super(CurrencyDataProvider.of(baseCurrency), CurrencyDataProvider.of(counterCurrency));
 
         this.baseCurrency = CurrencyDataProvider.of(baseCurrency);
@@ -51,12 +52,12 @@ public class TradePair extends Pair<Currency, Currency> {
 
 
     @Contract("_, _ -> new")
-    public static @NotNull TradePair of(String baseCurrencyCode, String counterCurrencyCode) {
+    public static @NotNull TradePair of(String baseCurrencyCode, String counterCurrencyCode) throws SQLException {
         return new TradePair(baseCurrencyCode, counterCurrencyCode);
     }
 
     @Contract("_, _ -> new")
-    public static @NotNull TradePair of(@NotNull Currency baseCurrency, Currency counterCurrency) {
+    public static @NotNull TradePair of(@NotNull Currency baseCurrency, Currency counterCurrency) throws SQLException {
 
         if (baseCurrency.code.isEmpty() || counterCurrency.code.isEmpty()) {
             throw new IllegalArgumentException(
@@ -69,13 +70,13 @@ public class TradePair extends Pair<Currency, Currency> {
     }
 
     @Contract("_ -> new")
-    public static @NotNull TradePair of(@NotNull Pair<Currency, Currency> currencyPair) {
+    public static @NotNull TradePair of(@NotNull Pair<Currency, Currency> currencyPair) throws SQLException {
         return new TradePair(currencyPair.getKey(), currencyPair.getValue());
     }
 
     public static <T extends Currency, V extends Currency> @NotNull TradePair parse(
             String tradePair, @NotNull String separator, Pair<Class<T>, Class<V>> pairType)
-            throws CurrencyNotFoundException {
+            throws CurrencyNotFoundException, SQLException {
         Objects.requireNonNull(tradePair, "tradePair must not be null");
         Objects.requireNonNull(pairType, "pairType must not be null");
         Objects.requireNonNull(pairType.getKey(), "first member of pairType must not be null");

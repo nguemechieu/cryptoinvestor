@@ -1094,7 +1094,7 @@ public class CandleStickChart extends Region {
         putSlidingWindowExtrema(currZoomLevel.getExtremaForCandleRangeMap(), candleData,
                 (int) Math.round(currZoomLevel.getNumVisibleCandles()));
         putExtremaForRemainingElements(currZoomLevel.getExtremaForCandleRangeMap(), candleData.subList(
-                candleData.size() - (int) Math.floor(currZoomLevel.getNumVisibleCandles() - (liveSyncing ? 1 : 0)),
+                32 + candleData.size() - (int) Math.floor(currZoomLevel.getNumVisibleCandles() - (liveSyncing ? 1 : 0)),
                 candleData.size()));
         setYAndExtraAxisBounds();
         data.putAll(candleData.stream().collect(Collectors.toMap(CandleData::getOpenTime, Function.identity())));
