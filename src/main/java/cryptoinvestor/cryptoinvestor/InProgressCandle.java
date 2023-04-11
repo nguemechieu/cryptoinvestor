@@ -1,9 +1,5 @@
 package cryptoinvestor.cryptoinvestor;
 
-import cryptoinvestor.cryptoinvestor.Coinbase.Fill;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 

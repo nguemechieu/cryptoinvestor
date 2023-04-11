@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.Coinbase;
+package cryptoinvestor.cryptoinvestor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import cryptoinvestor.cryptoinvestor.*;
 import javafx.util.Pair;
 import org.java_websocket.drafts.Draft_6455;
 import org.java_websocket.handshake.ServerHandshake;
@@ -21,7 +20,6 @@ import javax.websocket.Session;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.http.WebSocket;
 import java.nio.ByteBuffer;
 import java.sql.SQLException;
@@ -42,14 +40,14 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     private final Set<TradePair> tradePairs =
             Collections.synchronizedSet(Collections.newSetFromMap(
                     Collections.synchronizedMap(new HashMap<>())));
-
-
     private static final Logger logger = LoggerFactory.getLogger(CoinbaseWebSocketClient.class);
-    private Account connectionEstablished;
 
-    public CoinbaseWebSocketClient(TradePair tradePair) {
+    Account connectionEstablished = new Account();
 
-        super(URI.create("wss://advanced-trade-ws.coinbase.com/level2"
+    public CoinbaseWebSocketClient() {
+
+        super(URI.create(
+                "wss://ws-feed.pro.coinbase.com"
         ), new Draft_6455());
 
 
@@ -60,6 +58,8 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         JsonNode messageJson;
         try {
             messageJson = OBJECT_MAPPER.readTree(message);
+
+            logger.info("Received message from coinbase : " + messageJson.toString());
         } catch (JsonProcessingException ex) {
             logger.error("ex: ", ex);
             throw new RuntimeException(ex);
@@ -122,13 +122,9 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
         return tradePair;
     }
 
-    @Override
-    public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
-
-    }
 
     @Override
-    public void streamLiveTrades(TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
+    public void streamLiveTrades(@NotNull TradePair tradePair, UpdateInProgressCandleTask liveTradesConsumer) {
         send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
                 .put("product_id", tradePair.toString('-')).toPrettyString());
         liveTradeConsumers.put(tradePair, liveTradesConsumer);
@@ -201,7 +197,8 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
 
     @Override
     public void abort() {
-
+        connectionEstablished.setValue(false);
+        logger.info("aborting websocket connection");
     }
 
     @Override
@@ -225,7 +222,7 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
-    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) throws URISyntaxException {
+    public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfiguration, URI path) {
         return null;
     }
 
@@ -275,19 +272,26 @@ public class CoinbaseWebSocketClient extends ExchangeWebSocketClient {
     }
 
     @Override
+    public void streamLiveTrades(TradePair tradePair, CandleStickChart.UpdateInProgressCandleTask updateInProgressCandleTask) {
+
+    }
+
+
+    @Override
     public void onClose(int code, String reason, boolean remote) {
+        connectionEstablished.setValue(false);
     }
 
     @Override
     public void onError(Exception ex) {
+        logger.error("Coinbase websocket client error: ", ex);
 
     }
 
     @Override
     public void onOpen(ServerHandshake serverHandshake) {
+        connectionEstablished.setValue(true);
     }
 
-    public void setConnectionEstablished(Account connectionEstablished) {
-        this.connectionEstablished = connectionEstablished;
-    }
+
 }

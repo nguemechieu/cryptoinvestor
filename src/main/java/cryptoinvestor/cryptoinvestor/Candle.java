@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.Coinbase;
+package cryptoinvestor.cryptoinvestor;
 
 import cryptoinvestor.cryptoinvestor.CandleData;
 

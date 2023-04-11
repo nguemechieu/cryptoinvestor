@@ -8,8 +8,11 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.util.Date;
 import java.util.Objects;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
@@ -62,8 +65,6 @@ public class CryptoInvestor extends Application {
             e.printStackTrace();
         });
 
-        primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream("cryptoinvestor"))))
-        ;
 
         TradingWindow tradingWindow;
         try {
@@ -72,13 +73,15 @@ public class CryptoInvestor extends Application {
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
-        primaryStage.setTitle("CryptoInvestor                    " + new java.util.Date() );
+        primaryStage.setTitle("CryptoInvestor                    " + new Date());
         primaryStage.setScene(new Scene(tradingWindow, 1530, 780));
         primaryStage.setResizable(true);
         primaryStage.sizeToScene();
         primaryStage.setIconified(true);
-        primaryStage.getIcons().setAll(new Image(Objects.requireNonNull(CryptoInvestor.class.getResourceAsStream("/cryptoInvestor/cryptoInvestor/MediumSquareLogo.jpg"))));
         primaryStage.centerOnScreen();
+        // primaryStage.getIcons().add(new Image(Objects.requireNonNull(getClass().getResourceAsStream("/cryptoinvestor/cryptoinvestor.png"))));
+
+
         primaryStage.show();
 
     }

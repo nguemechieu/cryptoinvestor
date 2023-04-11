@@ -156,6 +156,19 @@ public class CandleStickChartOptions {
         return true;
     }
 
+    public void setAutoTrading(boolean b) {
+        ;
+
+        if (b) {
+            verticalGridLinesVisible.set(true);
+            horizontalGridLinesVisible.set(true);
+            showVolume.set(true);
+            alignOpenClose.set(true);
+            newsGridLinesVisible.set(true);
+
+        }
+    }
+
 
     private static class ChartOption {
         private final ToggleSwitch optionSwitch;

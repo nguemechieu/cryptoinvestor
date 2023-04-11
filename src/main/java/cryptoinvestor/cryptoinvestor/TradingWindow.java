@@ -3,9 +3,6 @@ package cryptoinvestor.cryptoinvestor;
 import com.jfoenix.controls.RecursiveTreeItem;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 
-import cryptoinvestor.cryptoinvestor.BinanceUs.BinanceUs;
-import cryptoinvestor.cryptoinvestor.Coinbase.Coinbase;
-import cryptoinvestor.cryptoinvestor.oanda.Oanda;
 import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -29,9 +26,9 @@ public class TradingWindow extends AnchorPane {
     private static final Logger logger = LoggerFactory.getLogger(TradingWindow.class);
     public TradingWindow() throws Throwable {
         super();
+
         TabPane tabPane = new TabPane();
         tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.SELECTED_TAB);
-   
            for (ENUM_EXCHANGE_LIST i : ENUM_EXCHANGE_LIST.values()) {
                DraggableTab tab = new DraggableTab(i.name(), "");
                if (i.getIcon() != null) {
@@ -39,9 +36,7 @@ public class TradingWindow extends AnchorPane {
                }
                tabPane.getTabs().add(tab);
                @NotNull Exchange exchange;
-               String api_key = "";
-               String api_secret = "";
-               String account_id = "";
+
                exchange = switch (i) {
 //                case
 //                        BINANCE:
@@ -50,7 +45,7 @@ public class TradingWindow extends AnchorPane {
 //                            api_secret,
 //                            account_id);
                    case BINANCE_US -> new BinanceUs(
-                           api_key);
+                           "xxx");
 //                case BITSTAMP: {
 //
 //                     new Bitstamp(
@@ -293,7 +288,7 @@ public class TradingWindow extends AnchorPane {
                 helpMenu);
 
         Menu toolsMenu = new Menu("Tools");
-        toolsMenu.getItems().add(new MenuItem("New Orders"));
+        toolsMenu.getItems().add(new MenuItem("New Order"));
         toolsMenu.getItems().add(new SeparatorMenuItem());
         toolsMenu.getItems().add(new MenuItem("History Center"));
 

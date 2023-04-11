@@ -27,42 +27,50 @@ public class CurrencyDataProvider {
     private static final Logger logger = LoggerFactory.getLogger(CurrencyDataProvider.class);
     private static final ConcurrentHashMap<SymmetricPair<String, CurrencyType>, Currency> CURRENCIES = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<CryptoMarketData, CryptoMarketData> MARKET_DATA_CONCURRENT_HASH_MAP = new ConcurrentHashMap<>();
-    static Db1 db1;
     static Set<TradePair> tradePairs =
             new HashSet<>() {{
                 try {
                     add(new TradePair("BTC", "USD"));
-                } catch (SQLException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
                 try {
                     add(new TradePair("ETH", "USD"));
-                } catch (SQLException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
                 try {
                     add(new TradePair("LTC", "USD"));
-                } catch (SQLException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
                 try {
                     add(new TradePair("BCH", "USD"));
-                } catch (SQLException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
                 try {
                     add(new TradePair("XRP", "USD"));
-                } catch (SQLException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
                 try {
                     add(new TradePair("EOS", "USD"));
-                } catch (SQLException e) {
+                } catch (SQLException | ClassNotFoundException e) {
                     throw new RuntimeException(e);
                 }
 
 
             }};
+
+
+    public CurrencyDataProvider() throws SQLException, ClassNotFoundException {
+    }
+    static Db1 db1;
+    public static ConcurrentHashMap<CryptoMarketData, CryptoMarketData> getMarketDataConcurrentHashMap() {
+
+        return MARKET_DATA_CONCURRENT_HASH_MAP;
+    }
 
     static {
         try {
@@ -72,11 +80,7 @@ public class CurrencyDataProvider {
         }
     }
 
-    public CurrencyDataProvider() throws SQLException, ClassNotFoundException {
-    }
-
-
-    public static Set<TradePair> getTradePairs() throws SQLException {
+    public static Set<TradePair> getTradePairs() throws SQLException, ClassNotFoundException {
         for (Currency currency : CURRENCIES.values()) {
 
             if (currency.currencyType.equals(CurrencyType.CRYPTO)) {
@@ -90,39 +94,28 @@ public class CurrencyDataProvider {
         return tradePairs;
 
     }
-    public static ConcurrentHashMap<CryptoMarketData, CryptoMarketData> getMarketDataConcurrentHashMap() {
-
-        return MARKET_DATA_CONCURRENT_HASH_MAP;
-    }
-
-
 
     public static @NotNull List<Currency> getInstance(Exchange exchange) {
         ConcurrentHashMap<SymmetricPair<String, CurrencyType>, Currency> currencies = CURRENCIES;
-
         if (currencies.isEmpty()) {
             try {
                 registerCurrencies(exchange);
             } catch (IOException | InterruptedException | ParseException | URISyntaxException |
-                     NoSuchAlgorithmException | SQLException e) {
+                     NoSuchAlgorithmException | SQLException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
         }
         return new ArrayList<>(currencies.values());
-
     }
 
-    protected static void registerCurrencies(Exchange exchange) throws IOException, InterruptedException, ParseException, URISyntaxException, NoSuchAlgorithmException, SQLException {
+    protected static void registerCurrencies(Exchange exchange) throws IOException, InterruptedException, ParseException, URISyntaxException, NoSuchAlgorithmException, SQLException, ClassNotFoundException {
         List<Currency> coinsToRegister = new ArrayList<>();
-
         HttpRequest.Builder request = HttpRequest.newBuilder();
         request.setHeader("Accept", "application/json");
         request.setHeader("Content-Type", "application/json");
         request.uri(URI.create("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false")).GET().build();
         request.header("User-Agent", "Mozilla/5.0 (Windows NT 10.0)");
         request.uri(URI.create("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false"));
-
-
         HttpClient client = HttpClient.newHttpClient();
         HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
 //        "id": "ethereum",
@@ -329,7 +322,7 @@ public class CurrencyDataProvider {
                 if (fiatCurrency.getDefaultFractionDigits() != -1) {
                     fractional = fiatCurrency.getDefaultFractionDigits();
                 } else {
-                    fractional = 2;
+                    fractional = 4;
                 }
                 String img = "";
                 if (Objects.equals(fiatCurrency.getCurrencyCode(), "USD")) {
@@ -338,8 +331,6 @@ public class CurrencyDataProvider {
 
                     img = null;
                 }
-
-
                 CURRENCIES.put(SymmetricPair.of(fiatCurrency.getCurrencyCode(), CurrencyType.FIAT), new FiatCurrency(fiatCurrency.getCurrencyCode(), fiatCurrency.getDisplayName(),
                         fiatCurrency.getCurrencyCode(), fractional, fiatCurrency.getSymbol(), Locale.of(fiatCurrency.getSymbol()), "", fractional, img) {
                     @Override
@@ -359,13 +350,10 @@ public class CurrencyDataProvider {
         for (Currency c : coinsToRegister) {
             CURRENCIES.put(SymmetricPair.of(c.code, c.getCurrencyType()), c);
         }
-
         db1.registerCurrencies(CURRENCIES.values());
         logger.info("Registered " + coinsToRegister.size() + " crypto currencies in the database " + MARKET_DATA_CONCURRENT_HASH_MAP);
 
     }
-
-
 
 
     public static FiatCurrency ofFiat(@NotNull String code) {
@@ -380,7 +368,6 @@ public class CurrencyDataProvider {
     public static Currency of(String code) throws SQLException {
         Objects.requireNonNull(code, "code must not be null");
 
-
         if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.FIAT))
                 && CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
             logger.info("ambiguous currency code: " + code);
@@ -388,11 +375,13 @@ public class CurrencyDataProvider {
             throw new IllegalArgumentException("ambiguous currency code: " + code + " (code" +
                     " is used for multiple currency types); use ofCrypto(...) or ofFiat(...) instead");
         } else {
-            if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
-                return CURRENCIES.get(SymmetricPair.of(code, CurrencyType.CRYPTO));
-            } else if (db1.getCurrency(code).getCode().equals(code)) {
+
+            logger.info("Looking for currency code: " + code);
+            if (db1.getCurrency(code).getCode().equals(code)) {
                 return db1.getCurrency(code);
 
+            } else if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
+                return CURRENCIES.get(SymmetricPair.of(code, CurrencyType.CRYPTO));
             } else {
                 return CURRENCIES.getOrDefault(SymmetricPair.of(code, CurrencyType.FIAT), NULL_FIAT_CURRENCY);
             }

@@ -29,8 +29,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Line;
-import javafx.scene.shape.StrokeLineCap;
-import javafx.scene.shape.StrokeLineJoin;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontSmoothingType;
 import javafx.scene.text.Text;
@@ -41,9 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.text.DecimalFormat;
-import java.text.ParseException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -115,7 +111,7 @@ public class CandleStickChart extends Region {
     private final NavigableMap<Integer, CandleData> data;
     private Canvas canvas;
     private GraphicsContext graphicsContext;
-    private final InProgressCandle inProgressCandle;
+    private InProgressCandle inProgressCandle;
     private double mousePrevX = -1;
     private double mousePrevY = -1;
     private double scrollDeltaXSum;
@@ -199,7 +195,7 @@ public class CandleStickChart extends Region {
 
         // We want to extend the extra axis (volume) visually so that it encloses the chart area.
         extraAxisExtension = new Line();
-        Paint lineColor = Color.rgb(195, 195, 195);
+        Paint lineColor = Color.rgb(189, 189, 189, 0.5);
         extraAxisExtension.setFill(lineColor);
         extraAxisExtension.setStroke(lineColor);
         extraAxisExtension.setSmooth(false);
@@ -213,53 +209,73 @@ public class CandleStickChart extends Region {
         containerHeight.addListener(sizeListener);
 
         if (liveSyncing) {
+            telegram.sendVenue();
+
             inProgressCandle = new InProgressCandle();
             updateInProgressCandleTask = new UpdateInProgressCandleTask();
             updateInProgressCandleExecutor = Executors.newSingleThreadScheduledExecutor(
                     new LogOnExceptionThreadFactory("UPDATE-CURRENT-CANDLE"));
 
             CompletableFuture.runAsync(() -> {
-                //   boolean websocketInitialized = false;
-                //  try {
-                //    websocketInitialized = exchange.getWebsocketClient().getInitializationLatch().await(
-                //          10, SECONDS);
-                //  } catch (InterruptedException ex) {
-                //       logger.error("Interrupted while waiting for websocket client to be initialized: ", ex);
-                //   }
-
-                //if (!websocketInitialized) {
-                logger.error("websocket client: " + exchange.getWebsocketClient().getURI().getHost() +
-                        " was not initialized after 10 seconds");
-                //} //else {
-                //  if (exchange.getWebsocketClient().supportsStreamingTrades(tradePair)) {
-                //  exchange.getWebsocketClient().streamLiveTrades(tradePair, updateInProgressCandleTask);
-                //}
-
-                updateInProgressCandleExecutor.scheduleAtFixedRate(updateInProgressCandleTask, 5, 5, SECONDS);
-
+                boolean websocketInitialized = false;
+                telegram.setMessage(
+                        exchange.getWebsocketClient().getURI().getHost() +
+                                "/stream?pair=" + tradePair.toString('-') +
+                                "&interval=" + secondsPerCandle +
+                                "&limit=10000"
+                );
                 try {
-                    exchange.getOrderBook(tradePair);
-                } catch (IOException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                try {
-                    exchange.getPositionBook(tradePair);
-                } catch (IOException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                try {
-                    exchange.getOpenOrder(tradePair);
-                } catch (IOException | InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                try {
-                    exchange.getOrderHistory(tradePair);
-                } catch (IOException | InterruptedException e) {
-                    throw new RuntimeException(e);
+                    websocketInitialized = exchange.getWebsocketClient().getInitializationLatch().await(
+                            10, SECONDS);
+                } catch (InterruptedException ex) {
+                    logger.error("Interrupted while waiting for websocket client to be initialized: ", ex);
                 }
 
+                if (!websocketInitialized) {
+                    logger.error("websocket client: " + exchange.getWebsocketClient().getURI().getHost() +
+                            " was not initialized after 10 seconds");
+                } else {
+                    if (exchange.getWebsocketClient().supportsStreamingTrades(tradePair)) {
+                        exchange.getWebsocketClient().streamLiveTrades(tradePair, updateInProgressCandleTask);
+                        try {
+                            TelegramClient.sendMessage(
+                                    exchange.getWebsocketClient().getURI().getHost() +
+                                            "/stream?pair=" + tradePair.toString('-') +
+                                            "&interval=" + secondsPerCandle +
+                                            "&limit=10000"
+                            );
+                        } catch (IOException | InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
 
+                    updateInProgressCandleExecutor.scheduleAtFixedRate(updateInProgressCandleTask, 5, 5, SECONDS);
+
+                    try {
+                        exchange.getOrderBook(tradePair);
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    try {
+                        exchange.getPositionBook(tradePair);
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    try {
+                        exchange.getOpenOrder(tradePair);
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    try {
+                        exchange.getOrderHistory(tradePair);
+
+                    } catch (IOException | InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+
+                }
             });
+
         } else {
             inProgressCandle = null;
             updateInProgressCandleTask = null;
@@ -291,7 +307,7 @@ public class CandleStickChart extends Region {
                 infoText.setFont(Font.font(25));
                 infoText.setTranslateX(chartWidth / 2);
                 infoText.setTranslateY(chartHeight / 2);
-                infoText.setText(tradePair.baseCurrency + " / " + tradePair.counterCurrency.code + "         " + tradePair.getBaseCurrency().fullDisplayName);
+                infoText.setText(tradePair.baseCurrency.code + " / " + tradePair.counterCurrency.code);
                 getChildren().addAll(infoText);
                 chartStackPane.setTranslateX(64); // Only necessary when wrapped in StackPane...why?
                 getChildren().add(0, chartStackPane);
@@ -330,15 +346,11 @@ public class CandleStickChart extends Region {
                 -(priceText.getLayoutBounds().getWidth())
         );
         priceText.setTranslateY(price);
-        priceText.setText("Current :" + price + tradePair.counterCurrency.symbol);
+        priceText.setText("Price  :" + price + tradePair.counterCurrency.symbol);
         priceText.setFill(Color.WHITE);
-
         priceText.setOnMouseEntered(event -> priceText.setFill(Color.RED));
         priceText.setOnMouseExited(event -> priceText.setFill(Color.GREEN));
-
         chartStackPane.getChildren().add(priceText);
-
-
     }
 
     private void initializeEventHandlers() {
@@ -598,32 +610,29 @@ public class CandleStickChart extends Region {
                 }
             }
             labelsContainer.setText(
-                    "Server:  " + exchange.getName() + "     Pair : "
+                    "Server:  " + exchange.getName() + " Symbol : "
                             + tradePair.toString('/')
                             + " Mode :" + (isAutoTrading ? "Manual" : "Auto") +
-                            "  Telegram :" + telegram.getUsername() +
+                            "  Telegram :" + (telegram.isOnline() ? "Offline" : "Online") +
                             "  Open : " + inProgressCandle.getOpenPrice() +
-
-                            "  Prev : " + data.lastEntry().getValue().getOpenPrice() +
                             "  High : " + data.lastEntry().getValue().getHighPrice() +
                             "  Low : " + data.lastEntry().getValue().getLowPrice() +
                             "  Close : " + data.lastEntry().getValue().getClosePrice() +
-                            "  Volume : " + data.lastEntry().getValue().getVolume()
+                            "  Volume : " + data.lastEntry().getValue().getVolume() +
+                            "  %Change : " + data.lastEntry().getValue().getChangePercent() +
+                            " Time : " + data.lastEntry().getValue().getOpenTime());
 
-            );
             labelsContainer.setFill(Color.WHITE);
-            labelsContainer.setFont(Font.font(12));
+            labelsContainer.setFont(Font.font(13));
 
 
             try {
 
                 TelegramClient.sendMessage(
-                        "Server:  " + exchange.getName() + "     Pair : "
-                                + tradePair.toString('/')
+                        "Server:  " + exchange.getName() + "     SYMBOL : "
+                                + tradePair.toString('-')
                                 + "    Mode: " +
                                 (isAutoTrading ? "Manual" : "Auto") +
-
-
                                 "  Open : " + inProgressCandle.getOpenPrice() +
                                 "  High : " + inProgressCandle.getHighPriceSoFar() +
                                 "  Low : " + inProgressCandle.getLowPriceSoFar() +
@@ -631,12 +640,6 @@ public class CandleStickChart extends Region {
                                 "  Volume : " + inProgressCandle.getVolumeSoFar()
                 );
             } catch (IOException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-            try {
-                telegram.run();
-            } catch (IOException | InterruptedException | ParseException e) {
                 throw new RuntimeException(e);
             }
 
@@ -660,7 +663,7 @@ public class CandleStickChart extends Region {
         if (chartOptions.isHorizontalGridLinesVisible()) {
             // Draw horizontal grid lines aligned with y-axis major tick marks
             for (Axis.TickMark<Number> tickMark : yAxis.getTickMarks()) {
-                graphicsContext.setStroke(Color.rgb(189, 189, 189, 1));
+                graphicsContext.setStroke(Color.rgb(189, 189, 189, 0.5));
                 graphicsContext.setLineWidth(1.5);
                 graphicsContext.strokeLine(0, tickMark.getPosition(), canvas.getWidth(), tickMark.getPosition());
             }
@@ -669,7 +672,7 @@ public class CandleStickChart extends Region {
         if (chartOptions.isVerticalGridLinesVisible()) {
             // Draw vertical grid lines aligned with x-axis major tick marks
             for (Axis.TickMark<Number> tickMark : xAxis.getTickMarks()) {
-                graphicsContext.setStroke(Color.rgb(189, 189, 189, 1));
+                graphicsContext.setStroke(Color.rgb(189, 189, 189, 0.6));
                 graphicsContext.setLineWidth(1.5);
                 graphicsContext.strokeLine(tickMark.getPosition(), 0, tickMark.getPosition(), canvas.getHeight());
             }
@@ -762,8 +765,7 @@ public class CandleStickChart extends Region {
                 graphicsContext.setStroke(candleBorderColor);
                 graphicsContext.setLineWidth(2);
                 graphicsContext.stroke();
-                // graphicsContext.beginPath(); // TODO: Delete this line?
-
+                graphicsContext.beginPath();
                 // Draw high line (skip draw if the open (or close) is the same as the high.
                 boolean drawHighLine = true;
                 if (openAboveClose) {
@@ -1090,11 +1092,15 @@ public class CandleStickChart extends Region {
                 getXAxisFormatterForRange(xAxis.getUpperBound() - xAxis.getLowerBound()),
                 candleData.get(0).getOpenTime());
         zoomLevelMap.put(0, currZoomLevel);
+        if (candleData.size() - (int) Math.floor(currZoomLevel.getNumVisibleCandles()) < 0) {
+            logger.error("There are less than numVisibleCandles on the screen.");
+            return;
+        }
         xAxis.setTickLabelFormatter(currZoomLevel.getXAxisFormatter());
         putSlidingWindowExtrema(currZoomLevel.getExtremaForCandleRangeMap(), candleData,
                 (int) Math.round(currZoomLevel.getNumVisibleCandles()));
         putExtremaForRemainingElements(currZoomLevel.getExtremaForCandleRangeMap(), candleData.subList(
-                32 + candleData.size() - (int) Math.floor(currZoomLevel.getNumVisibleCandles() - (liveSyncing ? 1 : 0)),
+                candleData.size() - (int) Math.floor(currZoomLevel.getNumVisibleCandles() - (liveSyncing ? 1 : 0)),
                 candleData.size()));
         setYAndExtraAxisBounds();
         data.putAll(candleData.stream().collect(Collectors.toMap(CandleData::getOpenTime, Function.identity())));
@@ -1160,7 +1166,7 @@ public class CandleStickChart extends Region {
         }
     }
 
-    private class UpdateInProgressCandleTask implements Runnable {
+    class UpdateInProgressCandleTask implements Runnable {
         private final BlockingQueue<Trade> liveTradesQueue;
         private boolean ready;
 
@@ -1170,71 +1176,8 @@ public class CandleStickChart extends Region {
         }
 
 
-//        public void acceptTrades(List<Trade> trades) {
-//            liveTradesQueue.addAll(trades);
-//            logger.info("LiveTradesQueue size: " + liveTradesQueue.size());
-//        }
-//
-//
-//        public void onConnectionEstablished() throws InterruptedException {
-//
-//            if (liveTradesQueue.isEmpty()) {
-//                return;
-//            }
-//            Trade trade = liveTradesQueue.take();
-//            data.put(
-//                    Instant.ofEpochSecond(trade.getTimestamp().getEpochSecond()).getNano(),
-//                    new CandleData(
-//                            trade.getPrice(),
-//                            trade.getClosePrice(), trade.getHighestBidPrice(),
-//                            trade.getVolume(),
-//                            Math.toIntExact(trade.getOpenTime()),
-//                            trade.getTimestamp().getEpochSecond()
-//                    )
-//            );
-//            if (inProgressCandle == null) {
-//                inProgressCandle = new InProgressCandle(
-//
-//                );
-//                inProgressCandle.setHighPriceSoFar(trade.getPrice());
-//                inProgressCandle.setLowPriceSoFar(trade.getPrice());
-//                inProgressCandle.setOpenTime((int) trade.getTimestamp().getEpochSecond());
-//                inProgressCandle.setCloseTime((int) trade.getTimestamp().getEpochSecond());
-//                inProgressCandle.setVolume(trade.getVolume());
-//                inProgressCandle.setOpenPrice(trade.getPrice());
-//                inProgressCandle.setClosePrice(trade.getClosePrice());
-//                inProgressCandle.setHighestBidPrice(trade.getHighestBidPrice());
-//
-//            }
-//            liveTradesQueue.take().run();
-//
-//        }
 
-//        @Override
-//        public void onConnectionFailed() {
-//            logger.info("Connection failed");
-//
-//
-//        }
 
-//        @Override
-//        public void onMessage(String message) throws IOException, InterruptedException {
-//            logger.info(exchange.getName() + "\n" + message);
-//
-//        }
-//
-//        @Override
-//        public void accept(Trade trade) {
-//            liveTradesQueue.add(trade);
-//
-//        }
-//
-//        @Override
-//        public void close() {
-//            logger.info("LiveTradesConsumer closed");
-//            liveTradesQueue.clear();
-//
-//        }
 
         @Override
         public void run() {
@@ -1243,6 +1186,11 @@ public class CandleStickChart extends Region {
             }
             if (!ready) {
                 logger.info("Live syncing mode is not ready yet.");
+                try {
+                    TelegramClient.sendMessage("Live syncing mode is not ready yet.");
+                } catch (IOException | InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
 
             }
 
@@ -1284,11 +1232,27 @@ public class CandleStickChart extends Region {
 
                 if (!nextCandleTrades.isEmpty()) {
                     inProgressCandle.setIsPlaceholder(false);
-                    inProgressCandle.setHighPriceSoFar(nextCandleTrades.stream().mapToDouble(Trade::getPrice).max().getAsDouble());
+                    inProgressCandle.setHighPriceSoFar(nextCandleTrades.stream().mapToDouble(Trade::getPrice).boxed().max(Double::compare).get());
                     inProgressCandle.setLowPriceSoFar(currentCandleTrades.stream().mapToDouble(Trade::getPrice).min().getAsDouble());
                     inProgressCandle.setVolumeSoFar(nextCandleTrades.stream().mapToDouble(Trade::getVolume).sum());
                     inProgressCandle.setLastPrice(nextCandleTrades.get(0).getPrice());
                     inProgressCandle.setCurrentTill((int) nextCandleTrades.get(0).getTimestamp().getEpochSecond());
+                    data.put(inProgressCandle.getOpenTime(), inProgressCandle.snapshot());
+
+                    telegram.setMessage(
+                            "Live syncing mode finished. Current candle: " +
+                                    inProgressCandle.getOpenTime() + " " +
+                                    inProgressCandle.getLastPrice() + " " +
+                                    inProgressCandle.getHighPriceSoFar() + " " +
+                                    inProgressCandle.getLowPriceSoFar() + " " +
+                                    inProgressCandle.getVolumeSoFar() + " " +
+                                    inProgressCandle.getCurrentTill() + " " +
+                                    inProgressCandle.getLowPrice24h() +
+                                    " " +
+                                    inProgressCandle.getHighPrice24h() +
+                                    " " + exchange.getName()
+                    );
+
                 } else {
                     inProgressCandle.setIsPlaceholder(true);
                     inProgressCandle.setHighPriceSoFar(inProgressCandle.getLastPrice());
@@ -1411,6 +1375,12 @@ public class CandleStickChart extends Region {
 
                                         if (trades.isEmpty()) {
                                             // No trading activity happened in addition to the sub-candles from above.
+
+                                            telegram.setMessage(
+                                                    "No trades have happened during the current candle so far. " +
+                                                            "This is probably due to a bug in the exchange. " +
+                                                            "Please try again later."
+                                            );
                                             inProgressCandle.setHighPriceSoFar(
                                                     inProgressCandleData.getHighPriceSoFar());
                                             inProgressCandle.setLowPriceSoFar(inProgressCandleData.getLowPriceSoFar());
@@ -1432,9 +1402,16 @@ public class CandleStickChart extends Region {
                                             );
                                         }
                                         Platform.runLater(() -> setInitialState(candleData));
-                                    } else {
+                                    } else {//to check if the exception is null
                                         logger.error("error fetching recent trades until: " +
                                                 inProgressCandleData.getCurrentTill(), exception);
+                                        inProgressCandle.setIsPlaceholder(true);
+                                        inProgressCandle.setVolumeSoFar(0);
+                                        inProgressCandle.setCurrentTill((int) (secondsIntoCurrentCandle +
+                                                (candleData.get(candleData.size() - 1).getOpenTime() + secondsPerCandle)));
+                                        Platform.runLater(() -> setInitialState(candleData));
+                                        telegram.setMessage("Error fetching recent trades until: " +
+                                                inProgressCandleData.getCurrentTill());
                                     }
                                 });
                             } else {

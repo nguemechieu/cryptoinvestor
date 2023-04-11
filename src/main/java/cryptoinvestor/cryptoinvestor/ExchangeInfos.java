@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.BinanceUs;
+package cryptoinvestor.cryptoinvestor;
 
 import java.util.ArrayList;
 

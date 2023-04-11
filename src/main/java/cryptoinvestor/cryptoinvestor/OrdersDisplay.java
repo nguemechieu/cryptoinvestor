@@ -21,14 +21,11 @@ public class OrdersDisplay extends Stage {
         vbox.setSpacing(20);
         vbox.setPadding(new Insets(20));
         vbox.setAlignment(Pos.CENTER);
-        vbox.setPrefSize(800, 600);
-        vbox.getChildren().add(new ListView<>(FXCollections.observableArrayList(exchange.getName(), exchange.getAvailableSymbols(), exchange.getAllOrders())));
+        vbox.setPrefSize(700, 500);
+        vbox.getChildren().add(new ListView<>(FXCollections.observableArrayList(exchange.getName(), exchange.getAllOrders())));
 
-        ListView<Object> orderListView =
-                new ListView<>(FXCollections.observableArrayList(exchange.getName(), exchange.getAvailableSymbols(), exchange.getAllOrders()));
-        vbox.getChildren().add(orderListView);
 
-        this.setScene(new Scene(vbox, 800, 600));
+        this.setScene(new Scene(vbox, 800, 400));
         this.show();
 
     }

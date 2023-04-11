@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.oanda;
+package cryptoinvestor.cryptoinvestor;
 
 public enum OANDA_ACCESS_TOKEN {
     ACCESS_TOKEN("adc94d655c0c81e0afdd3da09292f82d-dacf61d05de1d1867d27f725069b9aa2"),

@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.oanda;
+package cryptoinvestor.cryptoinvestor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.websocket.*;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.WebSocket;
@@ -32,9 +31,9 @@ import java.util.concurrent.CompletableFuture;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
-public class OandaWebSocket extends ExchangeWebSocketClient {
+public abstract class OandaWebSocket extends ExchangeWebSocketClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(cryptoinvestor.cryptoinvestor.Coinbase.CoinbaseWebSocketClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(CoinbaseWebSocketClient.class);
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
@@ -139,20 +138,15 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 
 
     @Override
-    public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
+    public void streamLiveTrades(@NotNull TradePair tradePair, UpdateInProgressCandleTask liveTradesConsumer) {
 
         sendText(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
-                .put("ask", tradePairs.toString()).toPrettyString(), true);
-        liveTradeConsumers.put(tradePairs.iterator().next(), liveTradesConsumer);
+                .put("ask", tradePair.toString('_')).toPrettyString(), true);
+        liveTradeConsumers.put(tradePair, UpdateInProgressCandleTask.wrap(liveTradesConsumer));
 
     }
 
 
-    @Override
-    public void streamLiveTrades(@NotNull TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
-        liveTradeConsumers.put(tradePair, liveTradesConsumer);
-
-    }
 
     @Override
     public void stopStreamLiveTrades(TradePair tradePair) {
@@ -250,7 +244,7 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
     }
 
     @Override
-    public void onOpen(ServerHandshake serverHandshake) {
+    public void onOpen(@NotNull ServerHandshake serverHandshake) {
         logger.info("oanda websocket client: connection established with account: " +
                 serverHandshake.getHttpStatusMessage());
     }
@@ -325,6 +319,8 @@ public class OandaWebSocket extends ExchangeWebSocketClient {
 
     @Override
     public double getPrice(TradePair tradePair) {
+
+
         return 0;
     }
 }

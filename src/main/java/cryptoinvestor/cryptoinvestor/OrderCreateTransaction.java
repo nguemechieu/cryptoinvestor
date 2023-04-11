@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.oanda;
+package cryptoinvestor.cryptoinvestor;
 
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
@@ -33,17 +33,47 @@ public class OrderCreateTransaction {
     public String instrument;
 
     public OrderCreateTransaction(@NotNull JSONObject jsonObject) {
-        this.orderID = jsonObject.getString("orderID");
-        this.requestID = jsonObject.getString("requestID");
-        this.id = jsonObject.getString("id");
-        this.time = jsonObject.getString("time");
-        this.batchID = jsonObject.getString("batchID");
-        this.type = jsonObject.getString("type");
-        this.userID = jsonObject.getString("userID");
-        this.timeInForce = jsonObject.getString("timeInForce");
-        this.positionFill = jsonObject.getString("positionFill");
-        this.reason = jsonObject.getString("reason");
-        this.instrument = jsonObject.getString("instrument");
+        if (jsonObject.has("orderCancelTransaction")) {
+            this.id = jsonObject.getJSONObject("orderCancelTransaction").getString("id");
+            this.orderID = jsonObject.getJSONObject("orderCancelTransaction").getString("orderID");
+            this.requestID = jsonObject.getJSONObject("orderCancelTransaction").getString("requestID");
+            this.time = jsonObject.getJSONObject("orderCancelTransaction").getString("time");
+            this.batchID = jsonObject.getJSONObject("orderCancelTransaction").getString("batchID");
+            this.type = jsonObject.getJSONObject("orderCancelTransaction").getString("type");
+            this.userID = jsonObject.getJSONObject("orderCancelTransaction").getString("userID");
+            this.timeInForce = jsonObject.getJSONObject("orderCancelTransaction").getString("timeInForce");
+            this.positionFill = jsonObject.getJSONObject("orderCancelTransaction").getString("positionFill");
+            this.reason = jsonObject.getJSONObject("orderCancelTransaction").getString("reason");
+            this.instrument = jsonObject.getJSONObject("orderCancelTransaction").getString("instrument");
+            this.orderID = jsonObject.getString("orderID");
+            new Message("OrderCreateTransaction", this);
+        } else {
+//            "accountID": "001-001-2783446-002",
+//                    "reason": "CLIENT_ORDER",
+//                    "requestID": "43080139052008057",
+//                    "instrument": "EUR_HKD",
+//                    "id": "143321",
+//                    "time": "2023-04-10T23:55:48.747788856Z",
+//                    "units": "1000",
+//                    "batchID": "143321",
+//                    "type": "MARKET_ORDER",
+//                    "userID": 2783446,
+//                    "timeInForce": "FOK",
+//                    "positionFill": "DEFAULT"
+
+
+            this.id = jsonObject.getString("id");
+            this.orderID = id;
+            this.requestID = jsonObject.getString("requestID");
+            this.time = jsonObject.getString("time");
+            this.batchID = jsonObject.getString("batchID");
+            this.type = jsonObject.getString("type");
+
+            this.timeInForce = jsonObject.getString("timeInForce");
+            this.positionFill = jsonObject.getString("positionFill");
+            this.reason = jsonObject.getString("reason");
+            new Message("OrderCreateTransaction", this);
+        }
     }
 
     @Override

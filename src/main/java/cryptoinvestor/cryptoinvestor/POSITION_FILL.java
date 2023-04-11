@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.oanda;
+package cryptoinvestor.cryptoinvestor;
 
 public enum POSITION_FILL {
     OPEN,

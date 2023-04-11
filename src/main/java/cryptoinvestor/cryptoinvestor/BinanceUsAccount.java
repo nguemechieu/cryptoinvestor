@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.BinanceUs;
+package cryptoinvestor.cryptoinvestor;
 
 import cryptoinvestor.cryptoinvestor.Account;
 import org.json.JSONObject;

@@ -4,26 +4,38 @@ import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.text.ParseException;
-import java.time.Instant;
 import java.util.Date;
 
 public class Order extends RecursiveTreeObject<Order> {
-
+    double dividendAdjustment;
+    double financing;
+    double realizedPL;
+    double currentUnits;
+    ENUM_ORDER_TYPE orderType;
+    String instrument;
+    double marginUsed;
+    double unrealizedPL;
+    String triggerMode;
+    String replacesOrderID;
+    String time;
     String orderListId;
-    private String time;
     private String clientOrderId;
     private String selfTradePreventionMode;
     private String updateTime;
     private String origQuoteOrderQty;
     private String isWorking;
-    private String stopPrice;
-    private String orderId;
+    String reason;
+    String positionFill;
+    private String accountID;
+    private String userID;
+    private String batchID;
+    private String requestID;
+    private JSONObject clientExtensions;
+    private String partialFill;
+    private String order_type;
+    private String type;
 
     public Order(String price, String timeInForce, String symbol, String orderId, String orderListId, String clientOrderId, String origQty, String executedQty, String cummulativeQuoteQty, String status, String type, String side, String stopPrice, String icebergQty, String time, String updateTime, String isWorking, String origQuoteOrderQty, String selfTradePreventionMode) {
 
@@ -37,18 +49,17 @@ public class Order extends RecursiveTreeObject<Order> {
         this.executedQty = executedQty;
         this.cummulativeQuoteQty = cummulativeQuoteQty;
         this.status = status;
-        this.type = ENUM_ORDER_TYPE.valueOf(type);
+        this.type = type;
         this.side = Side.valueOf(side);
         this.stopPrice = stopPrice;
         this.icebergQty = icebergQty;
-        this.time = time;
         this.updateTime = updateTime;
         this.isWorking = isWorking;
         this.origQuoteOrderQty = origQuoteOrderQty;
         this.selfTradePreventionMode = selfTradePreventionMode;
     }
 
-    public Order(Long id, @NotNull TradePair tradePair, String timestamp, ENUM_ORDER_TYPE order_type, Side side, double remaining, double fee, double lotSize, double price
+    public Order(Long id, @NotNull TradePair tradePair, String timestamp, String order_type, Side side, double remaining, double fee, double lotSize, double price
 
             , double stopLoss, double takeProfit
     ) {
@@ -84,7 +95,7 @@ public class Order extends RecursiveTreeObject<Order> {
         this.executedQty = executedQty;
         this.cummulativeQuoteQty = cummulativeQuoteQty;
         this.status = status;
-        this.type = ENUM_ORDER_TYPE.valueOf(type);
+        this.type = type;
         this.side = Side.valueOf(side);
         this.stopPrice = stopPrice;
         this.icebergQty = icebergQty;
@@ -94,17 +105,223 @@ public class Order extends RecursiveTreeObject<Order> {
         this.selfTradePreventionMode = selfTradePreventionMode;
     }
 
-    public Order(@NotNull JSONArray orders) {
-        this.orders = orders;
-        for (int i = 0; i < orders.length(); i++) {
-            try {
-                JSONObject order = orders.getJSONObject(i);
-                this.orders = order.names();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
+    public Order(@NotNull JSONArray names) {
+//        "orders": [
+//        {
+//            "triggerCondition": "DEFAULT",
+//                "createTime": "2023-04-10T21:03:37.580958630Z",
+//                "price": "1.08387",
+//                "clientTradeID": "141168538",
+//                "id": "143300",
+//                "state": "PENDING",
+//                "type": "STOP_LOSS",
+//                "timeInForce": "GTC",
+//                "triggerMode": "TOP_OF_BOOK",
+//                "tradeID": "143295",
+//                "replacesOrderID": "143297"
+//        },
+//        {
+//            "triggerCondition": "DEFAULT",
+//                "createTime": "2023-04-10T21:03:01.552862838Z",
+//                "price": "1.09677",
+//                "clientTradeID": "141168538",
+//                "id": "143298",
+//                "state": "PENDING",
+//                "type": "TAKE_PROFIT",
+//                "timeInForce": "GTC",
+//                "tradeID": "143295"
+//        }
+
+        this.triggerCondition = names.getString(0);
+        this.createTime = names.getString(1);
+        this.price = names.getString(2);
+        this.clientTradeID = names.getString(3);
+        // this.id = Long.valueOf(names.getString(4));
+        this.state = names.getString(5);
+        // this.type = ENUM_ORDER_TYPE.valueOf(names.getString(6));
+        this.timeInForce = names.getString(7);
+        this.triggerMode = names.getString(8);
+        this.tradeID = names.getString(9);
+        this.replacesOrderID = names.getString(10);
+
+
     }
+
+    public Order() {
+
+    }
+
+    public Order(Long id, String instrument, String timestamp, ENUM_ORDER_TYPE orderType, Side side, double currentUnits, double realizedPL, double financing, double dividendAdjustment, double unrealizedPL, double marginUsed) {
+        this.id = id;
+        this.timestamp = timestamp;
+        this.instrument = instrument;
+        this.orderType = orderType;
+        this.side = side;
+        this.currentUnits = currentUnits;
+        this.realizedPL = realizedPL;
+        this.financing = financing;
+        this.dividendAdjustment = dividendAdjustment;
+        this.unrealizedPL = unrealizedPL;
+        this.marginUsed = marginUsed;
+        this.created = String.valueOf(new Date());
+        this.updated = new Date();
+    }
+
+    public double getDividendAdjustment() {
+        return dividendAdjustment;
+    }
+
+    public void setDividendAdjustment(double dividendAdjustment) {
+        this.dividendAdjustment = dividendAdjustment;
+    }
+
+    public double getFinancing() {
+        return financing;
+    }
+
+    public void setFinancing(double financing) {
+        this.financing = financing;
+    }
+
+    public double getRealizedPL() {
+        return realizedPL;
+    }
+
+    public void setRealizedPL(double realizedPL) {
+        this.realizedPL = realizedPL;
+    }
+
+    public double getCurrentUnits() {
+        return currentUnits;
+    }
+
+    public void setCurrentUnits(double currentUnits) {
+        this.currentUnits = currentUnits;
+    }
+
+    @Override
+    public String toString() {
+        return "Order{" +
+                "dividendAdjustment=" + dividendAdjustment +
+                ", financing=" + financing +
+                ", realizedPL=" + realizedPL +
+                ", currentUnits=" + currentUnits +
+                ", orderType=" + orderType +
+                ", instrument='" + instrument + '\'' +
+                ", marginUsed=" + marginUsed +
+                ", unrealizedPL=" + unrealizedPL +
+                ", triggerMode='" + triggerMode + '\'' +
+                ", replacesOrderID='" + replacesOrderID + '\'' +
+                ", time='" + time + '\'' +
+                ", orderListId='" + orderListId + '\'' +
+                ", clientOrderId='" + clientOrderId + '\'' +
+                ", selfTradePreventionMode='" + selfTradePreventionMode + '\'' +
+                ", updateTime='" + updateTime + '\'' +
+                ", origQuoteOrderQty='" + origQuoteOrderQty + '\'' +
+                ", isWorking='" + isWorking + '\'' +
+                ", stopPrice='" + stopPrice + '\'' +
+                ", orderId='" + orderId + '\'' +
+                ", accountID='" + accountID + '\'' +
+                ", userID='" + userID + '\'' +
+                ", batchID='" + batchID + '\'' +
+                ", requestID='" + requestID + '\'' +
+                ", clientExtensions=" + clientExtensions +
+                ", partialFill='" + partialFill + '\'' +
+                ", created='" + created + '\'' +
+                ", clientTradeID1='" + clientTradeID1 + '\'' +
+                ", triggerCondition='" + triggerCondition + '\'' +
+                ", createTime='" + createTime + '\'' +
+                ", price='" + price + '\'' +
+                ", clientTradeID='" + clientTradeID + '\'' +
+                ", state='" + state + '\'' +
+                ", timeInForce='" + timeInForce + '\'' +
+                ", tradeID='" + tradeID + '\'' +
+                ", executedQty='" + executedQty + '\'' +
+                ", origQty='" + origQty + '\'' +
+                ", cummulativeQuoteQty='" + cummulativeQuoteQty + '\'' +
+                ", icebergQty='" + icebergQty + '\'' +
+                ", tradePair=" + tradePair +
+                ", timestamp='" + timestamp + '\'' +
+                ", order_type='" + order_type + '\'' +
+                ", remaining=" + remaining +
+                ", fee=" + fee +
+                ", lotSize=" + lotSize +
+                ", stopLoss=" + stopLoss +
+                ", symbol='" + symbol + '\'' +
+                ", type='" + type + '\'' +
+                ", orders=" + orders +
+                ", orderID=" + orderID +
+                ", ticket=" + ticket +
+                ", id=" + id +
+                ", total=" + total +
+                ", currency='" + currency + '\'' +
+                ", takeProfit=" + takeProfit +
+                ", updated=" + updated +
+                ", closed=" + closed +
+                ", status='" + status + '\'' +
+                ", side=" + side +
+                ", filled='" + filled + '\'' +
+                ", unit='" + unit + '\'' +
+                ", reason='" + reason + '\'' +
+                ", positionFill='" + positionFill + '\'' +
+                '}';
+    }
+
+    public ENUM_ORDER_TYPE getOrderType() {
+        return orderType;
+    }
+
+    private String stopPrice;
+    private String orderId;
+
+    public void setOrderType(ENUM_ORDER_TYPE orderType) {
+        this.orderType = orderType;
+    }
+
+    public String getInstrument() {
+        return instrument;
+    }
+
+    public void setInstrument(String string) {
+        this.instrument = string;
+    }
+
+    public double getMarginUsed() {
+        return marginUsed;
+    }
+
+    public void setMarginUsed(double marginUsed) {
+        this.marginUsed = marginUsed;
+    }
+
+    public double getUnrealizedPL() {
+        return unrealizedPL;
+    }
+
+    public void setUnrealizedPL(double unrealizedPL) {
+        this.unrealizedPL = unrealizedPL;
+    }
+
+    public String getTriggerMode() {
+        return triggerMode;
+    }
+
+    public void setTriggerMode(String triggerMode) {
+        this.triggerMode = triggerMode;
+    }
+
+    public String getReplacesOrderID() {
+        return replacesOrderID;
+    }
+
+    public void setReplacesOrderID(String replacesOrderID) {
+        this.replacesOrderID = replacesOrderID;
+    }
+
+    public String getAccountID() {
+        return accountID;
+    }
+
 
     public String getClientOrderId() {
         return clientOrderId;
@@ -177,13 +394,19 @@ public class Order extends RecursiveTreeObject<Order> {
     private String icebergQty;
     private TradePair tradePair;
     private String timestamp;
-    private ENUM_ORDER_TYPE order_type;
+
+    public void setAccountID(String string) {
+        this.accountID = string;
+    }
     private double remaining;
     private double fee;
     private double lotSize;
     private double stopLoss;
     private String symbol;
-    private ENUM_ORDER_TYPE type;
+
+    public String getUserID() {
+        return userID;
+    }
     private JSONArray orders;
     public Order(String clientTradeID, String triggerCondition, String createTime, String price, String clientTradeID1, String state, String timeInForce, String tradeID) {
         this.clientTradeID = clientTradeID;
@@ -202,33 +425,6 @@ public class Order extends RecursiveTreeObject<Order> {
 
     public void setClientTradeID1(String clientTradeID1) {
         this.clientTradeID1 = clientTradeID1;
-    }
-
-    @Override
-    public String toString() {
-        return "Order " +
-                "clientTradeID1='" + clientTradeID1 + '\'' + ", id=" + id +
-                ", triggerCondition='" + triggerCondition + '\'' +
-                ", createTime='" + createTime + '\'' +
-                ", price='" + price + '\'' + ", status='" + status + '\'' +
-                ", clientTradeID='" + clientTradeID + '\'' +
-                ", state='" + state + '\'' +
-                ", timeInForce='" + timeInForce + '\'' +
-                ", tradeID='" + tradeID + '\'' +
-                ", order_type=" + order_type +
-                ", takeProfit=" + takeProfit +
-                ", stopLoss=" + stopLoss +
-                ", lotSize=" + lotSize +
-                ", type=" + type +
-                ", orderID=" + orderID +
-                ", ticket=" + ticket +
-                ", created='" + created + '\'' + ", updated=" + updated +
-                ", closed=" + closed +
-
-                ", side=" + side +
-                ", filled='" + filled + '\'' +
-                ", unit='" + unit + '\'' +
-                ", orders=" + orders;
     }
 
     public String getExecutedQty() {
@@ -280,10 +476,6 @@ public class Order extends RecursiveTreeObject<Order> {
         this.filled = filled;
     }
 
-    public String getCummulativeQuoteQty() {
-        return cummulativeQuoteQty;
-    }
-
     public void setCummulativeQuoteQty(String cummulativeQuoteQty) {
         this.cummulativeQuoteQty = cummulativeQuoteQty;
     }
@@ -292,12 +484,12 @@ public class Order extends RecursiveTreeObject<Order> {
         return orders;
     }
 
-    public ENUM_ORDER_TYPE getOrder_type() {
-        return order_type;
+    public void setUserID(String string) {
+        this.userID = string;
     }
 
-    public void setOrder_type(ENUM_ORDER_TYPE order_type) {
-        this.order_type = order_type;
+    public String getBatchID() {
+        return batchID;
     }
 
     public double getLotSize() {
@@ -363,12 +555,12 @@ public class Order extends RecursiveTreeObject<Order> {
         this.symbol = symbol;
     }
 
-    public ENUM_ORDER_TYPE getType() {
-        return type;
+    public void setBatchID(String string) {
+        this.batchID = string;
     }
 
-    public void setType(ENUM_ORDER_TYPE type) {
-        this.type = type;
+    public String getRequestID() {
+        return requestID;
     }
 
     public double getTakeProfit() {
@@ -579,5 +771,69 @@ public class Order extends RecursiveTreeObject<Order> {
 
     public void setIcebergQty(String icebergQty) {
         this.icebergQty = icebergQty;
+    }
+
+    public void setRequestID(String string) {
+        this.requestID = string;
+    }
+
+    public String getPartialFill() {
+        return partialFill;
+    }
+
+    public void setPartialFill(String string) {
+        this.partialFill = string;
+    }
+
+    public String getCummulativeQuoteQty() {
+        return cummulativeQuoteQty;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public void setReason(String string) {
+        this.reason = string;
+    }
+
+    public String getPositionFill() {
+        return positionFill;
+    }
+
+    public void setPositionFill(String string) {
+        this.positionFill = string;
+    }
+
+    public String getOrder_type() {
+        return order_type;
+    }
+
+    public void setOrder_type(String order_type) {
+        this.order_type = order_type;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setTime(String string) {
+        this.timestamp = string;
+    }
+
+    public void setUnits(String string) {
+        this.unit = string;
+    }
+
+    public JSONObject getClientExtensions() {
+        return clientExtensions;
+    }
+
+    public void setClientExtensions(JSONObject jsonObject) {
+        this.clientExtensions = jsonObject;
     }
 }

@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.BinanceUs;
+package cryptoinvestor.cryptoinvestor;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;

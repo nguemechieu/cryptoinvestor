@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.Coinbase;
+package cryptoinvestor.cryptoinvestor;
 
 public class TransactionSummary {
     public String id;

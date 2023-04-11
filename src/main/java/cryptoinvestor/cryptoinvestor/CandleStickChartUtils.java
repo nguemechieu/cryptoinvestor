@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static cryptoinvestor.cryptoinvestor.Coinbase.Coinbase.logger;
+import static cryptoinvestor.cryptoinvestor.Coinbase.logger;
 
 public final class CandleStickChartUtils {
     private static final int SECONDS_PER_MINUTE = 60;

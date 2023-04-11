@@ -52,19 +52,19 @@ public abstract class Currency implements Comparable<Currency> {
 
 
     private String image;
-    private long orderListId;
+
 
     /**
      * Private constructor used only for the {@code NULL_CURRENCY}.
      */
     protected Currency() {
         this.currencyType = CurrencyType.NULL;
-        this.fullDisplayName = "";
-        this.shortDisplayName = "";
+        this.fullDisplayName = "xxx";
+        this.shortDisplayName = "xxx";
         this.code = "XXX";
         this.fractionalDigits = 0;
-        this.symbol = "";
-        this.image = "";
+        this.symbol = "xxx";
+        this.image = "xxx";
 
     }
 
@@ -89,8 +89,7 @@ public abstract class Currency implements Comparable<Currency> {
         this.code = code;
         this.fractionalDigits = fractionalDigits;
         this.symbol = symbol;
-        this.image = "";
-        this.orderListId = -1;
+
     }
 
     public Currency(CurrencyType currencyType, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {
@@ -105,49 +104,46 @@ public abstract class Currency implements Comparable<Currency> {
             throw new IllegalArgumentException("fractional digits must be non-negative, was: " + fractionalDigits);
         }
         Objects.requireNonNull(symbol, "symbol must not be null");
-
         this.currencyType = currencyType;
         this.fullDisplayName = fullDisplayName;
         this.shortDisplayName = shortDisplayName;
         this.code = code;
         this.fractionalDigits = fractionalDigits;
         this.symbol = symbol;
-
         this.image = image;
-        this.orderListId = Math.abs(code.hashCode());
+
     }
 
     protected static void registerCurrency(Currency currency) {
         Objects.requireNonNull(currency, "currency must not be null");
         CURRENCIES.put(SymmetricPair.of(currency.code, currency.currencyType), currency);
     }
-
     public static Currency of(String code) throws SQLException, ClassNotFoundException {
         Objects.requireNonNull(code, "code must not be null");
-        if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.FIAT))
-                && CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
-            logger.error("ambiguous currency code: " + code);
-            throw new IllegalArgumentException("ambiguous currency code: " + code + " (code" +
-                    " is used for multiple currency types); use ofCrypto(...) or ofFiat(...) instead");
-        } else {
-            if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
-                return CURRENCIES.get(SymmetricPair.of(code, CurrencyType.CRYPTO));
-            } else if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.FIAT))) {
-                return CURRENCIES.getOrDefault(SymmetricPair.of(code, CurrencyType.FIAT), NULL_CRYPTO_CURRENCY);
-            } else {
-                logger.error("unknown currency code: " + code);
-                logger.error("known codes: " + CURRENCIES.keySet());
-                logger.info("Trying to fetch from database");
-                Db1 db1 = new Db1();
+//        if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.FIAT))
+//                && CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
+//            logger.error("ambiguous currency code: " + code);
+//            throw new IllegalArgumentException("ambiguous currency code: " + code + " (code" +
+//                    " is used for multiple currency types); use ofCrypto(...) or ofFiat(...) instead");
+//        } else {
+//            if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.CRYPTO))) {
+//                return CURRENCIES.get(SymmetricPair.of(code, CurrencyType.CRYPTO));
+//            } else if (CURRENCIES.containsKey(SymmetricPair.of(code, CurrencyType.FIAT))) {
+//                return CURRENCIES.getOrDefault(SymmetricPair.of(code, CurrencyType.FIAT), NULL_CRYPTO_CURRENCY);
+//            } else {
+//                logger.error("unknown currency code: " + code);
+//                logger.error("known codes: " + CURRENCIES.keySet());
+//                logger.info("Trying to fetch from database");
+        Db1 db1 = new Db1();
 
-                if (db1.getCurrency(code) != null) {
-                    return db1.getCurrency(code);
-                } else {
-                    logger.error("could not fetch from database");
-                    throw new IllegalArgumentException("unknown currency code: " + code);
-                }
-            }
+        if (db1.getCurrency(code) != null) {
+            return db1.getCurrency(code);
+        } else {
+            logger.error("could not fetch from database");
+            throw new IllegalArgumentException("unknown currency code: " + code);
         }
+        //  }
+        //}
 
     }
 
@@ -286,13 +282,6 @@ public abstract class Currency implements Comparable<Currency> {
 
     public abstract int compareTo(java.util.@NotNull Currency o);
 
-    public long getOrderListId() {
-        return orderListId;
-    }
-
-    public long getId() {
-        return orderListId;
-    }
 
     private static class NullCryptoCurrency extends CryptoCurrency {
         protected NullCryptoCurrency(CurrencyType currencyType, String fullDisplayName, String shortDisplayName, String code, int fractionalDigits, String symbol, String image) {

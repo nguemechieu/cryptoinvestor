@@ -22,6 +22,8 @@ module cryptoinvestor.cryptoinvestor {
     requires java.scripting;
     requires org.slf4j;
     requires mysql.connector.j;
+    requires org.testng;
+    requires org.junit.jupiter.api;
 
 
     exports cryptoinvestor.cryptoinvestor;

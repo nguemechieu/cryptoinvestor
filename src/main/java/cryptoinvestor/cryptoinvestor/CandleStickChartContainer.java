@@ -1,14 +1,12 @@
 package cryptoinvestor.cryptoinvestor;
+
 import javafx.animation.FadeTransition;
 import javafx.beans.property.SimpleIntegerProperty;
-import javafx.scene.Node;
-import javafx.scene.control.ListView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.text.ParseException;
@@ -109,7 +107,13 @@ public class CandleStickChartContainer extends Region {
             animateInNewChart(candleStickChart);
             toolbar.setChartOptions(candleStickChart.getChartOptions());
         } else {
-            throw new IllegalArgumentException("tradePair must not be null");
+
+            new Message(
+
+                    Message.MessageType.WARNING,
+
+                    "Please select a trade pair before creating a new chart."
+            );
         }
 
     }

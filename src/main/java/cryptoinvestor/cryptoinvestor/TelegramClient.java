@@ -20,7 +20,6 @@ import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.text.ParseException;
@@ -132,14 +131,14 @@ public class TelegramClient {
     public int MinAfter, LastUpd, Upd;
     protected String host = "https://api.telegram.org";
     KeyboardButton[] keyboard = new KeyboardButton[]{new KeyboardButton("1", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("2", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("3", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("4", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("5", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("6", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("7", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("8", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("9", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE), new KeyboardButton("0", KeyboardButtonType.BUTTON_TYPE_SINGLE_LINE)};
-    String reply_markup = "";
+    static String reply_markup = "";
     int Now;
     int BeforeNewsStop = 30;
     int AfterNewsStop = 60;
     boolean FirstAlert, SecondAlert;
     boolean sendNews = true;
     File chat_video_file_id;
-    private JsonNode response;
+    private static JsonNode response;
     private final String address;
     private PrintStream res;
     private boolean Signal;
@@ -201,10 +200,31 @@ public class TelegramClient {
         return updateMode;
     }
 
+    public static void sendMessageToChannel(String s) {
+        requestBuilder.uri(URI.create("https://api.telegram.org/bot" + token + "/sendMessage?chat_id=" + chat_id + "&text=" + s + "&parse_mode=Markdown&disable_web_page_preview=true&disable_notification=" + disable_notification + "&reply_to_message_id=" + reply_to_message_id + "&reply_markup=" + reply_markup + "&parse_mode=Markdown&disable_web_page_preview=true&disable_notification=" + disable_notification + "&reply_to_message_id=" + reply_to_message_id + "&reply_markup=" + reply_markup + "&parse_mode=Markdown&disable_web_page_preview=true&disable_notification=" + disable_notification + "&reply_to_message_id=" + reply_to_message_id + "&reply_markup=" + reply_markup + "&parse_mode=Markdown&disable_web_page_preview=true&disable_"));
+
+        //.uri(URI.create("https://api.telegram.org/bot" + token+ "/sendMessage?chat_id=" + chat_id + "&text=" + s + "&parse_mode=Markdown&disable_web_page_preview=true&disable_notification=" + disable_notification + "&reply_to_message_id=" + reply_to_message_id + "&reply_markup=" + reply_markup + "&parse_mode=Markdown&disable_web_page_preview=true&disable_notification=" + disable_notification + "&reply_to_message_id=" + reply_to_message_id + "&reply_markup=" + reply_markup + "&parse_mode=Markdown&disable_web_page_preview=true&disable_notification=" + disable_notification + "&reply_to_message_id=" + reply_to_message_id + "&reply_markup=" + reply_markup    )
+        requestBuilder.POST(HttpRequest.BodyPublishers.noBody());
+        client.sendAsync(requestBuilder.build(), HttpResponse.BodyHandlers.ofString()).thenApply(
+                HttpResponse::body
+        ).thenApply(
+                response -> {
+                    try {
+                        TelegramClient.response = new ObjectMapper().readTree(response);
+                        TelegramClient.response = TelegramClient.response.get("result");
+                        TelegramClient.response = TelegramClient.response.get("ok");
+                        logger.info(TelegramClient.response.toString());
+                    } catch (JsonProcessingException e) {
+                        e.printStackTrace();
+                    }
+                    return null;
+                });
+
+    }
+
     public void setUpdateMode(UPDATE_MODE updateMode) {
         TelegramClient.updateMode = updateMode;
     }
-
 
 
     public static String getLocation() {

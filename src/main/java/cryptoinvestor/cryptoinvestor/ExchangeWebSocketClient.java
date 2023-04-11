@@ -51,10 +51,8 @@ public abstract class ExchangeWebSocketClient extends WebSocketClient {
         super(serverUri, protocolDraft, httpHeaders, connectTimeout);
     }
 
-    public abstract void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer);
 
-    public abstract void streamLiveTrades(@NotNull TradePair tradePair, LiveTradesConsumer liveTradesConsumer);
-
+    public abstract void streamLiveTrades(TradePair tradePair, UpdateInProgressCandleTask liveTradesConsumer);
 
     public abstract void stopStreamLiveTrades(TradePair tradePair);
 
@@ -119,4 +117,7 @@ public abstract class ExchangeWebSocketClient extends WebSocketClient {
     public abstract Set<Extension> getInstalledExtensions();
 
     public abstract double getPrice(TradePair tradePair) throws IOException, InterruptedException;
+
+
+    public abstract void streamLiveTrades(TradePair tradePair, CandleStickChart.UpdateInProgressCandleTask updateInProgressCandleTask);
 }

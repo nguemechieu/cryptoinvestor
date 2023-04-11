@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.oanda;
+package cryptoinvestor.cryptoinvestor;
 
 import org.json.JSONObject;
 

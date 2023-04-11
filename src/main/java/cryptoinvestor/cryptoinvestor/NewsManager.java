@@ -17,12 +17,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Objects;
 
+import static cryptoinvestor.cryptoinvestor.TelegramClient.getToken;
 import static java.lang.System.out;
 
 public class NewsManager {
 
     private static final String url = "https://nfs.faireconomy.media/ff_calendar_thisweek.json?version=1bed8a31256f1525dbb0b6daf6898823";
-    public static ArrayList<News> news = new ArrayList<>();
+    static ArrayList<News> news = new ArrayList<>();
     static News news1 = new News("", "", "", new Date(), "", "");
 
     public NewsManager() throws ParseException {
@@ -39,9 +40,7 @@ public class NewsManager {
     public static ArrayList<News> load() throws ParseException {
         news = new ArrayList<>();//
         JSONArray jsonArray = Objects.requireNonNull(makeRequest());
-
         int length = jsonArray.length();
-
         for (int i = 0; i < length; i++) {
             JSONObject json = jsonArray.getJSONObject(i);
             String title = null;
@@ -55,12 +54,12 @@ public class NewsManager {
                 news1.setCountry(country);
             }
 
-            String impact = null;
+            String impact = "";
             if (json.has("impact")) {
                 impact = json.getString("impact");
                 news1.setImpact(impact);
             }
-            String date = null;
+            String date = "";
             if (json.has("date")) {
                 date = json.getString("date");
 
@@ -89,29 +88,24 @@ public class NewsManager {
 
     @Contract("null -> fail")
     public static Date StringToDate(String str) throws ParseException {//TODO implement date
-        if (str == null)
-            throw new IllegalArgumentException("Invalid date string");
-
-
+        if (str == null) throw new IllegalArgumentException("Invalid date string");
         //ZonedDateTime.from(DateTimeFormatter.ofPattern( "yyyy-MM-dd'T'HH:mm:ss").parse(str.substring(0, 19)));
-        return new SimpleDateFormat(
-                "yyyy-MM-dd'T'HH:mm:ss"
-        )
-                .parse(str);
+        return new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(str);
     }
 
 
     //makeRequest return JSONObject
     private static @Nullable JSONArray makeRequest() {
         try {
-            HttpURLConnection connection = (HttpURLConnection) new URL(NewsManager.url).openConnection();
+            HttpURLConnection connection = (HttpURLConnection)
+                    new URL(NewsManager.url).openConnection();
             connection.setDoOutput(true);
             connection.setDoInput(true);
             connection.setUseCaches(false);
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setRequestProperty("Accept", "application/json");
-            // connection.setRequestProperty("Authorization", "Bearer " + getToken());
+            connection.setRequestProperty("Authorization", "Bearer " + getToken());
             connection.connect();
             int responseCode = connection.getResponseCode();
             out.printf("Response Code: %d%n", responseCode);

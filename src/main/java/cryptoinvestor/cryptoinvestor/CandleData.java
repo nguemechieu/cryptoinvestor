@@ -20,15 +20,16 @@ public class CandleData extends RecursiveTreeObject<CandleData> implements Seria
     private static final long serialVersionUID = 1L;
 
 public static final Logger logger = LoggerFactory.getLogger(CandleData.class);
-    private final double averagePrice = -1;
+
     public int closeTime;
+    public Date time = new Date();
     int openTime;
     double openPrice;
     double closePrice;
     double highPrice;
     double lowPrice;
     double volume;
-    private double volumeWeightedAveragePrice;
+
     private boolean placeHolder;
     @Id
     private Long id;
@@ -52,9 +53,7 @@ public static final Logger logger = LoggerFactory.getLogger(CandleData.class);
 
         this.placeHolder = false;
         this.setId(Math.round(Math.random() * 1000000000));
-        this.volumeWeightedAveragePrice =
-                (openPrice + closePrice + highPrice + lowPrice) / 4;
-        this.closeTime = -1;
+
         logger.info("CandleData created with id: " + this.id);
     }
 
@@ -106,10 +105,6 @@ public static final Logger logger = LoggerFactory.getLogger(CandleData.class);
 
     }
 
-    public double getVolumeWeightedAveragePrice() {
-        return volumeWeightedAveragePrice;
-    }
-
     public boolean isPlaceHolder() {
         return placeHolder;
     }
@@ -126,19 +121,19 @@ public static final Logger logger = LoggerFactory.getLogger(CandleData.class);
 
         CandleData other = (CandleData) object;
 
-        return openPrice == other.openPrice && closePrice == other.closePrice && highPrice == other.highPrice && lowPrice == other.lowPrice && Objects.equals(openTime, other.openTime) && volume == other.volume && volumeWeightedAveragePrice == other.volumeWeightedAveragePrice && placeHolder == other.placeHolder;
+        return openPrice == other.openPrice && closePrice == other.closePrice && highPrice == other.highPrice && lowPrice == other.lowPrice && Objects.equals(openTime, other.openTime) && volume == other.volume && placeHolder == other.placeHolder;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(openPrice, closePrice, highPrice, lowPrice, openTime, volume, averagePrice,
-                volumeWeightedAveragePrice, placeHolder);
+        return Objects.hash(openPrice, closePrice, highPrice, lowPrice, openTime, volume,
+                placeHolder);
     }
 
     @Override
     public String toString() {
         return "CandleData{" +
-                "averagePrice=" + averagePrice +
+
                 ", closeTime=" + closeTime +
                 ", openTime=" + openTime +
                 ", openPrice=" + openPrice +
@@ -146,7 +141,6 @@ public static final Logger logger = LoggerFactory.getLogger(CandleData.class);
                 ", highPrice=" + highPrice +
                 ", lowPrice=" + lowPrice +
                 ", volume=" + volume +
-                ", volumeWeightedAveragePrice=" + volumeWeightedAveragePrice +
                 ", placeHolder=" + placeHolder +
                 ", id=" + id +
                 '}';
@@ -166,5 +160,14 @@ public static final Logger logger = LoggerFactory.getLogger(CandleData.class);
 
     public Date getTimestamp() {
         return new Date(openTime * 1000L);
+    }
+
+
+    public double getVolumeSoFar() {
+        return volume;
+    }
+
+    public void setOpenTime(int openTime) {
+        this.openTime = openTime;
     }
 }

@@ -1,6 +1,5 @@
-package cryptoinvestor.cryptoinvestor.Coinbase;
+package cryptoinvestor.cryptoinvestor;
 
-import cryptoinvestor.cryptoinvestor.Account;
 import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 

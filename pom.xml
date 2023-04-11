@@ -100,7 +100,6 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>${junit.version}</version>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
@@ -131,6 +130,13 @@
             <artifactId>mysql-connector-mxj-db-files</artifactId>
             <version>5.0.12</version>
         </dependency>
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>7.7.0</version>
+            <scope>compile</scope>
+        </dependency>
+
 
     </dependencies>
     <inceptionYear>2020</inceptionYear>
@@ -168,7 +174,9 @@
                         <!-- Default configuration for running with: mvn clean javafx:run -->
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>cryptoinvestor.cryptoinvestor/cryptoinvestor.cryptoinvestor.Cryptoinvestor
+                            <mainClass>
+                                cryptoinvestor.cryptoinvestor
+                                /cryptoinvestor.cryptoinvestor.CryptoInvestor
                             </mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>

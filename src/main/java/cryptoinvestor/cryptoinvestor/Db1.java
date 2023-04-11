@@ -17,9 +17,6 @@ public class Db1 implements Db {
 
 
     Connection conn;//= DriverManager.getConnection("jdbc:sqlite:cryptoinvestor");
-
-
-    //    Properties properties=new Properties();
     String DB_URL = "jdbc:mysql://localhost:3306/cryptoinvestor";
     String USER = "root";
     String PASS = "Bigboss307#";
@@ -42,6 +39,20 @@ public class Db1 implements Db {
 
     @Override
     public void createTables() {
+        try {
+            String sql = "CREATE TABLE IF NOT EXISTS cryptoinvestor.cryptoinvestor ( " +
+                    "id INTEGER PRIMARY KEY AUTO_INCREMENT, " +
+                    "full_display_name VARCHAR(255), " +
+                    "short_display_name VARCHAR(255), " +
+                    "fractional_digits INTEGER, " +
+                    "symbol VARCHAR(255), " +
+                    "image VARCHAR(255) " +
+                    ")";
+            System.out.println(sql);
+            this.conn.createStatement().executeUpdate(sql);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -190,6 +201,11 @@ public class Db1 implements Db {
 
     @Override
     public void update(String table, String column, String value) {
+        try {
+            conn.createStatement().executeUpdate("UPDATE " + table + " SET " + column + " = '" + value + "'");
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -255,12 +271,12 @@ public class Db1 implements Db {
     }
 
     @Override
-    public int getLoginTimeout() throws SQLException {
+    public int getLoginTimeout() {
         return 0;
     }
 
     @Override
-    public void setLoginTimeout(int seconds) throws SQLException {
+    public void setLoginTimeout(int seconds) {
 
     }
 
@@ -269,17 +285,14 @@ public class Db1 implements Db {
         return null;
     }
 
-
     @Override
     public <T> T unwrap(Class<T> iface) {
         return null;
     }
-
     @Override
     public boolean isWrapperFor(Class<?> iface) {
         return false;
     }
-
     public void registerCurrencies(@NotNull Collection<Currency> currencies) throws SQLException {
         //Create table currencies if not exits
         conn.createStatement().executeUpdate("CREATE TABLE IF NOT EXISTS " +
@@ -310,7 +323,8 @@ public class Db1 implements Db {
                             + currency.getFractionalDigits() + "','" +
                             currency.getSymbol() + "','" +
                             currency.getImage() + "')");
-                    //   conn.createStatement().executeQuery(+"'DELETE FROM table a
+                    //
+                    // conn.createStatement().executeQuery(+"'DELETE FROM table a
 //                   WHERE a.ROWID IN
 //                   (SELECT ROWID FROM
 //                   (SELECT
@@ -333,49 +347,17 @@ public class Db1 implements Db {
             } catch (SQLException e) {
                 e.printStackTrace();
             }
-
-
         }
-
-
     }
 
     public Currency getCurrency(String code) throws SQLException {
-
         // Get currency from database
-        Currency newCurrency = new NullFiatCurrency(
-                CurrencyType.NULL,
-                "Currency with code: " + code + " not found in database",
-                "Currency with code: " + code + " not found in database"
-                ,
-                "XXX",
-                0,
-                "Currency with code: " + code + " not found in database",
-                "XXX"
-        );
-
-
+        Currency newCurrency = null;
         ResultSet check = conn.createStatement().executeQuery("SELECT * FROM currencies WHERE code = '" + code + "'");
-
-
         if (!check.next()) {
             logger.info("Currency not found with code: " + code);
             new Message(Message.MessageType.WARNING, "Currency with code: " + code + " not found in database");
-            CurrencyType type = CurrencyType.FIAT;
-            newCurrency = new
-                    NullFiatCurrency(
-                    type,
-                    "Currency with code: " + code + " not found in database",
-                    "Currency with code: " + code + " not found in database"
-                    ,
-                    "XXX",
-                    0,
-                    "Currency with code: " + code + " not found in database",
-                    "XXX"
-            );
-
         } else {
-
             code = check.getString("code");
             fullDisplayName = check.getString("full_display_name");
             shortDisplayName = check.getString("short_display_name");
@@ -393,17 +375,13 @@ public class Db1 implements Db {
                     image,
                     currencyType);
             logger.info(format);
-
             CurrencyType type = CurrencyType.valueOf(currencyType);
-
-
             logger.info("Currency Type: " + type);
-
             newCurrency = new CryptoCurrency(
                     type,
-
                     fullDisplayName,
-                    shortDisplayName, code,
+                    shortDisplayName,
+                    code,
                     fractionalDigits,
                     symbol,
                     image) {
@@ -416,13 +394,9 @@ public class Db1 implements Db {
                 public int compareTo(java.util.@NotNull Currency o) {
                     return 0;
                 }
-
-
             };
-
+            logger.info("New Currency: " + newCurrency);
         }
-        logger.info("New Currency: " + newCurrency);
-
         return newCurrency;
     }
 }

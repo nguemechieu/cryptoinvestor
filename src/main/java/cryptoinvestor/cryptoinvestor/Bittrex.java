@@ -62,7 +62,7 @@ public class Bittrex extends Exchange {
     }
 
     @Override
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isTrade) {
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isAutoTrading) {
         return
 
                 null;
@@ -222,7 +222,7 @@ public class Bittrex extends Exchange {
     }
 
     @Override
-    public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size, @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
+    public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size, @NotNull Date timestamp, double stopLoss, double takeProfit) throws IOException, InterruptedException {
 
     }
 
@@ -267,6 +267,16 @@ public class Bittrex extends Exchange {
     @Override
     public void getOrderHistory(TradePair tradePair) throws IOException, InterruptedException {
 
+    }
+
+    @Override
+    public List<Order> getPendingOrders() {
+        return null;
+    }
+
+    @Override
+    public @NotNull List<Account> getAccount() throws IOException, InterruptedException {
+        return null;
     }
 
 

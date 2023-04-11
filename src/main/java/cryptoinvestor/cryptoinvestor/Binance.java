@@ -160,7 +160,7 @@ public Set<Integer> getSupportedGranularities() {
      * This method only needs to be implemented to support live syncing.
      */
     @Override
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isTrade) {
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isAutoTrading) {
         Objects.requireNonNull(tradePair);
         Objects.requireNonNull(stopAt);
 
@@ -597,7 +597,7 @@ if (response.statusCode() == 200) {
 
     @Override
     public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size,
-                            @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
+                            @NotNull Date timestamp, double stopLoss, double takeProfit) throws IOException, InterruptedException {
     }
 
     @Override
@@ -606,7 +606,7 @@ if (response.statusCode() == 200) {
     }
 
     @Override
-    public List<String> getTradePair() throws IOException, InterruptedException, SQLException {
+    public List<String> getTradePair() throws IOException, InterruptedException, SQLException, ClassNotFoundException {
 
         Set<TradePair> tradePairs =
                 new HashSet<>();
@@ -685,6 +685,16 @@ if (response.statusCode() == 200) {
     @Override
     public void getOrderHistory(TradePair tradePair) throws IOException, InterruptedException {
 
+    }
+
+    @Override
+    public List<Order> getPendingOrders() {
+        return null;
+    }
+
+    @Override
+    public @NotNull List<Account> getAccount() throws IOException, InterruptedException {
+        return null;
     }
 
     @Override

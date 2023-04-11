@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.BinanceUs;
+package cryptoinvestor.cryptoinvestor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -28,19 +28,18 @@ import java.text.ParseException;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import static java.time.format.DateTimeFormatter.ISO_INSTANT;
 
 
-public class BinanceUsWebSocket extends ExchangeWebSocketClient {
+public abstract class BinanceUsWebSocket extends ExchangeWebSocketClient {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper()
             .registerModule(new JavaTimeModule())
             .enable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-    private static final Logger logger = LoggerFactory.getLogger(cryptoinvestor.cryptoinvestor.Coinbase.CoinbaseWebSocketClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(CoinbaseWebSocketClient.class);
 
 
     public BinanceUsWebSocket(@NotNull TradePair tradePair) {
@@ -128,21 +127,21 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
             symb = symb.replace("USDT", "");
             try {
                 tradePair = new TradePair(symb, "USDT");
-            } catch (SQLException e) {
+            } catch (SQLException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
         } else if (symb.contains("USD") && symb.length() > 3) {
             symb = symb.replace("USD", "");
             try {
                 tradePair = new TradePair(symb, "USD");
-            } catch (SQLException e) {
+            } catch (SQLException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
         } else if (symb.subSequence(3, symb.length()).equals("BTC")) {
             symb = symb.replace("BTC", "");
             try {
                 tradePair = new TradePair(symb, "BTC");
-            } catch (SQLException e) {
+            } catch (SQLException | ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
         }
@@ -201,27 +200,17 @@ public class BinanceUsWebSocket extends ExchangeWebSocketClient {
     }
 
     @Override
-    public void streamLiveTrades(@NotNull Set<TradePair> tradePairs, LiveTradesConsumer liveTradesConsumer) {
+    public void streamLiveTrades(TradePair tradePair, UpdateInProgressCandleTask liveTradesConsumer) {
 
-        tradePairs = tradePairs.stream().filter(Objects::nonNull).collect(Collectors.toSet());
+
         send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
-                .put("s", tradePairs.stream().map(TradePair::toString).collect(Collectors.joining())).toPrettyString());
-        liveTradeConsumers.put(
-                (TradePair) tradePairs,
-                liveTradesConsumer);
-
-    }
-
-    @Override
-    public void streamLiveTrades(@NotNull TradePair tradePair, LiveTradesConsumer liveTradesConsumer) {
-        send(OBJECT_MAPPER.createObjectNode().put("type", "subscribe")
-                .put("s", tradePair.toString('-')).toPrettyString());
+                .put("s", tradePair.toString('/')).asText());
         liveTradeConsumers.put(
                 tradePair,
                 liveTradesConsumer);
 
-
     }
+
 
     @Override
     public void stopStreamLiveTrades(TradePair tradePair) {

@@ -193,7 +193,7 @@ public class Poloniex extends Exchange {
      * This method only needs to be implemented to support live syncing.
      */
     @Override
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isTrade) {
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isAutoTrading) {
         Objects.requireNonNull(tradePair);
         Objects.requireNonNull(stopAt);
 
@@ -578,12 +578,12 @@ public class Poloniex extends Exchange {
     }
 
     @Override
-    public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size, @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
+    public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size, @NotNull Date timestamp, double stopLoss, double takeProfit) throws IOException, InterruptedException {
 
         requestBuilder.uri(
                 URI.create("https://api.exchange.coinbase.com/orders"));
         requestBuilder.method("POST", HttpRequest.BodyPublishers.ofString(
-                "{\"symbol\":\"" + tradePair.toString('-') + "\",\"side\":\"" + side + "\",\"type\":\"" + orderType + "\",\"price\":\"" + price + "\",\"size\":\"" + size + "\",\"timestamp\":\"" + timestamp + "\",\"stop_loss\":\"" + stopLoss + "\",\"take_profit\":\"" + takeProfit + "\",\"take_profit_price\":\"" + takeProfitPrice + "\"}"
+                "{\"symbol\":\"" + tradePair.toString('-') + "\",\"side\":\"" + side + "\",\"type\":\"" + orderType + "\",\"price\":\"" + price + "\",\"size\":\"" + size + "\",\"timestamp\":\"" + timestamp + "\",\"stop_loss\":\"" + stopLoss + "\",\"take_profit\":\"" + takeProfit + "\"}"
         ));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         if (response.statusCode() == 200) {
@@ -749,29 +749,35 @@ public class Poloniex extends Exchange {
         }
     }
 
+    @Override
+    public List<Order> getPendingOrders() throws IOException, InterruptedException {
+        return null;
+    }
+
+    @Override
+    public @NotNull List<Account> getAccount() throws IOException, InterruptedException {
+        return null;
+    }
+
 
     public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size,
                             @NotNull Instant timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
-        // JSONObject jsonObject = getJSON();
-        //   System.out.println(jsonObject.toString(4));
+        //JSONObject jsonObject = getJSON();
+        //System.out.println(jsonObject.toString(4));
 
         String symbol = tradePair.toString('-');
 
         String uriStr = "https://api.coinbase.com/api/v3/brokerage/orders";
 
-        String data=
+        String data =
                 String.format(
                         "{\"product_id\": \"%s\", \"side\": \"%s\", \"type\": \"%s\", \"quantity\": %f, \"price\": %f, \"stop-loss\": %f, \"take-profit\": %f, \"take-profit-price\": %f, \"timestamp\": \"%s\"}",
                         symbol, side, orderType, size, price, stopLoss, takeProfit, takeProfitPrice,
                         timestamp.toEpochMilli() / 1000L);
 
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder();
         data = String.format(data, orderType, side, price);
-
         System.out.println(uriStr);
-        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(
-                data
-        ));
+        requestBuilder.POST(HttpRequest.BodyPublishers.ofString(data));
         requestBuilder.uri(URI.create(uriStr));
         HttpResponse<String> response = client.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
         System.out.println(response.statusCode());
@@ -786,45 +792,13 @@ public class Poloniex extends Exchange {
             alert.setContentText(response.body());
             alert.showAndWait();
 
-        }else {
+        } else {
             JSONObject jsonObject = new JSONObject(response.body());
 
 
             System.out.println(jsonObject.toString(4));
         }
 
-
-
-
-
-    }
-    public void CloseAllOrders() throws IOException, InterruptedException {
-        String uriStr ="https://api.coinbase.com/api/v3/brokerage/orders/batch_cancel"
-                ;
-
-        System.out.println(uriStr);
-        HttpRequest.Builder request = HttpRequest.newBuilder();
-        requestBuilder.uri(URI.create(uriStr));
-        requestBuilder.DELETE();
-        HttpResponse<String> response = client.send(request.build(), HttpResponse.BodyHandlers.ofString());
-        System.out.println(response.statusCode());
-        System.out.println(response.body());
-        if (response.statusCode()!= 200) {
-            System.out.println(response.statusCode());
-            System.out.println(response.body());
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null);
-            alert.setContentText(response.body());
-            alert.showAndWait();
-
-        }
-        else {
-            JSONObject jsonObject = new JSONObject(response.body());
-
-
-            System.out.println(jsonObject.toString(4));
-        }
 
     }
 

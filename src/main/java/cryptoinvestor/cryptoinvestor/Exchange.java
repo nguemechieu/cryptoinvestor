@@ -54,7 +54,7 @@ public abstract class Exchange {
     public abstract CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle();
 
 
-    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isAutoTrade);
+    public abstract CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isAutoTrading);
 
     public abstract CompletableFuture<Optional<InProgressCandleData>> fetchCandleDataForInProgressCandle(
             TradePair tradePair, Instant currentCandleStartedAt, long secondsIntoCurrentCandle, int secondsPerCandle);
@@ -119,7 +119,7 @@ public abstract class Exchange {
     public abstract @NotNull List<Currency> getAvailableSymbols() throws IOException, InterruptedException;
 
     public abstract void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size,
-                                     @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException;
+                                     @NotNull Date timestamp, double stopLoss, double takeProfit) throws IOException, InterruptedException;
 
     public abstract void closeAllOrders() throws IOException, InterruptedException;
 
@@ -144,7 +144,7 @@ public abstract class Exchange {
     public abstract List<OrderBook> getOrderBook(TradePair tradePair) throws IOException, InterruptedException;
 
 
-    public abstract List<String> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException, SQLException;
+    public abstract List<String> getTradePair() throws IOException, InterruptedException, ParseException, URISyntaxException, SQLException, ClassNotFoundException;
 
     public abstract void connect(String text, String text1, String userIdText) throws IOException, InterruptedException;
 
@@ -190,4 +190,7 @@ public abstract class Exchange {
                 }};
     }
 
+    public abstract List<Order> getPendingOrders() throws IOException, InterruptedException;
+
+    public abstract @NotNull List<Account> getAccount() throws IOException, InterruptedException;
 }

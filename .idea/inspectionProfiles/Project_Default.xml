@@ -22,6 +22,7 @@
           <option value="DNT" />
           <option value="Accept-Datetime-Format" />
           <option value="OANDA-Agent" />
+          <option value="CB-AFTER" />
         </set>
       </option>
     </inspection_tool>

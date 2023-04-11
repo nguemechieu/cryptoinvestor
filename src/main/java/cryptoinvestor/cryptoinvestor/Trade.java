@@ -3,7 +3,6 @@ package cryptoinvestor.cryptoinvestor;
 import com.google.gson.Gson;
 import com.jfoenix.controls.datamodels.treetable.RecursiveTreeObject;
 import cryptoinvestor.cryptoinvestor.Indicators.Signal;
-import cryptoinvestor.cryptoinvestor.oanda.POSITION_FILL;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -464,7 +463,7 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
 
 
       this.order=new Order(
-              id, instrument, timestamp.toString(),
+              id, instrument.toString('_'), timestamp.toString(),
               orderType,
               side,
               currentUnits,
@@ -693,7 +692,6 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
                         Side.BUY,
                         ENUM_ORDER_TYPE.MARKET, price, size,
                         new Date(), 0,
-                        0,
                         0
                 );
 
@@ -708,7 +706,6 @@ public class Trade extends RecursiveTreeObject<Trade> implements Runnable {
                         Side.SELL,
                         ENUM_ORDER_TYPE.MARKET, price, size,
                         new Date(), 0,
-                        0,
                         0
                 );
 

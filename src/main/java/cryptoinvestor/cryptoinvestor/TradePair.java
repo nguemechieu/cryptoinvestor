@@ -36,23 +36,23 @@ public class TradePair extends Pair<Currency, Currency> {
         super(baseCurrency, counterCurrency);
         this.baseCurrency = baseCurrency;
         this.counterCurrency = counterCurrency;
-        this.orderListId = CurrencyDataProvider.of(baseCurrency.code).getOrderListId();
+
         logger.debug("TradePair created: {}", this);
         logger.debug("TradePair created: {}", this);
-        this.id = CurrencyDataProvider.of(baseCurrency.code).getId();
+
     }
 
-    public TradePair(String baseCurrency, String counterCurrency) throws SQLException {
-        super(CurrencyDataProvider.of(baseCurrency), CurrencyDataProvider.of(counterCurrency));
+    public TradePair(String baseCurrency, String counterCurrency) throws SQLException, ClassNotFoundException {
+        super(Currency.of(baseCurrency), Currency.of(counterCurrency));
 
-        this.baseCurrency = CurrencyDataProvider.of(baseCurrency);
-        this.counterCurrency = CurrencyDataProvider.of(counterCurrency);
+        this.baseCurrency = Currency.of(baseCurrency);
+        this.counterCurrency = Currency.of(counterCurrency);
         logger.debug("TradePair created: {}", this);
     }
 
 
     @Contract("_, _ -> new")
-    public static @NotNull TradePair of(String baseCurrencyCode, String counterCurrencyCode) throws SQLException {
+    public static @NotNull TradePair of(String baseCurrencyCode, String counterCurrencyCode) throws SQLException, ClassNotFoundException {
         return new TradePair(baseCurrencyCode, counterCurrencyCode);
     }
 

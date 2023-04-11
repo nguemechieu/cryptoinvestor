@@ -27,7 +27,8 @@ public class Wallet extends Stage {
         gridPane.add(new Label("Name: " + exchange.getName()), 0, 0);
         try {
             gridPane.add(new Label("Symbol: " + exchange.getTradePair()), 0, 1);
-        } catch (IOException | InterruptedException | ParseException | URISyntaxException | SQLException e) {
+        } catch (IOException | InterruptedException | ParseException | URISyntaxException | SQLException |
+                 ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
         gridPane.add(new Label("Volume: " + exchange.getVolume()), 0, 3);

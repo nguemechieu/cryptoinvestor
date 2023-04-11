@@ -1,6 +1,11 @@
 package cryptoinvestor.cryptoinvestor;
 
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Date;
+
 public record InProgressCandleData(int openTime, double openPrice, double highPriceSoFar, double lowPriceSoFar,
                                    int currentTill, double lastPrice, double volumeSoFar) {
 
@@ -54,5 +59,15 @@ public record InProgressCandleData(int openTime, double openPrice, double highPr
 
     public long getCurrentTill() {
         return currentTill;
+    }
+
+    @Contract(value = " -> new", pure = true)
+    public @NotNull Date getOpenTime() {
+        return new Date(openTime);
+    }
+
+    @Contract(value = " -> new", pure = true)
+    public @NotNull Date getCloseTime() {
+        return new Date(openTime + currentTill);
     }
 }

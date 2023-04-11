@@ -1,4 +1,4 @@
-package cryptoinvestor.cryptoinvestor.BinanceUs;
+package cryptoinvestor.cryptoinvestor;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -8,8 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import cryptoinvestor.cryptoinvestor.Currency;
-import cryptoinvestor.cryptoinvestor.*;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
@@ -117,7 +115,7 @@ public class BinanceUs extends Exchange {
 
 
     //api/v3/account
-    public Account getAccount() throws IOException, InterruptedException {
+    public @NotNull List<Account> getAccount() throws IOException, InterruptedException {
         requestBuilder.uri(URI.create(
                 "https://api.binance.us/api/v3/account"
         ));
@@ -592,7 +590,17 @@ public class BinanceUs extends Exchange {
     @Override
     public ExchangeWebSocketClient getWebsocketClient() {
         return
-                new BinanceUsWebSocket(tradePair);
+                new BinanceUsWebSocket(tradePair) {
+                    @Override
+                    public void streamLiveTrades(TradePair tradePair, UpdateInProgressCandleTask updateInProgressCandleTask) {
+
+                    }
+
+                    @Override
+                    public void streamLiveTrades(TradePair tradePair, CandleStickChart.UpdateInProgressCandleTask updateInProgressCandleTask) {
+
+                    }
+                };
     }
 
     @Override
@@ -612,7 +620,7 @@ public class BinanceUs extends Exchange {
      * This method only needs to be implemented to support live syncing.
      */
     @Override
-    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isAutoTrade) {
+    public CompletableFuture<List<Trade>> fetchRecentTradesUntil(TradePair tradePair, Instant stopAt, boolean isAutoTrading) {
         Objects.requireNonNull(tradePair);
         Objects.requireNonNull(stopAt);
 
@@ -3329,12 +3337,13 @@ public class BinanceUs extends Exchange {
 
     @Override
     public void createOrder(@NotNull TradePair tradePair, @NotNull Side side, @NotNull ENUM_ORDER_TYPE orderType, double price, double size,
-                            @NotNull Date timestamp, double stopLoss, double takeProfit, double takeProfitPrice) throws IOException, InterruptedException {
+                            @NotNull Date timestamp, double stopLoss, double takeProfit) throws IOException, InterruptedException {
 
         URI uri = URI.create("https://api.binance.us/api/v3/order/symbol?" + tradePair.toString('/')
                 + "&side=" + side + "&type=LIMIT&timeInForce=GTC&quantity=" + size
-                + "&price=" + price + "&stopPrice=" + stopLoss + "&takeProfitPrice="
-                + takeProfitPrice + "&newClientOrderId=" + UUID.randomUUID());
+                + "&price=" + price + "&stopPrice=" + stopLoss + "&takeProfit="
+                + takeProfit
+                + "&newClientOrderId=" + UUID.randomUUID());
 
         requestBuilder.uri(uri);
 
@@ -3610,6 +3619,11 @@ requestBuilder.uri(URI.create("https://api.binance.us/api/v3/"));
     @Override
     public void getOrderHistory(TradePair tradePair) throws IOException, InterruptedException {
 
+    }
+
+    @Override
+    public List<Order> getPendingOrders() {
+        return null;
     }
 
 
